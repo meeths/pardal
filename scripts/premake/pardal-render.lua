@@ -3,7 +3,7 @@ group "00 Pardal Engine"
 project "pardal-render"
     kind "StaticLib"
     language "C++"
-    targetdir "%{BASE_DIR}bin/%{cfg.buildcfg}"
+    targetdir "%{BASE_DIR}libs/%{cfg.buildcfg}"
     
     files {
         "%{BASE_DIR}packages/pardal-render/**.h",

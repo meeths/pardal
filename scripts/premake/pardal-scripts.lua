@@ -1,6 +1,6 @@
-group "99 scripts"
+group "99 Pardal Scripts"
 
-project "lyra.scripts"
+project "pardal-scripts"
     kind "Utility"
     files { 
         "%{BASE_DIR}*.yml",
