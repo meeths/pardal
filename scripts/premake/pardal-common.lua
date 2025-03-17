@@ -1,16 +1,14 @@
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 
-include "scripts/premake/external/glm.lua"
-
 function configureCommonExternals()
     filter {}
-    includeGLM()
 end
 
 function configureCommonFlags()
-    flags { "FatalCompileWarnings", "MultiProcessorCompile" }    
+    flags { "MultiProcessorCompile" }
+    fatalwarnings { "All" }    
     filter {"configurations:Release"}
-        flags { "LinkTimeOptimization" }        
+        linktimeoptimization "On"         
     filter {}
     toolset "clang"
     cppdialect "C++20"
