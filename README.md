@@ -1,3 +1,4 @@
 # Pardal
 Graphics/Game engine and tech playground
-__Pardal__ is Catalan for __sparrow__
+
+_Pardal_ is Catalan for _sparrow_
