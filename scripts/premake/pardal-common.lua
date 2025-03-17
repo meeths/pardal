@@ -1,0 +1,50 @@
+BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
+
+include "scripts/premake/external/glm.lua"
+
+function configureCommonExternals()
+    filter {}
+    includeGLM()
+end
+
+function configureCommonFlags()
+    flags { "FatalCompileWarnings", "MultiProcessorCompile" }    
+    filter {"configurations:Release"}
+        flags { "LinkTimeOptimization" }        
+    filter {}
+    toolset "clang"
+    cppdialect "C++20"
+    editAndContinue "Off"
+    exceptionhandling "Off"
+    characterset "Unicode"
+end
+
+function setConfigurations()
+    filter "configurations:Debug"
+        defines { "DEBUG", "_DEBUG" }
+        symbols "On"
+        runtime "Debug"
+
+    filter "configurations:Release"
+        defines { "NDEBUG" }
+        optimize "Speed"
+        runtime "Release"        
+
+    filter "configurations:Profile"
+        defines { "NDEBUG", "PARDAL_PROFILE" }
+        optimize "Speed"
+        runtime "Release"        
+    end
+
+workspace "pardal"
+    location "%{BASE_DIR}projects"
+    configurations { "Debug", "Profile", "Release" }
+    platforms { "Win64" }
+
+    targetdir "%{BASE_DIR}bin/pardal/%{cfg.buildcfg}"
+
+    filter { "platforms:Win64" }
+        system "Windows"
+        architecture "x64"
+
+    filter {}
