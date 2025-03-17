@@ -1,2 +1,3 @@
-# pardal
-Graphics/Game engine - Tech playground
+# Pardal
+Graphics/Game engine and tech playground
+__Pardal__ is Catalan for __sparrow__
