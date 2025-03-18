@@ -7,26 +7,20 @@ on:
       branches: [ main ]
       
 jobs:
-  generate-premake:
-    name: Generate premake
+  build-and-test:
+    name: Build and test Pardal
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@master
-      - run: cmd.exe /c 'generate_pardal.bat'
-      
-  build:
-    name: Build Pardal
-    runs-on: windows-latest
-    needs: generate-premake
-    steps:
-      - uses: seanmiddleditch/gha-setup-vsdevenv@master
-      - run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Generate
+        run: cmd.exe /c 'generate_pardal.bat'
+      - name: Setup VS 2022
+        uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - name: Build Pardal
+        run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
+      - name: Test pardal-core
+        run: .\bin\pardal-core-tests\Release\pardal-core-tests.exe
 
-  test:
-    name: Test pardal-core
-    runs-on: windows-latest
-    needs: build
-    steps:
-    - run: .\bin\pardal-core-tests\Release\pardal-core-tests.exe
       
 
