@@ -21,3 +21,5 @@ project "pardal-core"
     setConfigurations()
 
     filter {}
+
+pardal.create_test_project("pardal-core")
