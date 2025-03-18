@@ -1,0 +1,8 @@
+jobs:
+  build:
+    - uses: actions/checkout@master
+    - uses: seanmiddleditch/gha-setup-vsdevenv@master
+    - run:
+    
+
+    - run: cmake --build build
