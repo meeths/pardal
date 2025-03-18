@@ -11,7 +11,6 @@ jobs:
     name: Generate premake
     runs-on: windows-latest
     steps:
-      - shell: cmd
       - uses: actions/checkout@master
       - run: cmd.exe /c 'generate_pardal.bat'
       
