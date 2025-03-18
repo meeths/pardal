@@ -7,7 +7,7 @@ function pardal.create_test_project(projectname)
     links { projectname }
 
     language "C++"
-    targetdir "%{BASE_DIR}bin/lyraTests/%{cfg.buildcfg}"
+    targetdir ("%{BASE_DIR}bin/" .. projectname .."-tests/%{cfg.buildcfg}")
 
     files{
         "%{BASE_DIR}packages/" .. projectname.."-tests/**.cpp",
