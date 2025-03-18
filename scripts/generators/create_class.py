@@ -135,7 +135,7 @@ def main(argv):
                                        disclaimer=disclaimer))
 
     if createtests:
-        test_path = "packages/pardal-tests/{dir}/{name}Test.cpp".format(dir=dirname, name=classname)
+        test_path = "packages/{packagename}-tests/{dir}/{name}Test.cpp".format(dir=dirname, name=classname, packagename=packagename)
         print('Creating test file in {0}'.format(test_path))
         os.makedirs(os.path.dirname(test_path), exist_ok=True)
         with open(test_path, "w") as f:
