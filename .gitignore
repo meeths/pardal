@@ -353,3 +353,5 @@ FodyWeavers.xsd
 *.sln.iml
 projects/.idea
 projects
+libs/
+bin/
