@@ -1,4 +1,4 @@
-name: Pardal CI
+name: Build and test
 
 on:
   push:
