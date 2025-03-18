@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+        with:
+          submodules: 'true'
       - name: Generate
         run: cmd.exe /c 'generate_pardal.bat'
       - name: Setup VS 2022
