@@ -1,0 +1,28 @@
+name: Build and test
+
+on:
+  push:
+      branches: [ main ]
+  pull_request:
+      branches: [ main ]
+      
+jobs:
+  build-and-test:
+    name: Build and test Pardal
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          submodules: 'true'
+      - name: Generate
+        run: cmd.exe /c 'generate_pardal.bat'
+      - name: Setup VS 2022
+        uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - name: Build Pardal
+        run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
+      - name: Test pardal-core
+        run: .\bin\pardal-core-tests\Release\pardal-core-tests.exe
+
+      
+
