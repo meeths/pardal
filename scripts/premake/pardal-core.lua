@@ -14,7 +14,7 @@ project "pardal-core"
     }
 
     includedirs {
-        "%{BASE_DIR}packages/pardal-core"
+        "%{BASE_DIR}packages/pardal-core/include/"
     }
 
     configureCommonFlags()
