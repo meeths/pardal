@@ -13,14 +13,13 @@ jobs:
     steps:
       - shell: cmd
       - uses: actions/checkout@master
-      - run: generate_pardal.bat
+      - run: cmd.exe /c 'generate_pardal.bat'
       
   build:
     name: Build Pardal
     runs-on: windows-latest
     needs: generate-premake
     steps:
-      - shell: cmd
       - uses: seanmiddleditch/gha-setup-vsdevenv@master
       - run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
 
@@ -29,7 +28,6 @@ jobs:
     runs-on: windows-latest
     needs: build
     steps:
-      - shell: cmd
-      - run: bin\pardal-core-tests\Release\pardal-core-tests.exe
+    - run: .\bin\pardal-core-tests\Release\pardal-core-tests.exe
       
 
