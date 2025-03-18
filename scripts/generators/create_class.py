@@ -45,6 +45,7 @@ def main(argv):
     createimplementation = True
     show_help = False
     banner = 'create_class.py -c classname -d dirname [-i -t -n namespace -p packagename]'
+    banner_prompt = 'create_class (-h for help)'
 
     try:
         opts, args = getopt.getopt(argv, "hc:d:itn:p:", ["class=", "directory=", "namespace=", "packagename="])
@@ -68,18 +69,38 @@ def main(argv):
         elif opt == '-t':
             createtests = True
 
-    if classname == '' or dirname == '' or show_help:
+    if show_help:
         print(banner)
         print("""
             -h:             Displays this help
-            -c classname:   (REQUIRED) Sets the specified class name 
-            -d dirname:     (REQUIRED) Saves the files in specified subfolder
+            -c classname:   Sets the specified class name 
+            -d dirname:     Saves the files in specified subfolder
             -i:             Creates header only
             -t:             Adds a test for that class
             -n namespace:   Adds the class inside the specified namespace
             -p packagename: Creates class in specified package (default is 'pardal-core')
         """)
         sys.exit()
+
+    if classname == '' or dirname == '':
+        print(banner_prompt)
+        if classname == '':
+            classname = input("Class name: ")
+        else:
+            print("Class name: {0}".format(classname))
+        if dirname == '':
+            dirname = input("Directory : ")
+        else:
+            print("Directory : {0}".format(dirname))
+        
+        packages = subfolders = [ f.path for f in os.scandir("packages/") if f.is_dir() ]
+        index = 0
+        for package in packages:
+            print("[{0}]: {1}".format(index, package.removeprefix("packages/")))
+            index = index + 1
+        packageindex = input("Package index: ")
+        packagename = packages[int(packageindex)].removeprefix("packages/")
+        print("Package: {0}".format(packagename))
 
     opennamespace = ("\n"
                      "namespace pdl\n"
@@ -93,7 +114,7 @@ def main(argv):
         opennamespace += "namespace {namespace}\n{\n".format(namespace=namespace)
         closenamespace = "}\n" + closenamespace
 
-    header_path = "packages/{packagename}/{dir}/{name}.h".format(dir=dirname, name=classname, packagename=packagename)
+    header_path = "packages/{packagename}/include/{dir}/{name}.h".format(dir=dirname, name=classname, packagename=packagename)
     print('Creating header in {0}'.format(header_path))
     os.makedirs(os.path.dirname(header_path), exist_ok=True)
     with open(header_path, "w") as f:
@@ -103,8 +124,8 @@ def main(argv):
                                    disclaimer=disclaimer))
 
     if createimplementation:
-        source_path = "packages/{packagename}/{dir}/{name}.cpp".format(dir=dirname, name=classname, packagename=packagename)
-        print('Writing source to {0}'.format(source_path))
+        source_path = "packages/{packagename}/src/{dir}/{name}.cpp".format(dir=dirname, name=classname, packagename=packagename)
+        print('Creating source in {0}'.format(source_path))
         os.makedirs(os.path.dirname(source_path), exist_ok=True)
         with open(source_path, "w") as f:
             f.write(source_code.format(namespace_open=opennamespace,
