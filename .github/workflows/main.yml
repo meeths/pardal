@@ -1,8 +1,32 @@
-jobs:
-  build:
-    - uses: actions/checkout@master
-    - uses: seanmiddleditch/gha-setup-vsdevenv@master
-    - run:
-    
+name: Pardal CI
 
-    - run: cmake --build build
+on:
+  push:
+      branches: [ main ]
+  pull_request:
+      branches: [ main ]
+      
+jobs:
+  generate-premake:
+    name: Generate premake
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: generate_pardal.bat
+      
+  build:
+    name: Build Pardal
+    runs-on: windows-latest
+    needs: generate-premake
+    steps:
+      - uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
+
+  test:
+    name: Test pardal-core
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - run: bin\pardal-core-tests\Release\pardal-core-tests.exe
+      
+
