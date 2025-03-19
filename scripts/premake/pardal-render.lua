@@ -14,8 +14,8 @@ project "pardal-render"
     }
     
     includedirs {
-        "%{BASE_DIR}packages/pardal-render/include",
-        "%{BASE_DIR}packages/pardal-core/include"
+        "%{BASE_DIR}packages/pardal-render/",
+        "%{BASE_DIR}packages/pardal-core/"
     }
 
 

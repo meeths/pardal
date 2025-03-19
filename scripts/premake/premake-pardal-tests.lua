@@ -17,7 +17,7 @@ function pardal.create_test_project(projectname)
     }
 
     includedirs {
-        "%{BASE_DIR}packages/" .. projectname .. "/include",
+        "%{BASE_DIR}packages/" .. projectname,
         "%{BASE_DIR}external/googletest/googletest/include",
         "%{BASE_DIR}external/googletest/googlemock/include",
         "%{BASE_DIR}external/googletest/googletest",

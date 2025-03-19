@@ -114,7 +114,7 @@ def main(argv):
         opennamespace += "namespace {namespace}\n{\n".format(namespace=namespace)
         closenamespace = "}\n" + closenamespace
 
-    header_path = "packages/{packagename}/include/{dir}/{name}.h".format(dir=dirname, name=classname, packagename=packagename)
+    header_path = "packages/{packagename}/{dir}/{name}.h".format(dir=dirname, name=classname, packagename=packagename)
     print('Creating header in {0}'.format(header_path))
     os.makedirs(os.path.dirname(header_path), exist_ok=True)
     with open(header_path, "w") as f:
@@ -124,7 +124,7 @@ def main(argv):
                                    disclaimer=disclaimer))
 
     if createimplementation:
-        source_path = "packages/{packagename}/src/{dir}/{name}.cpp".format(dir=dirname, name=classname, packagename=packagename)
+        source_path = "packages/{packagename}/{dir}/{name}.cpp".format(dir=dirname, name=classname, packagename=packagename)
         print('Creating source in {0}'.format(source_path))
         os.makedirs(os.path.dirname(source_path), exist_ok=True)
         with open(source_path, "w") as f:
