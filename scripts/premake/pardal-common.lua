@@ -15,7 +15,7 @@ function configureCommonFlags()
         linktimeoptimization "On"         
     filter {}
     toolset "clang"
-    cppdialect "C++20"
+    cppdialect "C++23"
     editAndContinue "Off"
     exceptionhandling "Off"
     characterset "Unicode"
