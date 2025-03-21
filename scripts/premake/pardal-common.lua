@@ -1,11 +1,13 @@
 pardal = {}
 
 include "premake-pardal-tests.lua"
+include "scripts/premake/external/glm.lua"
 
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 
 function configureCommonExternals()
     filter {}
+    includeGLM()
 end
 
 function configureCommonFlags()

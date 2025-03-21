@@ -1,5 +1,4 @@
 
-include "scripts/premake/external/glm.lua"
 
 group "00 Pardal Engine"
 
@@ -19,9 +18,9 @@ project "pardal-core"
     includedirs {
         "%{BASE_DIR}packages/pardal-core/"
     }
-    includeGLM()
 
     configureCommonFlags()
+    configureCommonExternals()
     setConfigurations()
 
     filter {}
