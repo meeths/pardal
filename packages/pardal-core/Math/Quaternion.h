@@ -6,6 +6,9 @@
 
 namespace pdl
 {
-	using Quaternion = glm::quat;
+	namespace Math
+	{
+		using Quaternion = glm::quat;
+	}
 }
 

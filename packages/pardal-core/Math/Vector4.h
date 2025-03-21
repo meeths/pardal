@@ -6,6 +6,9 @@
 
 namespace pdl
 {
-	using Vector4 = glm::vec4;
+	namespace Math
+	{
+		using Vector4 = glm::vec4;
+	}
 }
 

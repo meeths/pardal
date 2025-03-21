@@ -6,6 +6,8 @@
 
 namespace pdl
 {
-	using Vector3 = glm::vec3;
+	namespace Math
+	{
+		using Vector3 = glm::vec3;
+	}
 }
-
