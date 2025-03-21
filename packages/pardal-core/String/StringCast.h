@@ -27,9 +27,9 @@ namespace StringCast
     String ToString(const float& value);
     String ToString(const String& value);
 
-    String ToString(const Vector3& value);
-    String ToString(const Vector4& value);
-    String ToString(const Quaternion& value);
+    String ToString(const Math::Vector3& value);
+    String ToString(const Math::Vector4& value);
+    String ToString(const Math::Quaternion& value);
 
 
     template <typename T>
@@ -48,11 +48,11 @@ namespace StringCast
     float FromString(const String& valueStr);
 
     template <>
-    Vector3 FromString(const String& valueStr);
+    Math::Vector3 FromString(const String& valueStr);
     template <>
-    Vector4 FromString(const String& valueStr);
+    Math::Vector4 FromString(const String& valueStr);
     template <>
-    Quaternion FromString(const String& valueStr);
+    Math::Quaternion FromString(const String& valueStr);
 
     template <>
     String FromString(const String& valueStr);

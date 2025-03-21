@@ -33,17 +33,17 @@ namespace StringCast
         return value;
     }
 
-    String ToString(const Vector3& value)
+    String ToString(const Math::Vector3& value)
     {
         return StringUtils::StringFormat("(%f, %f, %f)", value.x, value.y, value.z);
     }
 
-    String ToString(const Vector4& value)
+    String ToString(const Math::Vector4& value)
     {
         return StringUtils::StringFormat("(%f, %f, %f, %f)", value.x, value.y, value.z, value.w);
     }
 
-    String ToString(const Quaternion& value)
+    String ToString(const Math::Quaternion& value)
     {
         return StringUtils::StringFormat("(%f, %f, %f, %f)", value.x, value.y, value.z, value.w);
     }
@@ -75,25 +75,25 @@ namespace StringCast
     }
 
     template <>
-    Vector3 FromString<Vector3>(const String& valueStr)
+    Math::Vector3 FromString<Math::Vector3>(const String& valueStr)
     {
-        Vector3 ret;
+        Math::Vector3 ret;
         sscanf_s(valueStr.c_str(), "(%f, %f, %f)", &ret.x, &ret.y, &ret.z);
         return ret;
     }
 
     template <>
-    Vector4 FromString<Vector4>(const String& valueStr)
+    Math::Vector4 FromString<Math::Vector4>(const String& valueStr)
     {
-        Vector4 ret;
+        Math::Vector4 ret;
         sscanf_s(valueStr.c_str(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
         return ret;
     }
 
     template <>
-    Quaternion FromString<Quaternion>(const String& valueStr)
+    Math::Quaternion FromString<Math::Quaternion>(const String& valueStr)
     {
-        Quaternion ret;
+        Math::Quaternion ret;
         sscanf_s(valueStr.c_str(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
         return ret;
     }
