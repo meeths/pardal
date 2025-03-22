@@ -21,6 +21,7 @@ project "pardal-test-app"
     }
     
     configureCommonFlags()
+    configureCommonExternals()
     setConfigurations()
     
     filter {}
