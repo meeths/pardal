@@ -90,13 +90,13 @@ public:
 //-----------------------------------------------------------------------------
 // Key-processing callback objects. Simplifies keyset testing a bit.
 
-struct KeyCallback
+struct HashKeyCallback
 {
-  KeyCallback() : m_count(0)
+  HashKeyCallback() : m_count(0)
   {
   }
 
-  virtual ~KeyCallback()
+  virtual ~HashKeyCallback()
   {
   }
 
@@ -115,7 +115,7 @@ struct KeyCallback
 //----------
 
 template<typename hashtype>
-struct HashCallback : public KeyCallback
+struct HashCallback : public HashKeyCallback
 {
   typedef std::vector<hashtype> hashvec;
 
@@ -151,7 +151,7 @@ private:
 //----------
 
 template<typename hashtype>
-struct CollisionCallback : public KeyCallback
+struct CollisionCallback : public HashKeyCallback
 {
   typedef HashSet<hashtype> hashset;
   typedef CollisionMap<hashtype,ByteVec> collmap;

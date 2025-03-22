@@ -203,7 +203,7 @@ void AppendedZeroesTest ( pfHash hash, const int hashbits )
 //-----------------------------------------------------------------------------
 // Generate all keys of up to N bytes containing two non-zero bytes
 
-void TwoBytesKeygen ( int maxlen, KeyCallback & c )
+void TwoBytesKeygen ( int maxlen, HashKeyCallback & c )
 {
   //----------
   // Compute # of keys

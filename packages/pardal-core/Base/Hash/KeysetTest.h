@@ -293,7 +293,7 @@ bool CyclicKeyTest ( pfHash hash, int cycleLen, int cycleReps, const int keycoun
 //-----------------------------------------------------------------------------
 // Keyset 'TwoBytes' - generate all keys up to length N with two non-zero bytes
 
-void TwoBytesKeygen ( int maxlen, KeyCallback & c );
+void TwoBytesKeygen ( int maxlen, HashKeyCallback & c );
 
 template < typename hashtype >
 bool TwoBytesTest2 ( pfHash hash, int maxlen, bool drawDiagram )
