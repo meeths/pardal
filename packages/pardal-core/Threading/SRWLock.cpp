@@ -1,6 +1,6 @@
 
 #include <Threading/SRWLock.h>
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 // Created on 2023-10-17 by sisco
@@ -9,7 +9,7 @@ namespace pdl
 {
     SRWLock::SRWLock()
     {
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
         InitializeSRWLock(reinterpret_cast<PSRWLOCK>(&m_lock));
 #else
         static_assert(false, "SRWLock not implemented on this platform");
@@ -22,7 +22,7 @@ namespace pdl
 
     void SRWLock::LockRead()
     {
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
         AcquireSRWLockShared(reinterpret_cast<PSRWLOCK>(&m_lock));
 #else
         static_assert(false, "SRWLock not implemented on this platform");
@@ -31,7 +31,7 @@ namespace pdl
 
     void SRWLock::UnlockRead()
     {
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
         ReleaseSRWLockShared(reinterpret_cast<PSRWLOCK>(&m_lock));
 #else
         static_assert(false, "SRWLock not implemented on this platform");
@@ -40,7 +40,7 @@ namespace pdl
 
     void SRWLock::LockWrite()
     {
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
         AcquireSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&m_lock));
 #else
         static_assert(false, "SRWLock not implemented on this platform");
@@ -49,7 +49,7 @@ namespace pdl
 
     void SRWLock::UnlockWrite()
     {
-#ifdef _WIN32
+#ifdef PDL_PLATFORM_WINDOWS
         ReleaseSRWLockExclusive(reinterpret_cast<PSRWLOCK>(&m_lock));
 #else
         static_assert(false, "SRWLock not implemented on this platform");

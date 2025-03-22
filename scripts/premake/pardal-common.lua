@@ -24,6 +24,10 @@ function configureCommonFlags()
 end
 
 function setConfigurations()
+
+    filter "platforms:Win64"
+        defines { "PDL_PLATFORM_WINDOWS" }
+
     filter "configurations:Debug"
         defines { "DEBUG", "_DEBUG" }
         symbols "On"
