@@ -319,6 +319,11 @@ namespace pdl
         pdlAssert(m_windowImpl);
         return m_windowImpl->m_hWnd;
     }
+    void* ApplicationWindow::GetNativeModuleHandle()
+    {
+        pdlAssert(m_windowImpl);
+        return m_windowImpl->m_applicationHandle;
+    }
 }
 
 #endif

@@ -45,6 +45,7 @@ public:
     virtual bool IsFullScreen() const = 0;
 
     virtual void* GetNativeWindow() = 0;
+    virtual void* GetNativeModuleHandle() = 0;
 
     // Events
     virtual void AddResizeCallback(WindowResizeCallback _onResize) = 0;

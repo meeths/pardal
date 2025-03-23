@@ -27,6 +27,7 @@ public:
     String GetWindowTitle() const override;
     bool IsFullScreen() const override;
     void* GetNativeWindow() override;
+    void* GetNativeModuleHandle() override;
     
     void AddResizeCallback(WindowResizeCallback _onResize) override { m_resizeCallbacks += _onResize; }
     void AddCloseCallback(WindowCloseCallback _onClose) override { m_closeCallbacks += _onClose; }
