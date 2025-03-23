@@ -10,7 +10,7 @@ namespace pdl
 {
     bool Renderer::InitializeRenderDevice(IRenderDevice::InitInfoBase initInfo)
     {
-        switch (initInfo.deviceType)
+        switch (initInfo.m_deviceType)
         {
 #ifdef PDL_VULKAN
         case RenderDeviceType::Vulkan:
@@ -18,7 +18,7 @@ namespace pdl
             break;
 #endif            
         default: ;
-            pdlLogError("Renderer::InitializeRenderDevice: Unknown device type <%s>", to_string(initInfo.deviceType));
+            pdlLogError("Renderer::InitializeRenderDevice: Unknown device type <%s>", to_string(initInfo.m_deviceType));
             return false;
             break;
         }

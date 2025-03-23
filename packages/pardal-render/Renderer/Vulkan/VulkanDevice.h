@@ -15,6 +15,9 @@ public:
     ~VulkanDevice() override = default;
     const RenderDeviceInfo& GetRenderDeviceInfo() const override { return m_deviceInfo; }
     void WaitForGPU() override;
+    
+    Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) override;
+    
 protected:
     bool Initialize(const InitInfoBase& initInfo) override;
     bool InitializeInstanceAndDevice(const InitInfoBase& initInfo);

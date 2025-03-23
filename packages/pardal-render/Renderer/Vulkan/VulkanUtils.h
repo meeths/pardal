@@ -1,8 +1,11 @@
 
 #pragma once
-#include <vulkan/vulkan.hpp>
 #include <Base/DebugHelpers.h>
 #include <Log/Log.h>
+#include <Math/Vector3.h>
+#include <Renderer/ITexture.h>
+#include <Renderer/RendererTypes.h>
+#include <vulkan/vulkan.hpp>
 
 // Created on 2025-03-23 by sisco
 #ifndef NDEBUG
@@ -18,7 +21,19 @@ namespace pdl
 class VulkanUtils
 {
 public:
-
+    static vk::Format TranslateToVkFormat(Format format);
+    static Format TranslateFromVkFormat(vk::Format format);
+    static vk::ImageUsageFlags TranslateToVkImageUsageFlags(TextureUsage usage);
+    static ITexture::Descriptor SanitizeTextureDescriptor(const ITexture::Descriptor& desc);
+    static int CalculateMipLevels(const Math::Vector3i& extents);
+    static vk::ImageAspectFlags GetVkAspectFlagsFromFormat(vk::Format format);
+    static vk::ImageLayout GetImageLayoutFromState(ResourceState state);
+    static vk::AccessFlags GetAccessFlagsFromImageLayout(vk::ImageLayout layout);
+    static vk::PipelineStageFlags GetPipelineStageFlagsFromImageLayout(vk::ImageLayout layout);
+    static vk::ImageAspectFlags GetAspectMaskFromFormat(vk::Format format, TextureAspect aspect = TextureAspect::All);
+    static vk::ImageUsageFlagBits GetImageUsageFlags(TextureUsage usage);
+    static vk::ImageUsageFlags GetImageUsageFlags(TextureUsage usage, MemoryType memoryType, const void* initData);
+    static vk::ImageUsageFlagBits GetImageUsageFlags(ResourceState state);
 };
 
 }

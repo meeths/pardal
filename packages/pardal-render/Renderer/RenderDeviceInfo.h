@@ -34,8 +34,8 @@ namespace pdl
     {
         RenderDeviceType deviceType;
 
-        StringView name;
-        StringView adapterName;
+        String name;
+        String adapterName;
 
         DeviceLimits limits;
 

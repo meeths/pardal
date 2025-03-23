@@ -4,6 +4,7 @@
 #include <Log/Log.h>
 #include <Renderer/Vulkan/VulkanUtils.h>
 #include <String/StringUtils.h>
+#include <Renderer/Vulkan/VulkanSurface.h>
 
 
 #ifdef PDL_PLATFORM_WINDOWS
@@ -577,11 +578,22 @@ namespace pdl
         m_vulkanDeviceQueue.WaitForGPU();
     }
 
+    Expected<SharedPointer<ISurface>, StringView> VulkanDevice::CreateSurface(ApplicationWindow& applicationWindow)
+    {
+        auto surfacePtr = MakeSharedPointer<VulkanSurface>();
+        bool success = surfacePtr->Initialize(&m_vkDevice, &m_vkPhysicalDevice, &m_vkInstance, applicationWindow, Format::R8G8B8A8_UNORM);
+        if (!success)
+        {
+            return Unexpected<StringView>("Failed to initialize Vulkan surface");
+        }
+        return  surfacePtr;
+    }
+
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)
     {
         m_deviceInfo.name = "pdl::VulkanDevice";
         m_deviceInfo.identityProjection = glm::identity<Math::Matrix44>();
-        m_deviceInfo.deviceType = initInfo.deviceType;
+        m_deviceInfo.deviceType = initInfo.m_deviceType;
 
         if(!InitializeInstanceAndDevice(initInfo))
         {
@@ -597,13 +609,13 @@ namespace pdl
         // Init minimum set of functions
         VULKAN_HPP_DEFAULT_DISPATCHER.init( vkGetInstanceProcAddr );
         
-        vk::ApplicationInfo applicationInfo( desc.applicationName.data(), 1, "LyraEngine", 1, VK_API_VERSION_1_2 );
+        vk::ApplicationInfo applicationInfo( desc.m_applicationName.data(), 1, "LyraEngine", 1, VK_API_VERSION_1_2 );
 
         // Validation layers
         auto instanceLayerProperties = vk::enumerateInstanceLayerProperties();
         CHECK_VK_RESULTVALUE(instanceLayerProperties);
         Vector<const char*> instanceLayerNames;
-        if(desc.enableValidation)
+        if(desc.m_enableValidation)
             instanceLayerNames.push_back( "VK_LAYER_KHRONOS_validation" );
         
         if ( !Details::CheckLayers( instanceLayerNames, instanceLayerProperties.value ) )
@@ -614,7 +626,7 @@ namespace pdl
 
         // Extensions
         Vector<const char*> instanceExtensionNames;
-        if(desc.enableValidation)
+        if(desc.m_enableValidation)
         {
             instanceExtensionNames.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
             instanceExtensionNames.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
@@ -640,7 +652,7 @@ namespace pdl
         VULKAN_HPP_DEFAULT_DISPATCHER.init( instance.value, vkGetInstanceProcAddr );
 
         // Set up validation messenger
-        if(desc.enableValidation)
+        if(desc.m_enableValidation)
         {
             vk::DebugUtilsMessengerCreateInfoEXT debugInfo;
             debugInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
@@ -658,7 +670,7 @@ namespace pdl
         CHECK_VK_RESULTVALUE(enumeratedDevices);
         m_vkPhysicalDevice = Details::PickBestDevice(enumeratedDevices.value);
 
-        m_deviceInfo.adapterName = m_vkPhysicalDevice.getProperties().deviceName;
+        m_deviceInfo.adapterName = m_vkPhysicalDevice.getProperties().deviceName.data();
 
         // Collect device properties
         vk::PhysicalDeviceProperties deviceProperties = m_vkPhysicalDevice.getProperties();
