@@ -22,6 +22,10 @@ project "pardal-test-app"
     
     configureCommonFlags()
     configureCommonExternals()
+    
+    includeVulkan()
+    linkVulkan()
+     
     setConfigurations()
     
     filter {}
