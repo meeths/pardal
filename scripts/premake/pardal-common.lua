@@ -29,17 +29,17 @@ function setConfigurations()
         defines { "PDL_PLATFORM_WINDOWS" }
 
     filter "configurations:Debug"
-        defines { "DEBUG", "_DEBUG" }
+        defines { "DEBUG", "_DEBUG", "PDL_DEBUG" }
         symbols "On"
         runtime "Debug"
 
     filter "configurations:Release"
-        defines { "NDEBUG" }
+        defines { "NDEBUG", "PDL_RELEASE" }
         optimize "Speed"
         runtime "Release"        
 
     filter "configurations:Profile"
-        defines { "NDEBUG", "PARDAL_PROFILE" }
+        defines { "NDEBUG", "PDL_PROFILE" }
         optimize "Speed"
         runtime "Release"        
     end
