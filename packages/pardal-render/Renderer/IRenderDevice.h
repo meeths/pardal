@@ -5,6 +5,8 @@
 #include <Base/Expected.h>
 #include <Memory/SharedPointer.h>
 
+#include "ITexture.h"
+
 // Created on 2025-03-23 by sisco
 
 
@@ -31,6 +33,7 @@ public:
     virtual void WaitForGPU() = 0;
 
     virtual Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) = 0;
+    virtual Expected<SharedPointer<ITexture>,StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) = 0;
 
 protected:
     virtual bool Initialize(const InitInfoBase& desc) = 0;

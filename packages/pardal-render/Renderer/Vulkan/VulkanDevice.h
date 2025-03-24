@@ -17,11 +17,14 @@ public:
     void WaitForGPU() override;
     
     Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) override;
+    Expected<SharedPointer<ITexture>, StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) override;
     
 protected:
     bool Initialize(const InitInfoBase& initInfo) override;
     bool InitializeInstanceAndDevice(const InitInfoBase& initInfo);
-    
+
+
+protected:
     RenderDeviceInfo m_deviceInfo = {};
 
     vk::Instance m_vkInstance;

@@ -127,7 +127,7 @@ namespace pdl
 
         for (auto& image : swapchainImages)
         {
-            ITexture::Descriptor desc;
+            ITexture::TextureDescriptor desc;
             desc.m_arraySize = 0;
             desc.m_format = m_config.m_format;
             desc.m_extents.z = 1;
@@ -136,10 +136,7 @@ namespace pdl
             desc.m_mipLevels = 1;
             
             VulkanTexture texture(desc, m_vkDevice);
-            texture.m_vkImage = image;
-            texture.m_ownsMemory = false;
-            texture.m_vkDeviceMemory = VK_NULL_HANDLE;
-            texture.m_vkFormat = m_vkFormat;
+            texture.Initialize(image);
             
             m_images.push_back(std::move(texture));
         }
@@ -152,7 +149,7 @@ namespace pdl
         m_vkDevice->destroySwapchainKHR(m_vkSwapchain);
     }
 
-    bool VulkanSurface::Configure(Descriptor config)
+    bool VulkanSurface::ConfigureSwapchain(SwapchainDescriptor config)
     {
         m_config = config;
         if (m_config.m_size.x == 0|| m_config.m_size.y == 0)

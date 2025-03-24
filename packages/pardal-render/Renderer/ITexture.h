@@ -1,9 +1,9 @@
-#pragma once
-#include <Base/BaseTypes.h>
-#include <Math/Vector3i.h>
-#include <Renderer/RendererTypes.h>
 
-// Created on 2025-03-23 by sisco
+#pragma once
+#include <Renderer/RendererTypes.h>
+#include <Math/Vector3i.h>
+
+// Created on 2025-03-24 by franciscom
 
 namespace pdl
 {
@@ -11,25 +11,27 @@ namespace pdl
 class ITexture
 {
 public:
-    struct SampleDesc
-    {
-        int32 m_numSamples = 1;
-        int32 m_quality = 0;
-    };
+	struct SampleDesc
+	{
+		int32 numSamples = 1;
+		int32 quality = 0;
+	};
 
-    struct Descriptor
-    {
-        Math::Vector3i m_extents;
-        int32 m_arraySize = 0;
-        int m_mipLevels = 0;
-        Format m_format = Format::Unknown;
-        SampleDesc m_sampleDesc;
-        ResourceState m_state = ResourceState::Undefined;
-    };
+	struct TextureDescriptor
+	{
+		Format m_format = Format::Unknown;
+		Math::Vector3i m_extents = Math::Vector3i(0);
+		SampleDesc m_sampleDesc;
+		int32 m_mipLevels = 0;
+		int32 m_arraySize = 0;
+		TextureType m_textureType = TextureType::Texture2D;
 
-    virtual ~ITexture() = default;
-    virtual Descriptor* GetDescriptor() = 0;
-    virtual TextureType GetTextureType() const = 0;
+	};
+
+	virtual ~ITexture() = default;
+	virtual const TextureDescriptor& GetDescriptor() const = 0;
+	virtual TextureType GetTextureType() const = 0;
+	
 };
 
 }

@@ -24,7 +24,7 @@ public:
     static vk::Format TranslateToVkFormat(Format format);
     static Format TranslateFromVkFormat(vk::Format format);
     static vk::ImageUsageFlags TranslateToVkImageUsageFlags(TextureUsage usage);
-    static ITexture::Descriptor SanitizeTextureDescriptor(const ITexture::Descriptor& desc);
+    static ITexture::TextureDescriptor SanitizeTextureDescriptor(const ITexture::TextureDescriptor& desc);
     static int CalculateMipLevels(const Math::Vector3i& extents);
     static vk::ImageAspectFlags GetVkAspectFlagsFromFormat(vk::Format format);
     static vk::ImageLayout GetImageLayoutFromState(ResourceState state);

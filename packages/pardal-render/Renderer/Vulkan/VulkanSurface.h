@@ -21,14 +21,14 @@ public:
     void DestroySwapchain();
     
     const SurfaceInfo& GetSurfaceInfo() const override { return m_info; }
-    const Descriptor& GetSurfaceConfig() const override { return m_config; }
+    const SwapchainDescriptor& GetSurfaceConfig() const override { return m_config; }
     size_t GetImageCount() const override { return m_images.size(); } 
-    bool Configure(Descriptor config) override;
+    bool ConfigureSwapchain(SwapchainDescriptor config) override;
     ITexture* GetTexture() override;
     bool Present() override;
 private:
     SurfaceInfo m_info {};
-    Descriptor m_config = {};
+    SwapchainDescriptor m_config = {};
     
     vk::Device* m_vkDevice = nullptr;
     vk::PhysicalDevice* m_vkPhysicalDevice = nullptr;

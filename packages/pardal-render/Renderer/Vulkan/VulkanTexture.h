@@ -11,21 +11,25 @@ namespace pdl
     {
     public:
 
-        VulkanTexture(const Descriptor& desc, vk::Device* device);
+        VulkanTexture(const TextureDescriptor& desc, vk::Device* device);
         ~VulkanTexture() override;
-    
-        Descriptor* GetDescriptor() override { return &m_descriptor; }
+
+        bool Initialize(const vk::PhysicalDevice* physicalDevice);
+        bool Initialize(vk::Image image);
+        
+        const TextureDescriptor& GetDescriptor() const override { return m_textureDescriptor; }
         TextureType GetTextureType() const override { return TextureType::Texture2D; }
     
-        vk::Image m_vkImage;
+    protected:
+        void Destroy();
+        TextureDescriptor m_textureDescriptor;
+
+        vk::Image m_vkImage {};
         vk::Format m_vkFormat = vk::Format::eR8G8B8A8Unorm;
-        vk::DeviceMemory m_vkDeviceMemory;
+        vk::DeviceMemory m_vkDeviceMemory {};
         vk::Device* m_vkDevice;
     
         bool m_ownsMemory = true;
-    protected:
-        void Destroy();
-        Descriptor m_descriptor;
     };
 
 }

@@ -1,8 +1,10 @@
 
 #include "Application/ApplicationWindow.h"
+#include "Base/DebugHelpers.h"
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
 #include "Renderer/ISurface.h"
+#include "Renderer/ITexture.h"
 #include "Renderer/Renderer.h"
 
 int main(int argc, char** argv)
@@ -37,17 +39,33 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    pdl::ISurface::Descriptor surfaceDescriptor
+    pdl::ISurface::SwapchainDescriptor surfaceDescriptor
     {
         .m_format= pdl::Format::R8G8B8A8_UNORM,
         .m_size= windowInitInfo.m_windowSize,
         .m_vsync= true
     };
     
-    if (!(*surface)->Configure(surfaceDescriptor))
+    if (!(*surface)->ConfigureSwapchain(surfaceDescriptor))
     {
         pdlLogError("Could not configure swapchain");
         return -1;
+    }
+
+    constexpr uint32_t frameBufferCount = 2;
+    pdl::Vector<pdl::SharedPointer<pdl::ITexture>> frameBuffers;
+    
+    for (uint32_t i = 0; i < frameBufferCount; ++i)
+    {
+        pdl::ITexture::TextureDescriptor depthBufferDesc;
+        depthBufferDesc.m_format = pdl::Format::D32_FLOAT;
+        depthBufferDesc.m_extents.x = windowInitInfo.m_windowSize.x;
+        depthBufferDesc.m_extents.y = windowInitInfo.m_windowSize.y;
+        depthBufferDesc.m_extents.z = 1;
+
+        auto depthBuffer = renderer.GetRenderDevice()->CreateTexture(depthBufferDesc); 
+        pdlAssert(depthBuffer.has_value());
+        frameBuffers.push_back(depthBuffer.value());
     }
     
     while (!window.IsCloseRequested())

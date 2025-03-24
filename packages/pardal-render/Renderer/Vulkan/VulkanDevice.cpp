@@ -589,6 +589,16 @@ namespace pdl
         return  surfacePtr;
     }
 
+    Expected<SharedPointer<ITexture>, StringView> VulkanDevice::CreateTexture(ITexture::TextureDescriptor _textureDescriptor)
+    {
+        auto vulkanTexture = MakeSharedPointer<VulkanTexture>(_textureDescriptor, &m_vkDevice);
+        if (!vulkanTexture->Initialize(&m_vkPhysicalDevice))
+        {
+            return Unexpected<StringView>("Failed to initialize Vulkan texture");
+        }
+        return vulkanTexture;
+    }
+
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)
     {
         m_deviceInfo.name = "pdl::VulkanDevice";

@@ -26,7 +26,7 @@ namespace pdl
             CHECK_VK_RESULTVALUE(createCommandBufferResult);
             pdlAssert(createCommandBufferResult.value.size() == 1);
             m_commandBuffers[i] = createCommandBufferResult.value.front();
-
+        
             vk::FenceCreateInfo fenceCreateInfo = {};
             auto createFenceResult = device.createFence(fenceCreateInfo);
             CHECK_VK_RESULTVALUE(createFenceResult);

@@ -236,7 +236,7 @@ vk::ImageUsageFlags VulkanUtils::TranslateToVkImageUsageFlags(TextureUsage usage
     return flags;
 }
 
-ITexture::Descriptor VulkanUtils::SanitizeTextureDescriptor(const ITexture::Descriptor& desc)
+ITexture::TextureDescriptor VulkanUtils::SanitizeTextureDescriptor(const ITexture::TextureDescriptor& desc)
 {
     auto descOut = desc;
     if (descOut.m_arraySize == 0) descOut.m_arraySize = 1;

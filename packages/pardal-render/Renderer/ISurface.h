@@ -20,7 +20,7 @@ public:
         Vector<Format> m_supportedFormats;
     };    
 
-    struct Descriptor
+    struct SwapchainDescriptor
     {
         Format m_format = Format::Unknown;
         Math::Vector2i m_size = Math::Vector2i(0);
@@ -31,9 +31,9 @@ public:
 
     virtual ~ISurface() = default;
     virtual const SurfaceInfo& GetSurfaceInfo()  const= 0;
-    virtual const Descriptor& GetSurfaceConfig() const = 0;
+    virtual const SwapchainDescriptor& GetSurfaceConfig() const = 0;
     virtual size_t GetImageCount() const = 0; 
-    virtual bool Configure(Descriptor config) = 0;
+    virtual bool ConfigureSwapchain(SwapchainDescriptor config) = 0;
     virtual ITexture* GetTexture() = 0;
     virtual bool Present() = 0;
 };
