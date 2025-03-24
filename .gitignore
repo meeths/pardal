@@ -355,5 +355,6 @@ projects/.idea
 projects
 libs/
 
+bin/
 # Don't ignore vulkan bins
-!external/vulkan_1.4.304.1/**
+!external/vulkan_*/**
