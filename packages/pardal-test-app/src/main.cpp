@@ -6,6 +6,10 @@
 #include "Renderer/ISurface.h"
 #include "Renderer/ITexture.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/RenderPass.h"
+#include "String/StringUtils.h"
+#include "Time/Chronometer.h"
+
 
 int main(int argc, char** argv)
 {
@@ -39,9 +43,11 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    bool useHDR = true;
+    
     pdl::ISurface::SwapchainDescriptor surfaceDescriptor
     {
-        .m_format= pdl::Format::R8G8B8A8_UNORM,
+        .m_format = useHDR ? pdl::Format::R16G16B16A16_FLOAT : pdl::Format::R8G8B8A8_UNORM,     
         .m_size= windowInitInfo.m_windowSize,
         .m_vsync= true
     };
@@ -51,26 +57,52 @@ int main(int argc, char** argv)
         pdlLogError("Could not configure swapchain");
         return -1;
     }
-
-    constexpr uint32_t frameBufferCount = 2;
-    pdl::Vector<pdl::SharedPointer<pdl::ITexture>> frameBuffers;
     
-    for (uint32_t i = 0; i < frameBufferCount; ++i)
+    pdl::SharedPointer<pdl::ITexture> depthBuffer;
+    pdl::SharedPointer<pdl::ITextureView> depthBufferView;
+
     {
+        // Shared depth buffer
         pdl::ITexture::TextureDescriptor depthBufferDesc;
         depthBufferDesc.m_format = pdl::Format::D32_FLOAT;
         depthBufferDesc.m_extents.x = windowInitInfo.m_windowSize.x;
         depthBufferDesc.m_extents.y = windowInitInfo.m_windowSize.y;
         depthBufferDesc.m_extents.z = 1;
+        depthBufferDesc.m_textureUsage = pdl::TextureUsage::DepthRead | pdl::TextureUsage::DepthWrite | pdl::TextureUsage::ShaderResource;
 
-        auto depthBuffer = renderer.GetRenderDevice()->CreateTexture(depthBufferDesc); 
-        pdlAssert(depthBuffer.has_value());
-        frameBuffers.push_back(depthBuffer.value());
-    }
+        auto depthBufferResult = renderer.GetRenderDevice()->CreateTexture(depthBufferDesc); 
+        pdlAssert(depthBufferResult.has_value());
+        depthBuffer = depthBufferResult.value();
     
+        pdl::ITextureView::TextureViewDescriptor depthStencilViewDesc;
+        depthStencilViewDesc.m_texture = depthBuffer.get();
+        auto depthStencilViewResults = renderer.GetRenderDevice()->CreateTextureView(depthStencilViewDesc);
+        pdlAssert(depthStencilViewResults.has_value());
+        depthBufferView = depthStencilViewResults.value();
+    }
+
+    float maxColorComponentValue = useHDR ? 16.0f : 1.0f;
+    float colorSpeed = useHDR ? 1.0f : 1/16.0f;
+
+    uint32 frameIndex = 0;
+    pdl::Chronometer frameTimer;
+    frameTimer.Start();
     while (!window.IsCloseRequested())
     {
+        pdl::Vector<pdl::ITextureView*> currentFrameSwapchainImageViews;
+        pdl::Vector<pdl::Math::Vector4> clearColors;
+        currentFrameSwapchainImageViews.push_back((*surface)->GetCurrentTextureView());
+        clearColors.emplace_back(fmod(0.01f * frameIndex  * colorSpeed, maxColorComponentValue) , fmod(0.02f * frameIndex * colorSpeed , maxColorComponentValue) + 0.3, fmod(0.005f * frameIndex * colorSpeed , maxColorComponentValue) + 0.6, 1.0f);
+        renderer.BeginFrame();
+        pdl::RenderPass mainRenderPass(currentFrameSwapchainImageViews, depthBufferView.get(), clearColors);
+        renderer.BeginRenderPass(mainRenderPass);
+        renderer.EndRenderPass();
+        renderer.EndFrame();
+        (*surface)->Present();
         window.Update();
+        ++frameIndex;
+
+        window.SetWindowTitle(pdl::StringUtils::StringFormat("pdl test app: %.02f FPS", 1.0f/frameTimer.Lap<float, pdl::TimeTypes::Seconds>()));
     }
     
     return 0;

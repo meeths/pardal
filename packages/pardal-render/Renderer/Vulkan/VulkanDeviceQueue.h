@@ -7,6 +7,11 @@
 
 namespace pdl
 {
+    class VulkanTexture;
+}
+
+namespace pdl
+{
 
 class VulkanDeviceQueue
 {
@@ -18,18 +23,13 @@ public:
     void WaitForGPU() const;
     void FlushAndWait();
 
-    vk::CommandBuffer* GetCommandBuffer() { return &m_commandBuffers[m_currentCommandBufferIndex]; }
-private:
+    void SetImageLayout(const VulkanTexture* texture, vk::ImageLayout oldImageLayout, vk::ImageLayout newImageLayout);
+    
+    vk::CommandBuffer GetCommandBuffer() const { return *m_currentCommandBuffer; }
+    vk::Queue GetQueue() const { return m_queue; }
 
     void FlushCurrentCommandBuffer();
     void PrepareNextCommandBuffer();
-    
-    struct Fence
-    {
-        vk::Fence fence;
-        bool active = false;
-        size_t value = 0;
-    };
 
     enum class EventType
     {
@@ -39,8 +39,18 @@ private:
         EventCount
     };
 
-    vk::Semaphore* GetSemaphore(EventType event) { return &m_semaphores[static_cast<int>(event)];} 
+    vk::Semaphore GetVkSemaphore(EventType event) const { return m_semaphores[static_cast<int>(event)];} 
     void SetCurrentSemaphore(EventType event); 
+private:
+
+    
+    struct Fence
+    {
+        vk::Fence fence;
+        bool active = false;
+        size_t value = 0;
+    };
+
     bool IsCurrentSemaphore(EventType event) const { return m_currentSemaphores[static_cast<int>(event)] != nullptr;} 
     void CompleteSemaphore(EventType event) { m_currentSemaphores[static_cast<int>(event)] = nullptr; };
     void UpdateFence(size_t fenceIndex, bool wait = false);

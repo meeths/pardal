@@ -3,6 +3,8 @@
 #include <Math/Functions.h>
 #include <algorithm>
 
+#include "VulkanTexture.h"
+
 
 // Created on 2024-11-11 by sisco
 
@@ -41,8 +43,6 @@ namespace pdl
             m_semaphores[i] = createSemaphoreResult.value;
         }
 
-        PrepareNextCommandBuffer();
-        
         return true;
     }
 
@@ -63,7 +63,6 @@ namespace pdl
     void VulkanDeviceQueue::Flush()
     {
         FlushCurrentCommandBuffer();
-        PrepareNextCommandBuffer();
     }
 
     void VulkanDeviceQueue::WaitForGPU() const
@@ -78,15 +77,119 @@ namespace pdl
         WaitForGPU();
     }
 
+    void VulkanDeviceQueue::SetImageLayout(const VulkanTexture* texture, vk::ImageLayout oldImageLayout,
+                                           vk::ImageLayout newImageLayout)
+    {
+        vk::AccessFlags sourceAccessMask;
+        switch (oldImageLayout)
+        {
+        case vk::ImageLayout::eTransferDstOptimal: sourceAccessMask = vk::AccessFlagBits::eTransferWrite;
+            break;
+        case vk::ImageLayout::ePreinitialized: sourceAccessMask = vk::AccessFlagBits::eHostWrite;
+            break;
+        case vk::ImageLayout::eGeneral: // sourceAccessMask is empty
+        case vk::ImageLayout::eUndefined: break;
+        default: assert(false);
+            break;
+        }
+
+        vk::PipelineStageFlags sourceStage;
+        switch (oldImageLayout)
+        {
+        case vk::ImageLayout::eGeneral:
+        case vk::ImageLayout::ePreinitialized: sourceStage = vk::PipelineStageFlagBits::eHost;
+            break;
+        case vk::ImageLayout::eTransferDstOptimal: sourceStage = vk::PipelineStageFlagBits::eTransfer;
+            break;
+        case vk::ImageLayout::eUndefined: sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+            break;
+        default: assert(false);
+            break;
+        }
+
+        vk::AccessFlags destinationAccessMask;
+        switch (newImageLayout)
+        {
+        case vk::ImageLayout::eColorAttachmentOptimal: destinationAccessMask =
+                vk::AccessFlagBits::eColorAttachmentWrite;
+            break;
+        case vk::ImageLayout::eDepthAttachmentOptimal:
+        case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+            destinationAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
+                vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            break;
+        case vk::ImageLayout::eGeneral: // empty destinationAccessMask
+        case vk::ImageLayout::ePresentSrcKHR: break;
+        case vk::ImageLayout::eShaderReadOnlyOptimal: destinationAccessMask = vk::AccessFlagBits::eShaderRead;
+            break;
+        case vk::ImageLayout::eTransferSrcOptimal: destinationAccessMask = vk::AccessFlagBits::eTransferRead;
+            break;
+        case vk::ImageLayout::eTransferDstOptimal: destinationAccessMask = vk::AccessFlagBits::eTransferWrite;
+            break;
+        default: assert(false);
+            break;
+        }
+
+        vk::PipelineStageFlags destinationStage;
+        switch (newImageLayout)
+        {
+        case vk::ImageLayout::eColorAttachmentOptimal: destinationStage =
+                vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            break;
+        case vk::ImageLayout::eDepthStencilAttachmentOptimal: destinationStage =
+                vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            break;
+        case vk::ImageLayout::eGeneral: destinationStage = vk::PipelineStageFlagBits::eHost;
+            break;
+        case vk::ImageLayout::ePresentSrcKHR: destinationStage = vk::PipelineStageFlagBits::eBottomOfPipe;
+            break;
+        case vk::ImageLayout::eShaderReadOnlyOptimal: destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+            break;
+        case vk::ImageLayout::eTransferDstOptimal:
+        case vk::ImageLayout::eTransferSrcOptimal: destinationStage = vk::PipelineStageFlagBits::eTransfer;
+            break;
+        default: assert(false);
+            break;
+        }
+
+        vk::Format format = texture->GetVkFormat();
+        vk::ImageAspectFlags aspectMask;
+        if (newImageLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+        {
+            aspectMask = vk::ImageAspectFlagBits::eDepth;
+            if (format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint)
+            {
+                aspectMask |= vk::ImageAspectFlagBits::eStencil;
+            }
+        }
+        else
+        {
+            aspectMask = vk::ImageAspectFlagBits::eColor;
+        }
+
+        vk::ImageSubresourceRange imageSubresourceRange(aspectMask, 0, texture->GetDescriptor().m_mipLevels, 0, texture->GetDescriptor().m_arraySize);
+        vk::ImageMemoryBarrier imageMemoryBarrier(sourceAccessMask,
+                                                  destinationAccessMask,
+                                                  oldImageLayout,
+                                                  newImageLayout,
+                                                  VK_QUEUE_FAMILY_IGNORED,
+                                                  VK_QUEUE_FAMILY_IGNORED,
+                                                  texture->GetVkImage(),
+                                                  imageSubresourceRange);
+        GetCommandBuffer().pipelineBarrier(sourceStage, destinationStage, {}, nullptr, nullptr, imageMemoryBarrier);
+    }
+
     void VulkanDeviceQueue::FlushCurrentCommandBuffer()
     {
         auto commandBufferEndResults = m_currentCommandBuffer->end();
         CHECK_VK_RESULT(commandBufferEndResults);
 
         vk::SubmitInfo submitInfo = {};
-
+        vk::PipelineStageFlags stageFlags = vk::PipelineStageFlagBits::eBottomOfPipe;
+        
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = m_currentCommandBuffer;
+        submitInfo.pWaitDstStageMask = &stageFlags;
         
         if(IsCurrentSemaphore(EventType::BeginFrame))
         {
@@ -141,8 +244,7 @@ namespace pdl
     void VulkanDeviceQueue::SetCurrentSemaphore(EventType event)
     {
         pdlAssert(!IsCurrentSemaphore(event));
-        auto* semaphore = GetSemaphore(event);
-        m_currentSemaphores[static_cast<int>(event)] = semaphore;
+        m_currentSemaphores[static_cast<int>(event)] = &m_semaphores[static_cast<int>(event)];
     }
 
     void VulkanDeviceQueue::UpdateFence(size_t fenceIndex, bool wait)

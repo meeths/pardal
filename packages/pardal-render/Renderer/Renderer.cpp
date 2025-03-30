@@ -1,6 +1,8 @@
 
 #include <Renderer/Renderer.h>
 #include <Log/Log.h>
+
+#include "Vulkan/VulkanInternalRenderer.h"
 #ifdef PDL_VULKAN
 #include <Renderer/Vulkan/VulkanDevice.h>
 #endif
@@ -8,13 +10,19 @@
 
 namespace pdl
 {
-    bool Renderer::InitializeRenderDevice(IRenderDevice::InitInfoBase initInfo)
+    class RenderPass;
+
+    bool Renderer::InitializeRenderDevice(const IRenderDevice::InitInfoBase& initInfo)
     {
         switch (initInfo.m_deviceType)
         {
 #ifdef PDL_VULKAN
         case RenderDeviceType::Vulkan:
-            m_device = MakeSharedPointer<VulkanDevice>();
+            {
+                auto vulkanDevice = MakeSharedPointer<VulkanDevice>(); 
+                m_internalRenderer = MakeSharedPointer<VulkanInternalRenderer>(*vulkanDevice.get());
+                m_device = vulkanDevice;
+            }
             break;
 #endif            
         default: ;
@@ -31,5 +39,24 @@ namespace pdl
         return true;
     }
 
+    bool Renderer::BeginFrame()
+    {
+        return m_internalRenderer->BeginFrame();
+    }
+
+    bool Renderer::EndFrame()
+    {
+        return m_internalRenderer->EndFrame();
+    }
+
+    bool Renderer::BeginRenderPass(const RenderPass& renderPass)
+    {
+        return m_internalRenderer->BeginRenderPass(renderPass);
+    }
+    
+    bool Renderer::EndRenderPass()
+    {
+        return m_internalRenderer->EndRenderPass();
+    }
 }
 

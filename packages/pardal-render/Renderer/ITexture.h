@@ -25,6 +25,7 @@ public:
 		int32 m_mipLevels = 0;
 		int32 m_arraySize = 0;
 		TextureType m_textureType = TextureType::Texture2D;
+		TextureUsage m_textureUsage = TextureUsage::None;
 
 	};
 

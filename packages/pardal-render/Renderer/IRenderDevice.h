@@ -4,8 +4,8 @@
 #include <Renderer/RenderDeviceInfo.h>
 #include <Base/Expected.h>
 #include <Memory/SharedPointer.h>
-
-#include "ITexture.h"
+#include <Renderer/ITexture.h>
+#include <Renderer/ITextureView.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -34,6 +34,7 @@ public:
 
     virtual Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) = 0;
     virtual Expected<SharedPointer<ITexture>,StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) = 0;
+    virtual Expected<SharedPointer<ITextureView>,StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) = 0;
 
 protected:
     virtual bool Initialize(const InitInfoBase& desc) = 0;

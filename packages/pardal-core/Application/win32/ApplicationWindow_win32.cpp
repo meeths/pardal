@@ -259,6 +259,7 @@ namespace pdl
     {
         m_windowImpl = MakeUniquePointer<Impl>();
         m_windowImpl->InitializeWindow(this);
+        ApplicationWindow::AddCloseCallback([this](){RequestClose();});
     }
 
     ApplicationWindow::~ApplicationWindow()

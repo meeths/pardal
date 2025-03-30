@@ -5,6 +5,7 @@
 #include <Renderer/Vulkan/VulkanUtils.h>
 #include <String/StringUtils.h>
 #include <Renderer/Vulkan/VulkanSurface.h>
+#include <Renderer/Vulkan/VulkanTextureView.h>
 
 
 #ifdef PDL_PLATFORM_WINDOWS
@@ -161,6 +162,7 @@ namespace Details
     {
 
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         
         auto deviceFeatures2 = device.getFeatures2<
             vk::PhysicalDeviceFeatures2,
@@ -581,7 +583,7 @@ namespace pdl
     Expected<SharedPointer<ISurface>, StringView> VulkanDevice::CreateSurface(ApplicationWindow& applicationWindow)
     {
         auto surfacePtr = MakeSharedPointer<VulkanSurface>();
-        bool success = surfacePtr->Initialize(&m_vkDevice, &m_vkPhysicalDevice, &m_vkInstance, applicationWindow, Format::R8G8B8A8_UNORM);
+        bool success = surfacePtr->Initialize(&m_vkDevice, &m_vkPhysicalDevice, &m_vkInstance, m_vulkanDeviceQueue,applicationWindow, Format::R8G8B8A8_UNORM);
         if (!success)
         {
             return Unexpected<StringView>("Failed to initialize Vulkan surface");
@@ -599,6 +601,13 @@ namespace pdl
         return vulkanTexture;
     }
 
+    Expected<SharedPointer<ITextureView>, StringView> VulkanDevice::CreateTextureView(
+        ITextureView::TextureViewDescriptor _textureDescriptor)
+    {
+        auto vulkanTextureView = MakeSharedPointer<VulkanTextureView>(_textureDescriptor, &m_vkDevice);
+        return vulkanTextureView;
+    }
+
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)
     {
         m_deviceInfo.name = "pdl::VulkanDevice";
@@ -614,18 +623,18 @@ namespace pdl
         return true;
     }
 
-    bool VulkanDevice::InitializeInstanceAndDevice(const InitInfoBase& desc)
+    bool VulkanDevice::InitializeInstanceAndDevice(const InitInfoBase& initInfo)
     {
         // Init minimum set of functions
         VULKAN_HPP_DEFAULT_DISPATCHER.init( vkGetInstanceProcAddr );
         
-        vk::ApplicationInfo applicationInfo( desc.m_applicationName.data(), 1, "LyraEngine", 1, VK_API_VERSION_1_2 );
+        vk::ApplicationInfo applicationInfo( initInfo.m_applicationName.data(), 1, "LyraEngine", 1, VK_API_VERSION_1_4 );
 
         // Validation layers
         auto instanceLayerProperties = vk::enumerateInstanceLayerProperties();
         CHECK_VK_RESULTVALUE(instanceLayerProperties);
         Vector<const char*> instanceLayerNames;
-        if(desc.m_enableValidation)
+        if(initInfo.m_enableValidation)
             instanceLayerNames.push_back( "VK_LAYER_KHRONOS_validation" );
         
         if ( !Details::CheckLayers( instanceLayerNames, instanceLayerProperties.value ) )
@@ -636,7 +645,7 @@ namespace pdl
 
         // Extensions
         Vector<const char*> instanceExtensionNames;
-        if(desc.m_enableValidation)
+        if(initInfo.m_enableValidation)
         {
             instanceExtensionNames.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
             instanceExtensionNames.push_back( VK_EXT_DEBUG_UTILS_EXTENSION_NAME );
@@ -662,7 +671,7 @@ namespace pdl
         VULKAN_HPP_DEFAULT_DISPATCHER.init( instance.value, vkGetInstanceProcAddr );
 
         // Set up validation messenger
-        if(desc.m_enableValidation)
+        if(initInfo.m_enableValidation)
         {
             vk::DebugUtilsMessengerCreateInfoEXT debugInfo;
             debugInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning;
@@ -727,9 +736,25 @@ namespace pdl
             return false;
         }
 
-        float                     queuePriority = 0.0f;
+        float queuePriority = 0.0f;
+
+        // Chekc for dynamic rendering capabilities
+
+        
         vk::DeviceQueueCreateInfo deviceQueueCreateInfo( vk::DeviceQueueCreateFlags(), static_cast<uint32_t>( queueFamilyIndex ), 1, &queuePriority );
         vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), deviceQueueCreateInfo, {}, deviceExtensionNames);
+
+        
+        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature
+        {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+            .dynamicRendering = VK_TRUE,
+        };
+        if(std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
+        {
+            deviceCreateInfo.pNext = &dynamicRenderingFeature;
+        }
+
         auto createDeviceResults = m_vkPhysicalDevice.createDevice( deviceCreateInfo );
         CHECK_VK_RESULTVALUE(createDeviceResults);
         m_vkDevice = createDeviceResults.value;

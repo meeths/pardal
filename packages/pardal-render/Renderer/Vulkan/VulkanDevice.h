@@ -18,11 +18,12 @@ public:
     
     Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) override;
     Expected<SharedPointer<ITexture>, StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) override;
-    
+    Expected<SharedPointer<ITextureView>, StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) override;
+
+    VulkanDeviceQueue& GetVulkanDeviceQueue() { return m_vulkanDeviceQueue; };
 protected:
     bool Initialize(const InitInfoBase& initInfo) override;
     bool InitializeInstanceAndDevice(const InitInfoBase& initInfo);
-
 
 protected:
     RenderDeviceInfo m_deviceInfo = {};

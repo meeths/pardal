@@ -9,7 +9,7 @@ function includeVulkan()
     includedirs { "%{BASE_DIR}external/vulkan_" .. VULKAN_SDK_VERSION .. "/Include" }
     defines {
         "VULKAN_HPP_NO_EXCEPTIONS",
-        "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC",
+        "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
         "VULKAN_HPP_NO_SPACESHIP_OPERATOR",
         "PDL_VULKAN"
     }

@@ -8,7 +8,8 @@
 
 namespace pdl
 {
-class ITexture;
+    class ITexture;
+    class ITextureView;
     
 class ISurface
 {
@@ -33,8 +34,10 @@ public:
     virtual const SurfaceInfo& GetSurfaceInfo()  const= 0;
     virtual const SwapchainDescriptor& GetSurfaceConfig() const = 0;
     virtual size_t GetImageCount() const = 0; 
+
     virtual bool ConfigureSwapchain(SwapchainDescriptor config) = 0;
-    virtual ITexture* GetTexture() = 0;
+    virtual ITextureView* GetCurrentTextureView() = 0;
+
     virtual bool Present() = 0;
 };
 

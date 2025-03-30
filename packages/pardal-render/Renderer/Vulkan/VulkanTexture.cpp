@@ -66,7 +66,7 @@ namespace pdl
 		imageInfo.samples = static_cast<vk::SampleCountFlagBits>(m_textureDescriptor.m_sampleDesc.numSamples);
 
 		imageInfo.tiling = vk::ImageTiling::eOptimal;
-		imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled; // TODO: calculate usage
+		imageInfo.usage = VulkanUtils::GetImageUsageFlags(m_textureDescriptor.m_textureUsage);
 		imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
 		auto createImageResult = m_vkDevice->createImage(imageInfo);
@@ -113,6 +113,7 @@ namespace pdl
 	bool VulkanTexture::Initialize(vk::Image image)
 	{
 		auto vkFormat = VulkanUtils::TranslateToVkFormat(m_textureDescriptor.m_format);
+		m_textureDescriptor = VulkanUtils::SanitizeTextureDescriptor(m_textureDescriptor);
 
 		if (vkFormat == vk::Format::eUndefined)
 		{

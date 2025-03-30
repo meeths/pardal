@@ -1,8 +1,8 @@
-
 #include <Renderer/Vulkan/VulkanSurface.h>
 #include <Renderer/Vulkan/VulkanUtils.h>
 #include <Application/ApplicationWindow.h>
 #include <Renderer/Vulkan/VulkanTexture.h>
+#include <Renderer/Vulkan/VulkanDeviceQueue.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -12,19 +12,19 @@ namespace pdl
     {
         DestroySwapchain();
         m_vkInstance->destroySurfaceKHR(m_vkSurface);
-        m_vkDevice->destroySemaphore(m_vkNextImageAcquireSemaphore);
     }
 
-    bool VulkanSurface::Initialize(vk::Device* device, vk::PhysicalDevice* physicalDevice, vk::Instance* instance, ApplicationWindow& windowHandle, Format preferredFormat)
+    bool VulkanSurface::Initialize(vk::Device* device, vk::PhysicalDevice* physicalDevice, vk::Instance* instance,
+                                   const VulkanDeviceQueue& deviceQueue, ApplicationWindow& windowHandle,
+                                   Format preferredFormat)
     {
         m_vkDevice = device;
         m_vkPhysicalDevice = physicalDevice;
         m_vkInstance = instance;
+        m_vkPresentQueue = deviceQueue.GetQueue();
 
-        vk::SemaphoreCreateInfo semaphoreCreateInfo = {};
-        auto createSemaphoreResult = m_vkDevice->createSemaphore(semaphoreCreateInfo);
-        CHECK_VK_RESULTVALUE(createSemaphoreResult);
-        m_vkNextImageAcquireSemaphore = createSemaphoreResult.value;
+        m_vkNextImageAcquireSemaphore = deviceQueue.GetVkSemaphore(VulkanDeviceQueue::EventType::BeginFrame);
+        m_vkEndFrameSemaphore = deviceQueue.GetVkSemaphore(VulkanDeviceQueue::EventType::EndFrame);
 
 #ifdef PDL_PLATFORM_WINDOWS
         vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo = {};
@@ -33,7 +33,7 @@ namespace pdl
         auto surfaceCreateResults = instance->createWin32SurfaceKHR(surfaceCreateInfo);
         CHECK_VK_RESULTVALUE(surfaceCreateResults);
         m_vkSurface = surfaceCreateResults.value;
-       
+
 #else
 #error Implement relevant surface creation for this platform
 #endif
@@ -68,12 +68,12 @@ namespace pdl
         auto presentModesResult = m_vkPhysicalDevice->getSurfacePresentModesKHR(m_vkSurface);
         CHECK_VK_RESULTVALUE(presentModesResult);
 
-        static const Vector<vk::PresentModeKHR> kVsyncOffModes {
+        static const Vector<vk::PresentModeKHR> kVsyncOffModes{
             vk::PresentModeKHR::eImmediate,
             vk::PresentModeKHR::eMailbox,
             vk::PresentModeKHR::eFifo
         };
-        static const Vector<vk::PresentModeKHR> kVsyncOnModes {
+        static const Vector<vk::PresentModeKHR> kVsyncOnModes{
             vk::PresentModeKHR::eFifoRelaxed,
             vk::PresentModeKHR::eFifo,
             vk::PresentModeKHR::eImmediate,
@@ -98,7 +98,7 @@ namespace pdl
         }
 
         vk::Format format = VulkanUtils::TranslateToVkFormat(m_config.m_format);
-        vk::SwapchainCreateInfoKHR swapchainCreateInfo {
+        vk::SwapchainCreateInfoKHR swapchainCreateInfo{
             {},
             m_vkSurface,
             m_config.m_desiredImageCount,
@@ -114,7 +114,7 @@ namespace pdl
             vk::CompositeAlphaFlagBitsKHR::eOpaque,
             selectedPresentMode,
             true,
-            {},            
+            {},
         };
 
         auto createSwapchainResult = m_vkDevice->createSwapchainKHR(swapchainCreateInfo);
@@ -134,13 +134,20 @@ namespace pdl
             desc.m_extents.y = m_config.m_size.y;
             desc.m_extents.x = m_config.m_size.x;
             desc.m_mipLevels = 1;
-            
-            VulkanTexture texture(desc, m_vkDevice);
-            texture.Initialize(image);
-            
-            m_images.push_back(std::move(texture));
+
+            auto texturePtr = MakeUniquePointer<VulkanTexture>(desc, m_vkDevice);
+            texturePtr->Initialize(image);
+
+            m_images.push_back(std::move(texturePtr));
+
+            ITextureView::TextureViewDescriptor swapchainImageViewDesc;
+            swapchainImageViewDesc.m_texture = m_images.back().get();
+            auto textureViewPtr = MakeUniquePointer<VulkanTextureView>(swapchainImageViewDesc, m_vkDevice);
+            m_imageViews.push_back(std::move(textureViewPtr));
         }
-        
+
+        AcquireNextImage();
+
         return true;
     }
 
@@ -152,32 +159,60 @@ namespace pdl
     bool VulkanSurface::ConfigureSwapchain(SwapchainDescriptor config)
     {
         m_config = config;
-        if (m_config.m_size.x == 0|| m_config.m_size.y == 0)
+        if (m_config.m_size.x == 0 || m_config.m_size.y == 0)
         {
             pdlLogError("VulkanSurface::Configure: Invalid width/height");
             return false;
         }
         if (std::ranges::find(m_info.m_supportedFormats, m_config.m_format) == m_info.m_supportedFormats.end())
         {
-            pdlLogWarning("VulkanSurface::Configure: unsupported format %s. Using default %s.", to_string(config.m_format), to_string(m_info.m_preferredFormat));
+            pdlLogWarning("VulkanSurface::Configure: unsupported format %s. Using default %s.",
+                          to_string(config.m_format), to_string(m_info.m_preferredFormat));
             m_config.m_format = m_info.m_preferredFormat;
         }
         DestroySwapchain();
         return CreateSwapchain();
     }
 
-    ITexture* VulkanSurface::GetTexture()
+    ITextureView* VulkanSurface::GetCurrentTextureView()
     {
-        pdlAssert(!m_images.empty() && "VulkanSurface::GetTexture: No images available");
-        pdlAssert(m_images.size() > m_currentImageIndex && "VulkanSurface::GetTexture: Incorrect current image index");
-        
-        return &m_images[m_currentImageIndex];    }
+        pdlAssert(!m_imageViews.empty() && "VulkanSurface::GetCurrentTextureView: No imageViews available");
+        pdlAssert(
+            m_imageViews.size() > m_currentImageIndex &&
+            "VulkanSurface::GetCurrentTextureView: Incorrect current imageView index");
+
+        return m_imageViews[m_currentImageIndex].get();
+    }
 
     bool VulkanSurface::Present()
     {
         pdlAssert(!m_images.empty() && "VulkanSurface::Present: No images available to present");
-        pdlNotImplemented();
-        return false;
+
+        vk::PresentInfoKHR presentInfo = {};
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = &m_vkEndFrameSemaphore;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &m_vkSwapchain;
+        presentInfo.pImageIndices = &m_currentImageIndex;
+        presentInfo.pResults = nullptr;
+
+        auto presentResults = m_vkPresentQueue.presentKHR(presentInfo);
+        CHECK_VK_RESULT(presentResults);
+
+        AcquireNextImage();
+        return true;
+    }
+
+    void VulkanSurface::AcquireNextImage()
+    {
+        m_currentImageIndex = -1;
+        auto acquireResult = m_vkDevice->acquireNextImageKHR(
+            m_vkSwapchain,
+            UINT64_MAX,
+            m_vkNextImageAcquireSemaphore,
+            VK_NULL_HANDLE,
+            &m_currentImageIndex);
+
+        CHECK_VK_RESULT(acquireResult);
     }
 }
-
