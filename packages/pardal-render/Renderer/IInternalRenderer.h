@@ -1,8 +1,6 @@
 
 #pragma once
-#include <Containers/Vector.h>
-
-#include "Math/Vector4.h"
+#include <Math/Vector2i.h>
 
 // Created on 2025-03-26 by sisco
 

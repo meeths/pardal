@@ -31,6 +31,7 @@ public:
     bool ConfigureSwapchain(SwapchainDescriptor config) override;
     ITextureView* GetCurrentTextureView() override;
 
+    bool BeginFrame() override;
     bool Present() override;
 private:
     void AcquireNextImage();
@@ -52,6 +53,8 @@ private:
     Vector<UniquePointer<VulkanTexture>> m_images;
     Vector<UniquePointer<VulkanTextureView>> m_imageViews;
     uint32 m_currentImageIndex = 0;
+
+    bool m_needToRecreateSwapChain = false;
 };
 
 }

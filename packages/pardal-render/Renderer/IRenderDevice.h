@@ -24,6 +24,7 @@ public:
     {
         RenderDeviceType m_deviceType = RenderDeviceType::None;
         StringView m_applicationName;
+        ApplicationWindow& m_applicationWindow;
         bool m_enableValidation = true;
     };
 

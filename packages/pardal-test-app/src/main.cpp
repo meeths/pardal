@@ -26,6 +26,7 @@ int main(int argc, char** argv)
     renderer.InitializeRenderDevice({
         .m_deviceType = pdl::RenderDeviceType::Vulkan,
         .m_applicationName = "pardal-test-app",
+        .m_applicationWindow = window,
         .m_enableValidation = true
     });
 
@@ -36,6 +37,8 @@ int main(int argc, char** argv)
     pdlLogInfo("Adapter: %s", deviceInfo.adapterName.c_str());
     pdlLogFlush();
 
+    bool useHDR = true;
+
     auto surface = renderDevice->CreateSurface(window);
     if(!surface)
     {
@@ -43,7 +46,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    bool useHDR = true;
     
     pdl::ISurface::SwapchainDescriptor surfaceDescriptor
     {
@@ -61,12 +63,13 @@ int main(int argc, char** argv)
     pdl::SharedPointer<pdl::ITexture> depthBuffer;
     pdl::SharedPointer<pdl::ITextureView> depthBufferView;
 
+    auto buildDepthBuffer = [&depthBuffer, &depthBufferView, &renderer](pdl::Math::Vector2i textureSize)
     {
         // Shared depth buffer
         pdl::ITexture::TextureDescriptor depthBufferDesc;
         depthBufferDesc.m_format = pdl::Format::D32_FLOAT;
-        depthBufferDesc.m_extents.x = windowInitInfo.m_windowSize.x;
-        depthBufferDesc.m_extents.y = windowInitInfo.m_windowSize.y;
+        depthBufferDesc.m_extents.x = textureSize.x;
+        depthBufferDesc.m_extents.y = textureSize.y;
         depthBufferDesc.m_extents.z = 1;
         depthBufferDesc.m_textureUsage = pdl::TextureUsage::DepthRead | pdl::TextureUsage::DepthWrite | pdl::TextureUsage::ShaderResource;
 
@@ -79,16 +82,27 @@ int main(int argc, char** argv)
         auto depthStencilViewResults = renderer.GetRenderDevice()->CreateTextureView(depthStencilViewDesc);
         pdlAssert(depthStencilViewResults.has_value());
         depthBufferView = depthStencilViewResults.value();
-    }
+    };
 
+    buildDepthBuffer(window.GetWindowSize());
+    
     float maxColorComponentValue = useHDR ? 16.0f : 1.0f;
     float colorSpeed = useHDR ? 1.0f : 1/16.0f;
 
+    window.AddResizeCallback([surface = (*surface), buildDepthBuffer](pdl::Math::Vector2i newSize)
+    {
+        buildDepthBuffer(newSize);
+        auto swapchainDetails = surface->GetSurfaceConfig();
+        swapchainDetails.m_size = newSize;
+        surface->ConfigureSwapchain(swapchainDetails);
+    });
+    
     uint32 frameIndex = 0;
     pdl::Chronometer frameTimer;
     frameTimer.Start();
     while (!window.IsCloseRequested())
     {
+        (*surface)->BeginFrame();
         pdl::Vector<pdl::ITextureView*> currentFrameSwapchainImageViews;
         pdl::Vector<pdl::Math::Vector4> clearColors;
         currentFrameSwapchainImageViews.push_back((*surface)->GetCurrentTextureView());
@@ -103,6 +117,8 @@ int main(int argc, char** argv)
         ++frameIndex;
 
         window.SetWindowTitle(pdl::StringUtils::StringFormat("pdl test app: %.02f FPS", 1.0f/frameTimer.Lap<float, pdl::TimeTypes::Seconds>()));
+
+        pdlLogFlush();
     }
     
     return 0;

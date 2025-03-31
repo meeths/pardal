@@ -146,18 +146,20 @@ namespace pdl
             m_imageViews.push_back(std::move(textureViewPtr));
         }
 
-        AcquireNextImage();
-
         return true;
     }
 
     void VulkanSurface::DestroySwapchain()
     {
+        m_imageViews.clear();
+        m_images.clear();
         m_vkDevice->destroySwapchainKHR(m_vkSwapchain);
+        m_vkSwapchain = VK_NULL_HANDLE;
     }
 
     bool VulkanSurface::ConfigureSwapchain(SwapchainDescriptor config)
     {
+        m_needToRecreateSwapChain = false;
         m_config = config;
         if (m_config.m_size.x == 0 || m_config.m_size.y == 0)
         {
@@ -184,6 +186,16 @@ namespace pdl
         return m_imageViews[m_currentImageIndex].get();
     }
 
+    bool VulkanSurface::BeginFrame()
+    {
+        if (m_needToRecreateSwapChain)
+        {
+            ConfigureSwapchain(m_config);
+        }
+        AcquireNextImage();
+        return true;
+    }
+
     bool VulkanSurface::Present()
     {
         pdlAssert(!m_images.empty() && "VulkanSurface::Present: No images available to present");
@@ -197,9 +209,13 @@ namespace pdl
         presentInfo.pResults = nullptr;
 
         auto presentResults = m_vkPresentQueue.presentKHR(presentInfo);
+        
+        if (presentResults == vk::Result::eErrorOutOfDateKHR || presentResults == vk::Result::eSuboptimalKHR)
+        {
+            m_needToRecreateSwapChain = true;
+            return false;
+        }
         CHECK_VK_RESULT(presentResults);
-
-        AcquireNextImage();
         return true;
     }
 
@@ -213,6 +229,11 @@ namespace pdl
             VK_NULL_HANDLE,
             &m_currentImageIndex);
 
+        if (acquireResult == vk::Result::eErrorOutOfDateKHR || acquireResult == vk::Result::eSuboptimalKHR)
+        {
+            m_needToRecreateSwapChain = true;
+            return;
+        }
         CHECK_VK_RESULT(acquireResult);
     }
 }

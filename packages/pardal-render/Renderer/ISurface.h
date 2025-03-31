@@ -38,6 +38,7 @@ public:
     virtual bool ConfigureSwapchain(SwapchainDescriptor config) = 0;
     virtual ITextureView* GetCurrentTextureView() = 0;
 
+    virtual bool BeginFrame() = 0;
     virtual bool Present() = 0;
 };
 
