@@ -63,7 +63,10 @@ namespace pdl
         }
 
         vk::RenderingInfoKHR render_info;
-        render_info.renderArea = {{{0, 0}, {1280, 720}}};
+        const auto& renderArea = renderPass.GetRenderArea();
+        render_info.renderArea = vk::Rect2D(
+                vk::Offset2D((uint32)renderArea.GetOrigin().x, (uint32)renderArea.GetOrigin().y),
+                vk::Extent2D((uint32)renderArea.GetDimensions().x, (uint32)renderArea.GetDimensions().y));
         render_info.layerCount = 1;
         render_info.colorAttachmentCount = (uint32)colorAttachmentInfos.size();
         render_info.pColorAttachments = colorAttachmentInfos.data();

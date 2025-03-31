@@ -94,7 +94,7 @@ int main(int argc, char** argv)
         currentFrameSwapchainImageViews.push_back((*surface)->GetCurrentTextureView());
         clearColors.emplace_back(fmod(0.01f * frameIndex  * colorSpeed, maxColorComponentValue) , fmod(0.02f * frameIndex * colorSpeed , maxColorComponentValue) + 0.3, fmod(0.005f * frameIndex * colorSpeed , maxColorComponentValue) + 0.6, 1.0f);
         renderer.BeginFrame();
-        pdl::RenderPass mainRenderPass(currentFrameSwapchainImageViews, depthBufferView.get(), clearColors);
+        pdl::RenderPass mainRenderPass(currentFrameSwapchainImageViews, depthBufferView.get(), pdl::Math::Rectanglei({0,0}, (*surface)->GetSurfaceConfig().m_size), clearColors);
         renderer.BeginRenderPass(mainRenderPass);
         renderer.EndRenderPass();
         renderer.EndFrame();
