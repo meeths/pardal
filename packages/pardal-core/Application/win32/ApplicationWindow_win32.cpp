@@ -296,7 +296,7 @@ namespace pdl
     {
         pdlAssert(m_windowImpl);
         RECT windowRect;
-        ::GetWindowRect(m_windowImpl->m_hWnd, &windowRect);
+        ::GetClientRect(m_windowImpl->m_hWnd, &windowRect);
         return { windowRect.right - windowRect.left, windowRect.bottom - windowRect.top };
     }
 
