@@ -2,6 +2,7 @@
 #include <Renderer/Renderer.h>
 #include <Log/Log.h>
 
+#include "Application/ApplicationWindow.h"
 #include "Vulkan/VulkanInternalRenderer.h"
 #ifdef PDL_VULKAN
 #include <Renderer/Vulkan/VulkanDevice.h>
@@ -36,6 +37,20 @@ namespace pdl
             return false;
         }
 
+        IInternalRenderer::InitInfo internalRendererInitInfo
+        {
+            .m_window = initInfo.m_applicationWindow,
+            .m_initialSurfaceSize = initInfo.m_applicationWindow.GetWindowSize(),
+            .m_useVSync = initInfo.m_useVSync,
+            .m_useHDR = initInfo.m_useHDR,
+            .m_createDepthBuffer = true,
+        };
+        m_internalRenderer->Initialize(internalRendererInitInfo);
+        initInfo.m_applicationWindow.AddResizeCallback([internalRenderer = m_internalRenderer.get()](Math::Vector2i newSize)
+        {
+            internalRenderer->OnResize(newSize);
+        });
+        
         return true;
     }
 
@@ -47,6 +62,11 @@ namespace pdl
     bool Renderer::EndFrame()
     {
         return m_internalRenderer->EndFrame();
+    }
+
+    RenderPass& Renderer::GetMainRenderPass()
+    {
+        return m_internalRenderer->GetMainRenderPass();
     }
 
     bool Renderer::BeginRenderPass(const RenderPass& renderPass)

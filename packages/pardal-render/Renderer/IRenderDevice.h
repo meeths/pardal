@@ -26,6 +26,8 @@ public:
         StringView m_applicationName;
         ApplicationWindow& m_applicationWindow;
         bool m_enableValidation = true;
+        bool m_useVSync = true;
+        bool m_useHDR = false;
     };
 
     virtual ~IRenderDevice() = default;

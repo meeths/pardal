@@ -2,8 +2,6 @@
 #pragma once
 #include <Memory/SharedPointer.h>
 #include <Renderer/IRenderDevice.h>
-#include <Containers/Vector.h>
-#include <Math/Vector4.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -20,7 +18,8 @@ public:
 
     bool BeginFrame();
     bool EndFrame();
-    
+
+    RenderPass& GetMainRenderPass();
     bool BeginRenderPass(const RenderPass& renderPass);
     bool EndRenderPass();
 
