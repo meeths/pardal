@@ -620,6 +620,11 @@ namespace pdl
             return false;
         }
 
+#ifdef PDL_DEBUG
+        pdlLogInfo("Render Device name: %s", m_deviceInfo.name.c_str());
+        pdlLogInfo("Adapter: %s", m_deviceInfo.adapterName.c_str());
+        pdlLogFlush();
+#endif
         return true;
     }
 

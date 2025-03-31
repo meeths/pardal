@@ -34,13 +34,7 @@ int main(int argc, char** argv)
         .m_useHDR = useHDR
     });
 
-    auto renderDevice = renderer.GetRenderDevice();
-
-    const auto& deviceInfo = renderDevice->GetRenderDeviceInfo();
-    pdlLogInfo("Render Device name: %s", deviceInfo.name.c_str());
-    pdlLogInfo("Adapter: %s", deviceInfo.adapterName.c_str());
-    pdlLogFlush();
-    
+   
     float maxColorComponentValue = useHDR ? 16.0f : 1.0f;
     float colorSpeed = useHDR ? 1.0f : 1/16.0f;
     
