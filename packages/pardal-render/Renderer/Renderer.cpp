@@ -1,9 +1,8 @@
 
 #include <Renderer/Renderer.h>
 #include <Log/Log.h>
-
-#include "Application/ApplicationWindow.h"
-#include "Vulkan/VulkanInternalRenderer.h"
+#include <Application/ApplicationWindow.h>
+#include <Renderer/Vulkan/VulkanInternalRenderer.h>
 #ifdef PDL_VULKAN
 #include <Renderer/Vulkan/VulkanDevice.h>
 #endif
@@ -50,18 +49,34 @@ namespace pdl
         {
             internalRenderer->OnResize(newSize);
         });
+
+        ImGuiRenderer::InitInfo imguiInitInfo
+        {
+            .m_window = initInfo.m_applicationWindow,
+            .m_device = m_device.get(),
+            .m_useHDR = initInfo.m_useHDR
+        };
         
+        m_imguiRenderer = MakeSharedPointer<ImGuiRenderer>(imguiInitInfo);
+
         return true;
+    }
+
+    Renderer::~Renderer()
+    {
     }
 
     bool Renderer::BeginFrame()
     {
+        m_imguiRenderer->BeginFrame();
         return m_internalRenderer->BeginFrame();
     }
 
     bool Renderer::EndFrame()
     {
-        return m_internalRenderer->EndFrame();
+        bool frameEnded = m_internalRenderer->EndFrame();
+        m_imguiRenderer->EndFrame();
+        return frameEnded;
     }
 
     RenderPass& Renderer::GetMainRenderPass()
@@ -76,6 +91,7 @@ namespace pdl
     
     bool Renderer::EndRenderPass()
     {
+        m_imguiRenderer->Render();
         return m_internalRenderer->EndRenderPass();
     }
 }

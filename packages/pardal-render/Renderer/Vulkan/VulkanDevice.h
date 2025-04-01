@@ -6,6 +6,8 @@
 
 // Created on 2025-03-23 by sisco
 
+struct ImGui_ImplVulkan_InitInfo;
+
 namespace pdl
 {
 
@@ -22,6 +24,8 @@ public:
     Expected<SharedPointer<IRenderBuffer>, StringView> CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor) override;
 
     VulkanDeviceQueue& GetVulkanDeviceQueue() { return m_vulkanDeviceQueue; };
+
+    void FillImGuiInitInfo(ImGui_ImplVulkan_InitInfo& initInfo);
 protected:
     bool Initialize(const InitInfoBase& initInfo) override;
     bool InitializeInstanceAndDevice(const InitInfoBase& initInfo);

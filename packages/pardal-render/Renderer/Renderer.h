@@ -3,6 +3,8 @@
 #include <Memory/SharedPointer.h>
 #include <Renderer/IRenderDevice.h>
 
+#include "ImGui/ImGuiRenderer.h"
+
 // Created on 2025-03-23 by sisco
 
 namespace pdl
@@ -14,6 +16,7 @@ class Renderer
 {
 public:
     bool InitializeRenderDevice(const IRenderDevice::InitInfoBase& initInfo);
+    ~Renderer();
     SharedPointer<IRenderDevice> GetRenderDevice() const { return m_device; }
 
     bool BeginFrame();
@@ -26,6 +29,7 @@ public:
 private:
     SharedPointer<IRenderDevice> m_device;
     SharedPointer<IInternalRenderer> m_internalRenderer;
+    SharedPointer<ImGuiRenderer> m_imguiRenderer;
 };
 
 }

@@ -2,7 +2,7 @@ group "20 Pardal Apps"
 
 project "pardal-test-app"
     kind "ConsoleApp"
-    links { "pardal-core", "pardal-render" }
+    links { "pardal-core", "pardal-render", "imgui" }
     language "C++"
     targetdir "%{BASE_DIR}bin/pardal-test-app/%{cfg.buildcfg}"
     
@@ -24,6 +24,7 @@ project "pardal-test-app"
     configureCommonExternals()
     
     includeVulkan()
+    includeImGui()
     linkVulkan()
      
     setConfigurations()

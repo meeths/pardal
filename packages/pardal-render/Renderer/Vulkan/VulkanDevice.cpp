@@ -8,6 +8,7 @@
 #include <Renderer/Vulkan/VulkanTextureView.h>
 
 #include "VulkanRenderBuffer.h"
+#include "backends/imgui_impl_vulkan.h"
 
 
 #ifdef PDL_PLATFORM_WINDOWS
@@ -615,6 +616,22 @@ namespace pdl
         auto vulkanBuffer = MakeSharedPointer<VulkanRenderBuffer>(_bufferDescriptor, m_vkDevice, m_vkPhysicalDevice);
         return vulkanBuffer;
         
+    }
+
+    void VulkanDevice::FillImGuiInitInfo(ImGui_ImplVulkan_InitInfo& initInfo)
+    {
+        initInfo.Device = m_vkDevice;
+        initInfo.ApiVersion = VK_API_VERSION_1_3;
+        initInfo.Instance = m_vkInstance;
+        initInfo.PhysicalDevice = m_vkPhysicalDevice;
+        initInfo.QueueFamily = Details::FindQueue( m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute);;
+        initInfo.Queue = m_vulkanDeviceQueue.GetQueue();
+        initInfo.DescriptorPoolSize = 8;
+        initInfo.MinImageCount = 2;              // >= 2
+        initInfo.ImageCount = 8;                 // >= MinImageCount
+        initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;                // 0 defaults to VK_SAMPLE_COUNT_1_BIT
+        initInfo.UseDynamicRendering = true;
+        initInfo.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     }
 
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)

@@ -1,7 +1,6 @@
 pardal = {}
 
 include "premake-pardal-tests.lua"
-include "scripts/premake/external/glm.lua"
 
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 
@@ -56,3 +55,6 @@ workspace "pardal"
         architecture "x64"
 
     filter {}
+    
+include "scripts/premake/pardal-external.lua"
+    
