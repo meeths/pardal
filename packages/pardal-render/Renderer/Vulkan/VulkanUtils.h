@@ -34,6 +34,9 @@ public:
     static vk::ImageUsageFlagBits GetImageUsageFlags(TextureUsage usage);
     static vk::ImageUsageFlags GetImageUsageFlags(TextureUsage usage, MemoryType memoryType, const void* initData);
     static vk::ImageUsageFlagBits GetImageUsageFlags(ResourceState state);
+    static vk::BufferUsageFlags GetBufferUsageFlags(BufferUsage usage);
+    static uint32 FindMemoryType(vk::PhysicalDeviceMemoryProperties const & memoryProperties, uint32 typeBits, vk::MemoryPropertyFlags requirementsMask);
+    
 };
 
 }

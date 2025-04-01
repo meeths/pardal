@@ -4,6 +4,7 @@
 #include <Renderer/RenderDeviceInfo.h>
 #include <Base/Expected.h>
 #include <Memory/SharedPointer.h>
+#include <Renderer/IRenderBuffer.h>
 #include <Renderer/ITexture.h>
 #include <Renderer/ITextureView.h>
 
@@ -38,6 +39,7 @@ public:
     virtual Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) = 0;
     virtual Expected<SharedPointer<ITexture>,StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) = 0;
     virtual Expected<SharedPointer<ITextureView>,StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) = 0;
+    virtual Expected<SharedPointer<IRenderBuffer>, StringView> CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor) = 0;
 
 protected:
     virtual bool Initialize(const InitInfoBase& desc) = 0;

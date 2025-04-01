@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 
     pdl::ApplicationWindow window(windowInitInfo);
 
-    bool useHDR = true;
+    bool useHDR = false;
 
     pdl::Renderer renderer;
     renderer.InitializeRenderDevice({
@@ -30,13 +30,26 @@ int main(int argc, char** argv)
         .m_applicationName = "pardal-test-app",
         .m_applicationWindow = window,
         .m_enableValidation = true,
-        .m_useVSync = true,
+        .m_useVSync = false,
         .m_useHDR = useHDR
     });
 
    
     float maxColorComponentValue = useHDR ? 16.0f : 1.0f;
     float colorSpeed = useHDR ? 1.0f : 1/16.0f;
+
+    pdl::IRenderBuffer::BufferDescriptor coolBufferDescriptor;
+    coolBufferDescriptor.size = 1024 * 1024 * 10;
+    coolBufferDescriptor.usage = pdl::BufferUsage::VertexBuffer | pdl::BufferUsage::ShaderResource;
+    coolBufferDescriptor.memoryType = pdl::MemoryType::Upload;
+    
+    auto coolBuffer = renderer.GetRenderDevice()->CreateRenderBuffer(coolBufferDescriptor);
+    uint8* data = coolBuffer.value()->Map();
+    for (uint32 i = 0; i < 1024 * 1024 * 10; i++)
+    {
+        data[i] = 128;
+    }
+    coolBuffer.value()->Unmap();
     
     uint32 frameIndex = 0;
     pdl::Chronometer frameTimer;

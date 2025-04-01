@@ -19,6 +19,7 @@ public:
     Expected<SharedPointer<ISurface>,StringView> CreateSurface(ApplicationWindow& applicationWindow) override;
     Expected<SharedPointer<ITexture>, StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) override;
     Expected<SharedPointer<ITextureView>, StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) override;
+    Expected<SharedPointer<IRenderBuffer>, StringView> CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor) override;
 
     VulkanDeviceQueue& GetVulkanDeviceQueue() { return m_vulkanDeviceQueue; };
 protected:

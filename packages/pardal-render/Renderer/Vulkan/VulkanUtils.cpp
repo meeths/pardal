@@ -463,6 +463,49 @@ vk::ImageUsageFlagBits VulkanUtils::GetImageUsageFlags(ResourceState state)
     }
 }
 
+vk::BufferUsageFlags VulkanUtils::GetBufferUsageFlags(BufferUsage usage)
+{
+    vk::BufferUsageFlags flags = {};
+    if (IS_SET(usage, BufferUsage::VertexBuffer))
+        flags |= vk::BufferUsageFlagBits::eVertexBuffer;
+    if (IS_SET(usage, BufferUsage::IndexBuffer))
+        flags |= vk::BufferUsageFlagBits::eIndexBuffer;
+    if (IS_SET(usage, BufferUsage::ConstantBuffer))
+        flags |= vk::BufferUsageFlagBits::eUniformBuffer;
+    if (IS_SET(usage, BufferUsage::ShaderResource))
+        flags |= vk::BufferUsageFlagBits::eUniformBuffer;
+    if (IS_SET(usage, BufferUsage::UnorderedAccess))
+        flags |= vk::BufferUsageFlagBits::eUniformBuffer;
+    if (IS_SET(usage, BufferUsage::IndirectArgument))
+        flags |= vk::BufferUsageFlagBits::eIndirectBuffer;
+    if (IS_SET(usage, BufferUsage::CopySource))
+        flags |= vk::BufferUsageFlagBits::eTransferSrc;
+    if (IS_SET(usage, BufferUsage::CopyDestination))
+        flags |= vk::BufferUsageFlagBits::eTransferDst;
+    if (IS_SET(usage, BufferUsage::AccelerationStructure))
+        flags |= vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR;
+    if (IS_SET(usage, BufferUsage::AccelerationStructureBuildInput))
+        flags |= vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR;
+    if (IS_SET(usage, BufferUsage::ShaderTable))
+        flags |= vk::BufferUsageFlagBits::eShaderBindingTableKHR;
 
+    return flags;
+}
+
+uint32 VulkanUtils::FindMemoryType( vk::PhysicalDeviceMemoryProperties const & memoryProperties, uint32 typeBits, vk::MemoryPropertyFlags requirementsMask )
+{
+    uint32 typeIndex = uint32( ~0 );
+    for ( uint32 i = 0; i < memoryProperties.memoryTypeCount; i++ )
+    {
+        if ( ( typeBits & 1 ) && ( ( memoryProperties.memoryTypes[i].propertyFlags & requirementsMask ) == requirementsMask ) )
+        {
+            typeIndex = i;
+            break;
+        }
+        typeBits >>= 1;
+    }
+    assert( typeIndex != uint32( ~0 ) );
+    return typeIndex;
+}
 }
 

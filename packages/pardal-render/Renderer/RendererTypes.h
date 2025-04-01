@@ -289,6 +289,15 @@ namespace pdl
         AccelerationStructureBuildInput     = 1 << 9,
         ShaderTable                         = 1 << 10,
     };
+    
+    inline BufferUsage operator|(BufferUsage lhs, BufferUsage rhs) 
+    {
+        return static_cast<BufferUsage>(static_cast<char>(lhs) | static_cast<char>(rhs));
+    }
+    inline BufferUsage operator&(BufferUsage lhs, BufferUsage rhs) 
+    {
+        return static_cast<BufferUsage>(static_cast<char>(lhs) & static_cast<char>(rhs));
+    }
 
     enum class TextureUsage : uint16
     {

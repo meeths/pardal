@@ -7,6 +7,8 @@
 #include <Renderer/Vulkan/VulkanSurface.h>
 #include <Renderer/Vulkan/VulkanTextureView.h>
 
+#include "VulkanRenderBuffer.h"
+
 
 #ifdef PDL_PLATFORM_WINDOWS
 #include <dxgi1_2.h>
@@ -606,6 +608,13 @@ namespace pdl
     {
         auto vulkanTextureView = MakeSharedPointer<VulkanTextureView>(_textureDescriptor, &m_vkDevice);
         return vulkanTextureView;
+    }
+
+    Expected<SharedPointer<IRenderBuffer>, StringView> VulkanDevice::CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor)
+    {
+        auto vulkanBuffer = MakeSharedPointer<VulkanRenderBuffer>(_bufferDescriptor, m_vkDevice, m_vkPhysicalDevice);
+        return vulkanBuffer;
+        
     }
 
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)
