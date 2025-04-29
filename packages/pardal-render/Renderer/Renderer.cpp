@@ -3,6 +3,9 @@
 #include <Log/Log.h>
 #include <Application/ApplicationWindow.h>
 #include <Renderer/Vulkan/VulkanInternalRenderer.h>
+
+#include "Base/DebugHelpers.h"
+#include "Math/Vector3.h"
 #ifdef PDL_VULKAN
 #include <Renderer/Vulkan/VulkanDevice.h>
 #endif
@@ -59,6 +62,24 @@ namespace pdl
         
         m_imguiRenderer = MakeSharedPointer<ImGuiRenderer>(imguiInitInfo);
 
+        m_frameInfo.eyePos = Math::Vector3(0.0f, 0.0f, 0.0f);
+        m_frameInfo.projection = GetRenderDevice()->GetRenderDeviceInfo().identityProjection;
+        m_frameInfo.view = glm::identity<Math::Matrix44>();
+
+        pdl::IRenderBuffer::BufferDescriptor frameInfoBufferDescriptor;
+        frameInfoBufferDescriptor.size = sizeof(PerFrameInfo);
+        frameInfoBufferDescriptor.usage = pdl::BufferUsage::ShaderResource;
+        frameInfoBufferDescriptor.memoryType = pdl::MemoryType::Upload;
+
+        auto frameInfoBuffer = GetRenderDevice()->CreateRenderBuffer(frameInfoBufferDescriptor);
+        if (!frameInfoBuffer)
+        {
+            pdlLogError("Failed to create frame info buffer: %s", frameInfoBuffer.error().data());
+            return false;
+        }
+        m_frameInfoBuffer = frameInfoBuffer.value();
+        UpdateFrameInfoBuffer();
+
         return true;
     }
 
@@ -66,10 +87,19 @@ namespace pdl
     {
     }
 
+    void Renderer::Update(float deltaTime)
+    {
+        m_frameInfo.deltaTime = deltaTime;
+        m_frameInfo.totalTime += deltaTime;
+        ++m_frameInfo.frameIndex;
+    }
+
     bool Renderer::BeginFrame()
     {
+        UpdateFrameInfoBuffer();
         m_imguiRenderer->BeginFrame();
         return m_internalRenderer->BeginFrame();
+        
     }
 
     bool Renderer::EndFrame()
@@ -93,6 +123,14 @@ namespace pdl
     {
         m_imguiRenderer->Render();
         return m_internalRenderer->EndRenderPass();
+    }
+
+    void Renderer::UpdateFrameInfoBuffer()
+    {
+        pdlAssert(m_frameInfoBuffer);
+        PerFrameInfo* frameInfo = reinterpret_cast<PerFrameInfo*>(m_frameInfoBuffer->Map());
+        memcpy(frameInfo, &m_frameInfo, sizeof(PerFrameInfo));
+        m_frameInfoBuffer->Unmap();
     }
 }
 

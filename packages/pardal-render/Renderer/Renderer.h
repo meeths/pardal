@@ -2,6 +2,7 @@
 #pragma once
 #include <Memory/SharedPointer.h>
 #include <Renderer/IRenderDevice.h>
+#include <Renderer/Shaders/device_host_structs.h>
 
 #include "ImGui/ImGuiRenderer.h"
 
@@ -19,6 +20,7 @@ public:
     ~Renderer();
     SharedPointer<IRenderDevice> GetRenderDevice() const { return m_device; }
 
+    void Update(float deltaTime);
     bool BeginFrame();
     bool EndFrame();
 
@@ -26,10 +28,17 @@ public:
     bool BeginRenderPass(const RenderPass& renderPass);
     bool EndRenderPass();
 
+    PerFrameInfo& GetFrameInfo() { return m_frameInfo; }
 private:
+
+    void UpdateFrameInfoBuffer();
+    
     SharedPointer<IRenderDevice> m_device;
     SharedPointer<IInternalRenderer> m_internalRenderer;
     SharedPointer<ImGuiRenderer> m_imguiRenderer;
+
+    PerFrameInfo m_frameInfo {};
+    SharedPointer<IRenderBuffer> m_frameInfoBuffer; 
 };
 
 }
