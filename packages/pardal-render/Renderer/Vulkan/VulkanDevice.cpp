@@ -166,6 +166,7 @@ namespace Details
 
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
         
         auto deviceFeatures2 = device.getFeatures2<
             vk::PhysicalDeviceFeatures2,
@@ -775,15 +776,30 @@ namespace pdl
         vk::DeviceQueueCreateInfo deviceQueueCreateInfo( vk::DeviceQueueCreateFlags(), static_cast<uint32_t>( queueFamilyIndex ), 1, &queuePriority );
         vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), deviceQueueCreateInfo, {}, deviceExtensionNames);
 
-        
-        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature
+        auto* pNext = const_cast<void**>(&deviceCreateInfo.pNext);
+        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature
         {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
             .dynamicRendering = VK_TRUE,
         };
         if(std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
-            deviceCreateInfo.pNext = &dynamicRenderingFeature;
+            *pNext = &dynamicRenderingFeature;
+            pNext = &dynamicRenderingFeature.pNext;
+        }
+
+        VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeature
+        {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+            .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+            .descriptorBindingPartiallyBound = VK_TRUE, 
+            .runtimeDescriptorArray = VK_TRUE
+        };
+        
+        if(std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
+        {
+            *pNext = &descriptorIndexingFeature;
+            pNext = &descriptorIndexingFeature.pNext;
         }
 
         auto createDeviceResults = m_vkPhysicalDevice.createDevice( deviceCreateInfo );
