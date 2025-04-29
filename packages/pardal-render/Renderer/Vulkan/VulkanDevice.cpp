@@ -770,31 +770,27 @@ namespace pdl
 
         float queuePriority = 0.0f;
 
-        // Chekc for dynamic rendering capabilities
-
-        
         vk::DeviceQueueCreateInfo deviceQueueCreateInfo( vk::DeviceQueueCreateFlags(), static_cast<uint32_t>( queueFamilyIndex ), 1, &queuePriority );
         vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), deviceQueueCreateInfo, {}, deviceExtensionNames);
 
+        // Set up chain of extensions
         auto* pNext = const_cast<void**>(&deviceCreateInfo.pNext);
-        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature
-        {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-            .dynamicRendering = VK_TRUE,
-        };
+        
+        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {};
+        dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+        dynamicRenderingFeature.dynamicRendering = VK_TRUE;
+        
         if(std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
             *pNext = &dynamicRenderingFeature;
             pNext = &dynamicRenderingFeature.pNext;
         }
 
-        VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeature
-        {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
-            .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-            .descriptorBindingPartiallyBound = VK_TRUE, 
-            .runtimeDescriptorArray = VK_TRUE
-        };
+        VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeature = {};
+        descriptorIndexingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+        descriptorIndexingFeature.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        descriptorIndexingFeature.descriptorBindingPartiallyBound = VK_TRUE;
+        descriptorIndexingFeature.runtimeDescriptorArray = VK_TRUE;
         
         if(std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
