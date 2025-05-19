@@ -7,6 +7,7 @@ BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 function configureCommonExternals()
     filter {}
     includeGLM()
+    includeSTB()
 end
 
 function configureCommonFlags()
