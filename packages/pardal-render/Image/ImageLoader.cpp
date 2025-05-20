@@ -1,12 +1,14 @@
 
 #include <Image/ImageLoader.h>
 
-#include <stb_image.h>
 #include <Base/BaseTypes.h>
 #include <Base/DebugHelpers.h>
 #include <Filesystem/IFileLocator.h>
 #include <Image/Image.h>
 #include <Renderer/RendererTypes.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 // Created on 2025-05-19 by franciscom
 
 namespace details
