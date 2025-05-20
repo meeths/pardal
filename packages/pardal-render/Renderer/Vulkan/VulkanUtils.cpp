@@ -507,5 +507,194 @@ uint32 VulkanUtils::FindMemoryType( vk::PhysicalDeviceMemoryProperties const & m
     assert( typeIndex != uint32( ~0 ) );
     return typeIndex;
 }
+
+vk::DescriptorType VulkanUtils::GetDescriptorType(DescriptorTypes descriptorType)
+{
+    switch (descriptorType)
+    {
+    case Sampler:
+        return vk::DescriptorType::eSampler;
+    case CombinedSampler:
+        return vk::DescriptorType::eCombinedImageSampler;
+    case UniformBuffer:
+        return vk::DescriptorType::eUniformBuffer;
+    case StorageBuffer:
+        return vk::DescriptorType::eStorageBuffer;
+    case AccelerationStructure:
+        return vk::DescriptorType::eAccelerationStructureKHR;
+    default:
+        pdlNotImplemented();
+        return vk::DescriptorType::eSampler;
+    }
+}
+
+vk::BlendOp VulkanUtils::GetBlendOp(BlendMode::BlendOp op)
+{
+    switch (op)
+    {
+    case BlendMode::BlendOp::Add:
+        return vk::BlendOp::eAdd;
+    case BlendMode::BlendOp::Subtract:
+        return vk::BlendOp::eSubtract;
+    case BlendMode::BlendOp::ReverseSubtract:
+        return vk::BlendOp::eReverseSubtract;
+    case BlendMode::BlendOp::Min:
+        return vk::BlendOp::eMin;
+    case BlendMode::BlendOp::Max:
+        return vk::BlendOp::eMax;
+    }
+    pdlAssert(0 && "Unsupported BlendOp");
+    return vk::BlendOp::eAdd;
+}
+
+vk::BlendFactor VulkanUtils::GetBlendFactor(BlendMode::BlendFactor factor)
+{
+    switch (factor)
+    {
+        case BlendMode::BlendFactor::Zero:
+            return vk::BlendFactor::eZero;
+        case BlendMode::BlendFactor::One:
+            return vk::BlendFactor::eOne;
+        case BlendMode::BlendFactor::SrcColor:
+            return vk::BlendFactor::eSrcColor;
+        case BlendMode::BlendFactor::OneMinusSrcColor:
+            return vk::BlendFactor::eOneMinusSrcColor;
+        case BlendMode::BlendFactor::OneMinusDstColor:
+            return vk::BlendFactor::eOneMinusDstColor;
+        case BlendMode::BlendFactor::DstColor:
+            return vk::BlendFactor::eDstColor;
+        case BlendMode::BlendFactor::SrcAlpha:
+            return vk::BlendFactor::eSrcAlpha;
+    }
+    pdlAssert(0 && "Unsupported BlendFactor");   
+    return vk::BlendFactor::eOne;
+}
+
+vk::ColorBlendEquationEXT VulkanUtils::GetBlendEquation(BlendMode::BlendEquation equation)
+{
+    vk::ColorBlendEquationEXT vkEquation;
+    vkEquation.colorBlendOp = GetBlendOp(equation.m_op);
+    vkEquation.srcColorBlendFactor = GetBlendFactor(equation.m_srcFactor);
+    vkEquation.dstColorBlendFactor = GetBlendFactor(equation.m_dstFactor);
+    vkEquation.alphaBlendOp = GetBlendOp(equation.m_opAlpha);
+    vkEquation.srcAlphaBlendFactor = GetBlendFactor(equation.m_srcFactorAlpha);
+    vkEquation.dstAlphaBlendFactor = GetBlendFactor(equation.m_dstFactorAlpha);
+    return vkEquation;
+}
+
+vk::CullModeFlags VulkanUtils::GetCullMode(CullMode cullMode)
+{
+    switch (cullMode)
+    {
+        case CullMode::None:
+            return vk::CullModeFlagBits::eNone;
+        case CullMode::Front:
+            return vk::CullModeFlagBits::eFront;
+        case CullMode::Back:
+            return vk::CullModeFlagBits::eBack;
+        default:
+            pdlAssert(0 && "Unsupported CullMode");
+            return vk::CullModeFlagBits::eNone;
+    }
+}
+    
+vk::FrontFace VulkanUtils::GetFrontFace(FrontFace frontFace)
+{
+    switch (frontFace)
+    {
+        case FrontFace::Clockwise:
+            return vk::FrontFace::eClockwise;
+        case FrontFace::CounterClockwise:
+            return vk::FrontFace::eCounterClockwise;
+        default:
+            pdlAssert(0 && "Unsupported FrontFace");
+            return vk::FrontFace::eClockwise;
+    }
+}
+
+vk::PolygonMode VulkanUtils::GetPolygonMode(PolygonMode polygonMode)
+{
+    switch (polygonMode)
+    {
+        case PolygonMode::Fill:
+            return vk::PolygonMode::eFill;
+        case PolygonMode::Line:
+            return vk::PolygonMode::eLine;
+        case PolygonMode::Point:
+            return vk::PolygonMode::ePoint;
+        default:
+            pdlAssert(0 && "Unsupported PolygonMode");
+            return vk::PolygonMode::eFill;
+       
+    }
+}
+
+vk::StencilFaceFlags VulkanUtils::GetStencilFaceFlags(StencilTest::StencilFace stencilFace)
+{
+    switch (stencilFace)
+    {
+        case StencilTest::StencilFace::Front:
+            return vk::StencilFaceFlagBits::eFront;
+        case StencilTest::StencilFace::Back:
+            return vk::StencilFaceFlagBits::eBack;
+        case StencilTest::StencilFace::FrontAndBack:
+            return vk::StencilFaceFlagBits::eFrontAndBack;
+        default:
+            pdlAssert(0 && "Unsupported StencilFace");
+            return vk::StencilFaceFlagBits::eFront;
+    }
+}
+
+vk::StencilOp VulkanUtils::GetStencilOp(StencilTest::StencilOp op)
+{
+    switch (op)
+    {
+        case StencilTest::StencilOp::Keep:
+            return vk::StencilOp::eKeep;
+        case StencilTest::StencilOp::Zero:
+            return vk::StencilOp::eZero;
+        case StencilTest::StencilOp::Replace:
+            return vk::StencilOp::eReplace;
+        case StencilTest::StencilOp::IncrementClamp:
+            return vk::StencilOp::eIncrementAndClamp;
+        case StencilTest::StencilOp::DecrementClamp:
+            return vk::StencilOp::eDecrementAndClamp;
+        case StencilTest::StencilOp::Invert:
+            return vk::StencilOp::eInvert;
+        case StencilTest::StencilOp::IncrementWrap:
+            return vk::StencilOp::eIncrementAndWrap;
+        case StencilTest::StencilOp::DecrementWrap:
+            return vk::StencilOp::eDecrementAndWrap;
+        default:
+            pdlAssert(0 && "Unsupported StencilOp");
+            return vk::StencilOp::eKeep;
+    }
+}
+
+vk::CompareOp VulkanUtils::GetCompareOp(CompareOp op)
+{
+    switch (op)
+    {
+        case CompareOp::Never:
+            return vk::CompareOp::eNever;
+        case CompareOp::Less:
+            return vk::CompareOp::eLess;
+        case CompareOp::Equal:
+            return vk::CompareOp::eEqual;
+        case CompareOp::LessOrEqual:
+            return vk::CompareOp::eLessOrEqual;
+        case CompareOp::Greater:
+            return vk::CompareOp::eGreater;
+        case CompareOp::NotEqual:
+            return vk::CompareOp::eNotEqual;
+        case CompareOp::GreaterOrEqual:
+            return vk::CompareOp::eGreaterOrEqual;
+        case CompareOp::Always:
+            return vk::CompareOp::eAlways;
+        default:
+            pdlAssert(0 && "Unsupported CompareOp");
+            return vk::CompareOp::eNever;
+    }
+}
 }
 

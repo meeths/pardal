@@ -5,6 +5,7 @@
 #include <Math/Vector3.h>
 #include <Renderer/ITexture.h>
 #include <Renderer/RendererTypes.h>
+#include <Renderer/PipelineState.h>
 #include <vulkan/vulkan.hpp>
 
 // Created on 2025-03-23 by sisco
@@ -36,7 +37,16 @@ public:
     static vk::ImageUsageFlagBits GetImageUsageFlags(ResourceState state);
     static vk::BufferUsageFlags GetBufferUsageFlags(BufferUsage usage);
     static uint32 FindMemoryType(vk::PhysicalDeviceMemoryProperties const & memoryProperties, uint32 typeBits, vk::MemoryPropertyFlags requirementsMask);
-    
+    static vk::DescriptorType GetDescriptorType(DescriptorTypes descriptorType);
+    static vk::BlendOp GetBlendOp(BlendMode::BlendOp op);
+    static vk::BlendFactor GetBlendFactor(BlendMode::BlendFactor factor);
+    static vk::ColorBlendEquationEXT GetBlendEquation(BlendMode::BlendEquation equation);
+    static vk::CullModeFlags GetCullMode(CullMode cullMode);
+    static vk::FrontFace GetFrontFace(FrontFace frontFace);
+    static vk::PolygonMode GetPolygonMode(PolygonMode polygonMode);
+    static vk::StencilFaceFlags GetStencilFaceFlags(StencilTest::StencilFace stencilFace);
+    static vk::StencilOp GetStencilOp(StencilTest::StencilOp op);
+    static vk::CompareOp GetCompareOp(CompareOp op);
 };
 
 }
