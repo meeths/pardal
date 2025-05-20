@@ -396,5 +396,13 @@ namespace pdl
         size_t m_size;
     };
 
+    enum DescriptorTypes : int32
+    {
+        Sampler,
+        CombinedSampler,
+        UniformBuffer,
+        StorageBuffer,
+        AccelerationStructure
+    };
 }
 

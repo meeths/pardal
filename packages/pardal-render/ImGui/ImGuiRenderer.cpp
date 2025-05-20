@@ -90,7 +90,7 @@ namespace pdl
     void ImGuiRenderer::Render()
     {
         ImGui::Render();
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer());
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
     }
 
     void ImGuiRenderer::OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods)

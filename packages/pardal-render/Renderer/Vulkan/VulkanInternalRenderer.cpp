@@ -62,6 +62,12 @@ namespace pdl
         m_device.GetVulkanDeviceQueue().PrepareNextCommandBuffer();
         m_device.GetVulkanDeviceQueue().SetCurrentSemaphore(VulkanDeviceQueue::EventType::BeginFrame);
 
+        if (!m_pipelineStateInitialized)
+        {
+            m_pipelineStateInitialized = true;
+            SetPipelineState(m_currentPipelineState, true);       
+        }
+
         Vector<ITextureView*> currentFrameSwapchainImageViews;
         Vector<Math::Vector4> clearColors;
         currentFrameSwapchainImageViews.push_back(m_surface->GetCurrentTextureView());
@@ -135,7 +141,7 @@ namespace pdl
         depthAttachmentInfo.clearValue = vk::ClearValue{vk::ClearDepthStencilValue{depthClearValue, stencilclearValue}};
         render_info.pDepthAttachment = &depthAttachmentInfo;
 
-        VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdBeginRenderingKHR(currentCommandBuffer,
+        VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdBeginRenderingKHR(currentCommandBuffer->GetVkCommandBuffer(),
                                                              reinterpret_cast<const VkRenderingInfo*>(&render_info));
 
         return true;
@@ -143,7 +149,7 @@ namespace pdl
 
     bool VulkanInternalRenderer::EndRenderPass()
     {
-        VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdEndRenderingKHR(m_device.GetVulkanDeviceQueue().GetCommandBuffer());
+        VULKAN_HPP_DEFAULT_DISPATCHER.vkCmdEndRenderingKHR(m_device.GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
 
         return true;
     }
@@ -154,6 +160,62 @@ namespace pdl
         auto swapchainDetails = m_surface->GetSurfaceConfig();
         swapchainDetails.m_size = newSize;
         m_surface->ConfigureSwapchain(swapchainDetails);
+    }
+
+    void VulkanInternalRenderer::SetPipelineState(const PipelineState& pipelineState, bool force)
+    {
+        auto cmd = m_device.GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer();
+
+        if (pipelineState.m_blendMode != m_currentPipelineState.m_blendMode || force)
+        {
+            const vk::Bool32 blendEnable = pipelineState.m_blendMode.m_enabled ? VK_TRUE : VK_FALSE;
+            const auto blendEquation = VulkanUtils::GetBlendEquation(pipelineState.m_blendMode.m_equation);
+            cmd.setColorBlendEnableEXT(0, 1, &blendEnable);
+            cmd.setColorBlendEquationEXT(0, 1, &blendEquation);
+        }
+
+        if (pipelineState.m_cullMode != m_currentPipelineState.m_cullMode || force)
+        {
+            cmd.setCullModeEXT(VulkanUtils::GetCullMode(pipelineState.m_cullMode));
+        }
+
+        if (pipelineState.m_depthTest != m_currentPipelineState.m_depthTest || force)
+        {
+            cmd.setDepthTestEnableEXT(pipelineState.m_depthTest.m_enabled ? VK_TRUE : VK_FALSE);
+            cmd.setDepthCompareOpEXT(VulkanUtils::GetCompareOp(pipelineState.m_depthTest.m_compareOp));
+            cmd.setDepthWriteEnableEXT(pipelineState.m_depthTest.m_writeEnabled ? VK_TRUE : VK_FALSE);
+        }
+
+        
+        if (pipelineState.m_depthBias != m_currentPipelineState.m_depthBias || force)
+        {
+            cmd.setDepthBias(pipelineState.m_depthBias.m_constantFactor,
+                pipelineState.m_depthBias.m_clamp,
+                pipelineState.m_depthBias.m_slopeFactor);
+        }
+
+        if (pipelineState.m_frontFace != m_currentPipelineState.m_frontFace || force)
+        {
+            cmd.setFrontFaceEXT(VulkanUtils::GetFrontFace(pipelineState.m_frontFace));
+        }
+
+        if (pipelineState.m_polygonMode != m_currentPipelineState.m_polygonMode || force)
+        {
+            cmd.setPolygonModeEXT(VulkanUtils::GetPolygonMode(pipelineState.m_polygonMode));
+        }
+
+        if (pipelineState.m_stencilTest != m_currentPipelineState.m_stencilTest || force)
+        {
+            cmd.setStencilTestEnableEXT(pipelineState.m_stencilTest.m_enabled ? VK_TRUE : VK_FALSE);
+            cmd.setStencilOp(
+                VulkanUtils::GetStencilFaceFlags(pipelineState.m_stencilTest.m_face),
+                VulkanUtils::GetStencilOp(pipelineState.m_stencilTest.m_failOp),
+                VulkanUtils::GetStencilOp(pipelineState.m_stencilTest.m_passOp),
+                VulkanUtils::GetStencilOp(pipelineState.m_stencilTest.m_depthFailOp),
+                VulkanUtils::GetCompareOp(pipelineState.m_stencilTest.m_compareOp));
+        }
+
+        m_currentPipelineState = pipelineState;
     }
 
     bool VulkanInternalRenderer::BuildDepthBuffer(Format format, Math::Vector2i size)

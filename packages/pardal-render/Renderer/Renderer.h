@@ -3,10 +3,15 @@
 #include <Memory/SharedPointer.h>
 #include <Renderer/IRenderDevice.h>
 #include <Renderer/Shaders/device_host_structs.h>
-
-#include "ImGui/ImGuiRenderer.h"
+#include <Renderer/PipelineState.h>
+#include <ImGui/ImGuiRenderer.h>
 
 // Created on 2025-03-23 by sisco
+
+namespace pdl
+{
+    class BindlessDescriptors;
+}
 
 namespace pdl
 {
@@ -29,6 +34,10 @@ public:
     bool EndRenderPass();
 
     PerFrameInfo& GetFrameInfo() { return m_frameInfo; }
+
+    BindlessDescriptors* GetBindlessDescriptors() const { return m_bindlessDescriptors.get(); }
+
+    void SetPipelineState(const PipelineState& pipelineState);
 private:
 
     void UpdateFrameInfoBuffer();
@@ -36,6 +45,8 @@ private:
     SharedPointer<IRenderDevice> m_device;
     SharedPointer<IInternalRenderer> m_internalRenderer;
     SharedPointer<ImGuiRenderer> m_imguiRenderer;
+
+    SharedPointer<BindlessDescriptors> m_bindlessDescriptors;
 
     PerFrameInfo m_frameInfo {};
     SharedPointer<IRenderBuffer> m_frameInfoBuffer; 

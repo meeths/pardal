@@ -4,6 +4,7 @@
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
 #include "Math/Vector3.h"
+#include "Renderer/BindlessDescriptors.h"
 #include "Renderer/ISurface.h"
 #include "Renderer/ITexture.h"
 #include "Renderer/Renderer.h"
@@ -42,6 +43,30 @@ int main(int argc, char** argv)
 
     pdl::Chronometer frameTimer;
     frameTimer.Start();
+
+    pdl::ITexture::TextureDescriptor textureDescriptor;
+    textureDescriptor.m_textureUsage = pdl::TextureUsage::ShaderResource | pdl::TextureUsage::CopyDestination;
+    textureDescriptor.m_textureType = pdl::TextureType::Texture2D;
+    textureDescriptor.m_extents = {512, 512, 1};
+    textureDescriptor.m_format = pdl::Format::R8G8B8A8_UNORM;
+    textureDescriptor.m_mipLevels = 1;
+    textureDescriptor.m_arraySize = 1;
+    auto newTexture = renderer.GetRenderDevice()->CreateTexture(textureDescriptor);
+    if (!newTexture.has_value())
+    {
+        pdlLogError(newTexture.error().data());
+    }
+    pdl::SharedPointer<pdl::ITexture> texture = newTexture.value();
+    
+    pdl::ITextureView::TextureViewDescriptor textureViewDescriptor;
+    textureViewDescriptor.m_texture = texture.get();
+    textureViewDescriptor.m_baseMipLevel = 0;
+    
+    
+    auto textureView = renderer.GetRenderDevice()->CreateTextureView(textureViewDescriptor);
+    
+    renderer.GetBindlessDescriptors()->StoreTexture(textureView->get());
+    
     while (!window.IsCloseRequested())
     {
         float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
@@ -50,7 +75,7 @@ int main(int argc, char** argv)
         renderer.BeginFrame();
         auto mainRenderPass = renderer.GetMainRenderPass();
         uint32 frameIndex = renderer.GetFrameInfo().frameIndex;
-            mainRenderPass.SetClearColor(0,
+        mainRenderPass.SetClearColor(0,
                                          pdl::Math::Vector4(fmod(0.01f * frameIndex * colorSpeed, maxColorComponentValue),
                                         fmod(0.02f * frameIndex * colorSpeed, maxColorComponentValue) + 0.3,
                                         fmod(0.005f * frameIndex * colorSpeed,

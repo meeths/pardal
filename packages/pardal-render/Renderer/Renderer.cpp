@@ -1,13 +1,14 @@
-
 #include <Renderer/Renderer.h>
-#include <Log/Log.h>
-#include <Application/ApplicationWindow.h>
-#include <Renderer/Vulkan/VulkanInternalRenderer.h>
 
-#include "Base/DebugHelpers.h"
-#include "Math/Vector3.h"
+#include <Application/ApplicationWindow.h>
+#include <Base/DebugHelpers.h>
+#include <Log/Log.h>
+#include <Math/Vector3.h>
+
 #ifdef PDL_VULKAN
+#include <Renderer/Vulkan/VulkanBindlessDescriptors.h>
 #include <Renderer/Vulkan/VulkanDevice.h>
+#include <Renderer/Vulkan/VulkanInternalRenderer.h>
 #endif
 // Created on 2025-03-23 by sisco
 
@@ -53,6 +54,19 @@ namespace pdl
             internalRenderer->OnResize(newSize);
         });
 
+#ifdef PDL_VULKAN
+        switch (initInfo.m_deviceType)
+        {
+        case RenderDeviceType::Vulkan:
+            m_bindlessDescriptors = MakeSharedPointer<VulkanBindlessDescriptors>(*static_cast<VulkanDevice*>(m_device.get()));
+            break;
+        default:
+            pdlNotImplemented();
+        }
+#endif
+        BindlessDescriptors::BindlessDescriptorInfo bindlessDescriptorInfo {};
+        m_bindlessDescriptors->Initialize(bindlessDescriptorInfo);
+        
         ImGuiRenderer::InitInfo imguiInitInfo
         {
             .m_window = initInfo.m_applicationWindow,
@@ -97,6 +111,7 @@ namespace pdl
     bool Renderer::BeginFrame()
     {
         UpdateFrameInfoBuffer();
+        m_bindlessDescriptors->WriteDescriptors();
         m_imguiRenderer->BeginFrame();
         return m_internalRenderer->BeginFrame();
         
@@ -123,6 +138,11 @@ namespace pdl
     {
         m_imguiRenderer->Render();
         return m_internalRenderer->EndRenderPass();
+    }
+
+    void Renderer::SetPipelineState(const PipelineState& pipelineState)
+    {
+        m_internalRenderer->SetPipelineState(pipelineState);
     }
 
     void Renderer::UpdateFrameInfoBuffer()

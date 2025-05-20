@@ -10,7 +10,8 @@ namespace pdl
 class ApplicationWindow;
 class RenderPass;
 class ITextureView;
-
+struct PipelineState;
+    
 class IInternalRenderer
 {
 public:
@@ -36,6 +37,8 @@ public:
     
     virtual bool BeginRenderPass(const RenderPass& renderPass) = 0;
     virtual bool EndRenderPass() = 0;
+
+    virtual void SetPipelineState(const PipelineState& pipelineState, bool force = false) = 0;
 };
 
 }
