@@ -26,6 +26,10 @@ public:
     VulkanDeviceQueue& GetVulkanDeviceQueue() { return m_vulkanDeviceQueue; };
 
     void FillImGuiInitInfo(ImGui_ImplVulkan_InitInfo& initInfo);
+
+    vk::Device GetVkDevice() const { return m_vkDevice; }
+    vk::PhysicalDevice GetVkPhysicalDevice() const { return m_vkPhysicalDevice; }
+    vk::Instance GetVkInstance() const { return m_vkInstance; }
 protected:
     bool Initialize(const InitInfoBase& initInfo) override;
     bool InitializeInstanceAndDevice(const InitInfoBase& initInfo);
@@ -38,6 +42,7 @@ protected:
     vk::Device m_vkDevice;
     vk::Sampler m_vkDefaultSampler;
     vk::DebugUtilsMessengerEXT m_vkDebugMessenger;
+    
     VulkanDeviceQueue m_vulkanDeviceQueue;
 };
 

@@ -167,6 +167,7 @@ namespace Details
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
         
         auto deviceFeatures2 = device.getFeatures2<
             vk::PhysicalDeviceFeatures2,
@@ -785,17 +786,46 @@ namespace pdl
             *pNext = &dynamicRenderingFeature;
             pNext = &dynamicRenderingFeature.pNext;
         }
+        else
+        {
+            pdlLogError("Dynamic rendering extension not supported");
+            return false;
+        }
 
         VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeature = {};
         descriptorIndexingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
         descriptorIndexingFeature.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
         descriptorIndexingFeature.descriptorBindingPartiallyBound = VK_TRUE;
         descriptorIndexingFeature.runtimeDescriptorArray = VK_TRUE;
+        descriptorIndexingFeature.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+        descriptorIndexingFeature.shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
+        descriptorIndexingFeature.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
+        descriptorIndexingFeature.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
+        descriptorIndexingFeature.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
         
         if(std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
             *pNext = &descriptorIndexingFeature;
             pNext = &descriptorIndexingFeature.pNext;
+        }
+        else
+        {
+            pdlLogError("Descriptor indexing extension not supported");
+            return false;
+        }
+
+        VkPhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures = {};
+        shaderObjectFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
+        shaderObjectFeatures.shaderObject = VK_TRUE;
+        if(std::ranges::find(deviceExtensionNames, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) != deviceExtensionNames.end())
+        {
+            *pNext = &shaderObjectFeatures;
+            pNext = &shaderObjectFeatures.pNext;
+        }
+        else
+        {
+            pdlLogError("Shader object extension not supported");
+            return false;
         }
 
         auto createDeviceResults = m_vkPhysicalDevice.createDevice( deviceCreateInfo );
