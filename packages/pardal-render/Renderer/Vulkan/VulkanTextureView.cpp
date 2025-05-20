@@ -8,10 +8,42 @@
 
 namespace pdl
 {
+    vk::Sampler VulkanTextureView::m_defaultSampler = VK_NULL_HANDLE;
+
+    vk::Sampler CreateDefaultSampler(vk::Device* device)
+    {
+        vk::SamplerCreateInfo samplerInfo;
+        samplerInfo.magFilter = vk::Filter::eLinear;
+        samplerInfo.minFilter = vk::Filter::eLinear;
+        samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+        samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+        samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+        samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = 16;
+        samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = vk::CompareOp::eAlways;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+        auto createSamplerResults = device->createSampler(samplerInfo);
+        CHECK_VK_RESULTVALUE(createSamplerResults);
+        return createSamplerResults.value;
+    }
+    
     VulkanTextureView::VulkanTextureView(const TextureViewDescriptor& desc, vk::Device* device)
         : m_descriptor(desc), m_device(device)
     {
+
+        if (m_defaultSampler == VK_NULL_HANDLE)
+        {
+            m_defaultSampler = CreateDefaultSampler(device);
+        }
+        
         bool initResults = Initialize();
+        m_sampler = m_defaultSampler;
         pdlAssert(initResults);
     }
 
