@@ -55,7 +55,7 @@ namespace pdl
         for (size_t i = 0; i < kCommandBufferCount; i++)
         {
             m_device->destroyFence(m_fences[i].fence);
-            m_device->freeCommandBuffers(m_commandPools[i], m_commandBuffers[i]);
+            m_device->freeCommandBuffers(m_commandPools[i], m_commandBuffers[i].GetVkCommandBuffer());
             m_device->destroyCommandPool(m_commandPools[i]);
         }
     }
@@ -176,19 +176,19 @@ namespace pdl
                                                   VK_QUEUE_FAMILY_IGNORED,
                                                   texture->GetVkImage(),
                                                   imageSubresourceRange);
-        GetCommandBuffer().pipelineBarrier(sourceStage, destinationStage, {}, nullptr, nullptr, imageMemoryBarrier);
+        GetCommandBuffer()->GetVkCommandBuffer().pipelineBarrier(sourceStage, destinationStage, {}, nullptr, nullptr, imageMemoryBarrier);
     }
 
     void VulkanDeviceQueue::FlushCurrentCommandBuffer()
     {
-        auto commandBufferEndResults = m_currentCommandBuffer->end();
+        auto commandBufferEndResults = m_currentCommandBuffer->GetVkCommandBuffer().end();
         CHECK_VK_RESULT(commandBufferEndResults);
 
         vk::SubmitInfo submitInfo = {};
         vk::PipelineStageFlags stageFlags = vk::PipelineStageFlagBits::eBottomOfPipe;
         
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = m_currentCommandBuffer;
+        submitInfo.pCommandBuffers = &m_currentCommandBuffer->GetVkCommandBuffer();
         submitInfo.pWaitDstStageMask = &stageFlags;
         
         if(IsCurrentSemaphore(EventType::BeginFrame))
@@ -237,7 +237,7 @@ namespace pdl
         CHECK_VK_RESULT(resetCommandPoolResults);
 
         vk::CommandBufferBeginInfo beginInfo = {vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
-        auto commandBufferBeginResults = m_currentCommandBuffer->begin(beginInfo);
+        auto commandBufferBeginResults = m_currentCommandBuffer->GetVkCommandBuffer().begin(beginInfo);
         CHECK_VK_RESULT(commandBufferBeginResults);
     }
 

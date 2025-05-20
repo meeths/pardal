@@ -3,6 +3,8 @@
 #include <Base/BaseTypes.h>
 #include <Containers/Array.h>
 
+#include "VulkanCommandBuffer.h"
+
 // Created on 2024-11-11 by sisco
 
 namespace pdl
@@ -25,7 +27,7 @@ public:
 
     void SetImageLayout(const VulkanTexture* texture, vk::ImageLayout oldImageLayout, vk::ImageLayout newImageLayout);
     
-    vk::CommandBuffer GetCommandBuffer() const { return *m_currentCommandBuffer; }
+    VulkanCommandBuffer* GetCommandBuffer() const { return m_currentCommandBuffer; }
     vk::Queue GetQueue() const { return m_queue; }
 
     void FlushCurrentCommandBuffer();
@@ -57,7 +59,7 @@ private:
     
     static constexpr size_t kCommandBufferCount = 8;
     Array<vk::CommandPool, kCommandBufferCount> m_commandPools;
-    Array<vk::CommandBuffer, kCommandBufferCount> m_commandBuffers;
+    Array<VulkanCommandBuffer, kCommandBufferCount> m_commandBuffers;
     Array<Fence, kCommandBufferCount> m_fences;
     size_t m_nextFenceValue = 0;
     size_t m_lastFenceCompleted = 0;
@@ -69,7 +71,7 @@ private:
     int m_queueIndex = -1;
 
     size_t m_currentCommandBufferIndex = 0;
-    vk::CommandBuffer* m_currentCommandBuffer = nullptr; 
+    VulkanCommandBuffer* m_currentCommandBuffer = nullptr; 
     vk::CommandPool* m_currentCommandPool = nullptr; 
 
     vk::Device* m_device = nullptr;
