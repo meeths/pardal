@@ -24,10 +24,11 @@ public:
 		uint32_t m_arrayLayers= 1;
 	};
 	
-	Image(ImageInfo info, Vector<uint8> data) : m_info(info), m_data(std::move(data)) {}
+	Image(const ImageInfo& info, Vector<uint8> data) : m_info(info), m_data(std::move(data)) {}
 	~Image() = default;
 
-	
+	const Vector<uint8>& GetData() const { return m_data; }
+	const ImageInfo& GetInfo() const { return m_info; }
 private:
 	ImageInfo m_info {};
 	Vector<uint8> m_data;
