@@ -96,6 +96,11 @@ namespace StringUtils
             buf.data());
         return {buf.data(), buf.size()};
     }
+
+    inline bool EndsWith(StringView _string, StringView _ending)
+    {
+        return (_string.ends_with(_ending));
+    }
 };
 
 }
