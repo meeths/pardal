@@ -4,6 +4,20 @@ include "premake-pardal-tests.lua"
 
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 
+function downloadAndExtract(name, url, dstpath)
+    if not os.isdir(dstpath) then
+        TEMP_ZIP_PATH = BASE_DIR .. "temp/" ..name..".zip"
+        io.write("Downloading " .. name .. " ...")
+        os.mkdir(BASE_DIR .. "temp")
+        local result_str, response_code = http.download(url, TEMP_ZIP_PATH)
+        print("done")
+        io.write("Extracting ".. name .. "...")    
+        zip.extract(TEMP_ZIP_PATH, dstpath)
+        print("done")
+        os.remove(TEMP_ZIP_PATH)
+    end
+end
+
 function configureCommonExternals()
     filter {}
     includeGLM()

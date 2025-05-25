@@ -358,3 +358,7 @@ libs/
 bin/
 # Don't ignore vulkan bins
 !external/vulkan_*/**
+
+# Ignore external downloaded files
+external/downloaded/**
+

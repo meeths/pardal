@@ -23,6 +23,8 @@ project "pardal-core"
     configureCommonExternals()
     setConfigurations()
 
+    getSlang()
+
     filter {}
 
 pardal.create_test_project("pardal-core")
