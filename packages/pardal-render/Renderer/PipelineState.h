@@ -1,7 +1,8 @@
 
 #pragma once
-#include "Base/BaseTypes.h"
-#include "Containers/Vector.h"
+#include <Renderer/RendererTypes.h>
+#include <Base/BaseTypes.h>
+#include <Containers/Vector.h>
 
 // Created on 2025-05-11 by sisco
 
@@ -185,6 +186,14 @@ struct PipelineState
     StencilTest m_stencilTest {};
     BlendMode m_blendMode {};
     Vector<BlendMode> m_perAttachmentBlendModes {};
+    PrimitiveTopology m_topology = PrimitiveTopology::TriangleList;
+    bool m_rasterizerDiscard = false;
+    MultiSampleCount m_rasterSamples = MultiSampleCount::One;
+    uint32 m_rasterSampleMask = 0x000000FF;
+    bool m_alphaToCoverage = false;
+    ConservativeRasterization m_conservativeRasterization = ConservativeRasterization::Off;
+    ColorChannelMask m_colorWriteMask = ColorChannelMask::All;
+    
 };
 
 }
