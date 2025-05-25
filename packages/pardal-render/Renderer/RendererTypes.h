@@ -241,7 +241,12 @@ namespace pdl
         LineStrip,
         TriangleList,
         TriangleStrip,
-        PatchList,
+        TriangleFan,
+        LineListWithAdjacency,
+        LineStripWithAdjacency,
+        TriangleListWithAdjacency,
+        TriangleStripWithAdjacency,
+        PatchList
     };
 
     enum class ResourceState : uint8
@@ -404,5 +409,66 @@ namespace pdl
         StorageBuffer,
         AccelerationStructure
     };
+
+    enum class ShaderType : uint32
+    {
+        None = 0,
+        Vertex = 1 << 0,
+        Fragment = 1 << 1,
+        Compute = 1 << 2,
+        Geometry = 1 << 3,
+        Hull = 1 << 4,
+        Domain = 1 << 5,
+        RayGeneration = 1 << 6,
+        Miss = 1 << 7
+    };
+    inline ShaderType operator|(ShaderType lhs, ShaderType rhs) 
+    {
+        return static_cast<ShaderType>(static_cast<char>(lhs) | static_cast<char>(rhs));
+    }
+    inline ShaderType operator&(ShaderType lhs, ShaderType rhs) 
+    {
+        return static_cast<ShaderType>(static_cast<char>(lhs) & static_cast<char>(rhs));
+    }
+
+    enum class MultiSampleCount : uint8
+    {
+        None,
+        One,
+        Two,
+        Four,
+        Eight,
+        Sixteen,
+        ThirtyTwo,
+        SixtyFour,
+    };
+    
+    enum class ConservativeRasterization : uint8
+    {
+        Off,
+        Overestimate,
+        Underestimate
+    };
+
+    enum class ColorChannelMask : uint8
+    {
+        None = 0,
+        Red = 1 << 0,
+        Green = 1 << 1,
+        Blue = 1 << 2,
+        Alpha = 1 << 3,
+        All = Red | Green | Blue | Alpha
+    };
+
+    inline ColorChannelMask operator|(ColorChannelMask lhs, ColorChannelMask rhs) 
+    {
+        return static_cast<ColorChannelMask>(static_cast<char>(lhs) | static_cast<char>(rhs));
+    }
+    inline ColorChannelMask operator&(ColorChannelMask lhs, ColorChannelMask rhs) 
+    {
+        return static_cast<ColorChannelMask>(static_cast<char>(lhs) & static_cast<char>(rhs));
+    }
+
+    
 }
 

@@ -47,6 +47,12 @@ public:
     static vk::StencilFaceFlags GetStencilFaceFlags(StencilTest::StencilFace stencilFace);
     static vk::StencilOp GetStencilOp(StencilTest::StencilOp op);
     static vk::CompareOp GetCompareOp(CompareOp op);
+    static vk::ShaderStageFlags GetShaderStageFlags(ShaderType shaderType);
+    static vk::ShaderStageFlagBits GetShaderStageBits(ShaderType shaderType);
+    static vk::PrimitiveTopology GetPrimitiveTopology(PrimitiveTopology topology);
+    static vk::SampleCountFlagBits GetMultisampleFlagBits(MultiSampleCount multisampleCount);
+    static vk::ConservativeRasterizationModeEXT GetConservativeRasterizationMode(ConservativeRasterization conservativeMode);
+    static vk::ColorComponentFlags GetColorComponentMasks(ColorChannelMask colorMask);
 };
 
 }

@@ -696,5 +696,143 @@ vk::CompareOp VulkanUtils::GetCompareOp(CompareOp op)
             return vk::CompareOp::eNever;
     }
 }
+
+vk::ShaderStageFlags VulkanUtils::GetShaderStageFlags(ShaderType shaderType)
+{
+    vk::ShaderStageFlags shaderStage {};
+    if (IS_SET(shaderType, ShaderType::Vertex))
+        shaderStage |= vk::ShaderStageFlagBits::eVertex;
+    if (IS_SET(shaderType, ShaderType::Fragment))
+        shaderStage |= vk::ShaderStageFlagBits::eFragment;
+    if (IS_SET(shaderType, ShaderType::Compute))
+        shaderStage |= vk::ShaderStageFlagBits::eCompute;
+    if (IS_SET(shaderType, ShaderType::Geometry))
+        shaderStage |= vk::ShaderStageFlagBits::eGeometry;
+    if (IS_SET(shaderType, ShaderType::Hull))
+        shaderStage |= vk::ShaderStageFlagBits::eTessellationControl;
+    if (IS_SET(shaderType, ShaderType::Domain))
+        shaderStage |= vk::ShaderStageFlagBits::eTessellationEvaluation;
+    if (IS_SET(shaderType, ShaderType::RayGeneration))
+        shaderStage |= vk::ShaderStageFlagBits::eRaygenKHR;
+    if (IS_SET(shaderType, ShaderType::Miss))
+        shaderStage |= vk::ShaderStageFlagBits::eMissKHR;
+    return shaderStage;
+        
+    
+}
+
+vk::ShaderStageFlagBits VulkanUtils::GetShaderStageBits(ShaderType shaderType)
+{
+    switch (shaderType)
+    {
+        case ShaderType::Vertex:
+            return vk::ShaderStageFlagBits::eVertex;
+        case ShaderType::Fragment:
+            return vk::ShaderStageFlagBits::eFragment;
+        case ShaderType::Compute:
+            return vk::ShaderStageFlagBits::eCompute;
+        case ShaderType::Geometry:
+            return vk::ShaderStageFlagBits::eGeometry;
+        case ShaderType::Hull:
+            return vk::ShaderStageFlagBits::eTessellationControl;
+        case ShaderType::Domain:
+            return vk::ShaderStageFlagBits::eTessellationEvaluation;
+        case ShaderType::RayGeneration:
+            return vk::ShaderStageFlagBits::eRaygenKHR;
+        case ShaderType::Miss:
+            return vk::ShaderStageFlagBits::eMissKHR;
+        default:
+            pdlAssert(0 && "Unsupported or combined ShaderType");
+            return vk::ShaderStageFlagBits::eVertex;
+    }
+}
+
+vk::PrimitiveTopology VulkanUtils::GetPrimitiveTopology(PrimitiveTopology topology)
+{
+    switch (topology)
+    {
+        case PrimitiveTopology::TriangleList:
+            return vk::PrimitiveTopology::eTriangleList;
+        case PrimitiveTopology::TriangleStrip:
+            return vk::PrimitiveTopology::eTriangleStrip;
+        case PrimitiveTopology::LineList:
+            return vk::PrimitiveTopology::eLineList;
+        case PrimitiveTopology::LineStrip:
+            return vk::PrimitiveTopology::eLineStrip;
+        case PrimitiveTopology::PointList:
+            return vk::PrimitiveTopology::ePointList;
+        case PrimitiveTopology::TriangleFan:
+            return vk::PrimitiveTopology::eTriangleFan;
+        case PrimitiveTopology::LineListWithAdjacency:
+            return vk::PrimitiveTopology::eLineListWithAdjacency;
+        case PrimitiveTopology::LineStripWithAdjacency:
+            return vk::PrimitiveTopology::eLineStripWithAdjacency;
+        case PrimitiveTopology::TriangleListWithAdjacency:
+            return vk::PrimitiveTopology::eTriangleListWithAdjacency;
+        case PrimitiveTopology::TriangleStripWithAdjacency:
+            return vk::PrimitiveTopology::eTriangleStripWithAdjacency;
+        case PrimitiveTopology::PatchList:
+            return vk::PrimitiveTopology::ePatchList;
+        default:
+            pdlAssert(0 && "Unsupported primitive topology");
+            return vk::PrimitiveTopology::eTriangleList;
+    }
+}
+
+vk::SampleCountFlagBits VulkanUtils::GetMultisampleFlagBits(MultiSampleCount multisampleCount)
+{
+    switch (multisampleCount)
+    {
+        case MultiSampleCount::None:
+            return {};
+        case MultiSampleCount::One:
+            return vk::SampleCountFlagBits::e1;
+        case MultiSampleCount::Two:
+            return vk::SampleCountFlagBits::e2;
+        case MultiSampleCount::Four:
+            return vk::SampleCountFlagBits::e4;
+        case MultiSampleCount::Eight:
+            return vk::SampleCountFlagBits::e8;
+        case MultiSampleCount::Sixteen:
+            return vk::SampleCountFlagBits::e16;
+        case MultiSampleCount::ThirtyTwo:
+            return vk::SampleCountFlagBits::e32;
+        case MultiSampleCount::SixtyFour:
+            return vk::SampleCountFlagBits::e64;
+        default:
+            pdlAssert(0 && "Unsupported multisample count");
+            return vk::SampleCountFlagBits::e1;
+    }
+}
+
+vk::ConservativeRasterizationModeEXT VulkanUtils::GetConservativeRasterizationMode(ConservativeRasterization conservativeMode)
+{
+    switch (conservativeMode)
+    {
+    case ConservativeRasterization::Off:
+        return vk::ConservativeRasterizationModeEXT::eDisabled;
+    case ConservativeRasterization::Overestimate:
+        return vk::ConservativeRasterizationModeEXT::eOverestimate;
+    case ConservativeRasterization::Underestimate:
+        return vk::ConservativeRasterizationModeEXT::eUnderestimate;
+    default:
+        pdlAssert(0 && "Unsupported conservative rasterization mode");
+        return vk::ConservativeRasterizationModeEXT::eDisabled;
+    }
+}
+
+vk::ColorComponentFlags VulkanUtils::GetColorComponentMasks(ColorChannelMask colorMask)
+{
+    vk::ColorComponentFlags colorComponentMask {};
+    if (IS_SET(colorMask, ColorChannelMask::Red))
+        colorComponentMask |= vk::ColorComponentFlagBits::eR;
+    if (IS_SET(colorMask, ColorChannelMask::Green))
+        colorComponentMask |= vk::ColorComponentFlagBits::eG;
+    if (IS_SET(colorMask, ColorChannelMask::Blue))
+        colorComponentMask |= vk::ColorComponentFlagBits::eB;
+    if (IS_SET(colorMask, ColorChannelMask::Alpha))
+        colorComponentMask |= vk::ColorComponentFlagBits::eA;
+    return colorComponentMask;
+}
 }
 
