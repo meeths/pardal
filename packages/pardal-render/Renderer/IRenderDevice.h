@@ -7,6 +7,8 @@
 #include <Renderer/IRenderBuffer.h>
 #include <Renderer/ITexture.h>
 #include <Renderer/ITextureView.h>
+#include <Renderer/IShaderObject.h>
+#include <Renderer/IShader.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -40,6 +42,8 @@ public:
     virtual Expected<SharedPointer<ITexture>,StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) = 0;
     virtual Expected<SharedPointer<ITextureView>,StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) = 0;
     virtual Expected<SharedPointer<IRenderBuffer>, StringView> CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor) = 0;
+    virtual Expected<SharedPointer<IShaderObject>, StringView> CreateShaderObject(IShaderObject::ShaderObjectDescriptor _shaderDescriptor) = 0; 
+    virtual Expected<SharedPointer<IShader>, StringView> CreateShader(IShader::ShaderDescriptor _shaderObjectDescriptor) = 0; 
 
 protected:
     virtual bool Initialize(const InitInfoBase& desc) = 0;

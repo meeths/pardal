@@ -80,7 +80,14 @@ int main(int argc, char** argv)
                                         fmod(0.02f * frameIndex * colorSpeed, maxColorComponentValue) + 0.3,
                                         fmod(0.005f * frameIndex * colorSpeed,
                                         maxColorComponentValue) + 0.6, 1.0f));
+        
+        pdl::Math::Rectangle windowSize = {{0,0}, {window.GetWindowSize().x, window.GetWindowSize().y}};
+        pdl::Math::Rectanglei scissorSize = {{0,0}, {window.GetWindowSize().x, window.GetWindowSize().y}};
+        renderer.SetViewport(windowSize);
+        renderer.SetScissor(scissorSize);
+        
         renderer.BeginRenderPass(mainRenderPass);
+        
         renderer.EndRenderPass();
         renderer.EndFrame();
         window.Update();

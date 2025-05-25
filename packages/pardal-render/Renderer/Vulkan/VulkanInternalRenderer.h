@@ -36,7 +36,11 @@ public:
     bool EndRenderPass() override;
     void OnResize(Math::Vector2i newSize) override;
 
-    void SetPipelineState(const PipelineState& pipelineState, bool force) override;
+    void SetPipelineState(ICommandBuffer* cmd, const PipelineState& pipelineState, bool force) override;
+    void SetViewport(ICommandBuffer* cmd, const Math::Rectangle& viewport) override;
+    void SetScissor(ICommandBuffer* cmd, const Math::Rectanglei& scissor) override;
+
+    ICommandBuffer* GetCommandBuffer() override;
 private:
     bool BuildDepthBuffer(Format format, Math::Vector2i size);
 

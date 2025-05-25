@@ -62,10 +62,10 @@ namespace pdl
         m_device.GetVulkanDeviceQueue().PrepareNextCommandBuffer();
         m_device.GetVulkanDeviceQueue().SetCurrentSemaphore(VulkanDeviceQueue::EventType::BeginFrame);
 
-        if (!m_pipelineStateInitialized)
+//        if (!m_pipelineStateInitialized)
         {
-            m_pipelineStateInitialized = true;
-            SetPipelineState(m_currentPipelineState, true);       
+//          m_pipelineStateInitialized = true;
+            SetPipelineState(GetCommandBuffer(), m_currentPipelineState, true);       
         }
 
         Vector<ITextureView*> currentFrameSwapchainImageViews;
@@ -162,52 +162,53 @@ namespace pdl
         m_surface->ConfigureSwapchain(swapchainDetails);
     }
 
-    void VulkanInternalRenderer::SetPipelineState(const PipelineState& pipelineState, bool force)
+    void VulkanInternalRenderer::SetPipelineState(ICommandBuffer* cmd, const PipelineState& pipelineState, bool force)
     {
-        auto cmd = m_device.GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer();
+        auto vkcmd = static_cast<VulkanCommandBuffer*>(GetCommandBuffer())->GetVkCommandBuffer();
 
         if (pipelineState.m_blendMode != m_currentPipelineState.m_blendMode || force)
         {
             const vk::Bool32 blendEnable = pipelineState.m_blendMode.m_enabled ? VK_TRUE : VK_FALSE;
             const auto blendEquation = VulkanUtils::GetBlendEquation(pipelineState.m_blendMode.m_equation);
-            cmd.setColorBlendEnableEXT(0, 1, &blendEnable);
-            cmd.setColorBlendEquationEXT(0, 1, &blendEquation);
+            vkcmd.setColorBlendEnableEXT(0, m_lastRenderPass->GetColorAttachments().size(), &blendEnable);
+            vkcmd.setColorBlendEquationEXT(0, m_lastRenderPass->GetColorAttachments().size(), &blendEquation);
         }
 
         if (pipelineState.m_cullMode != m_currentPipelineState.m_cullMode || force)
         {
-            cmd.setCullModeEXT(VulkanUtils::GetCullMode(pipelineState.m_cullMode));
+            vkcmd.setCullModeEXT(VulkanUtils::GetCullMode(pipelineState.m_cullMode));
         }
 
         if (pipelineState.m_depthTest != m_currentPipelineState.m_depthTest || force)
         {
-            cmd.setDepthTestEnableEXT(pipelineState.m_depthTest.m_enabled ? VK_TRUE : VK_FALSE);
-            cmd.setDepthCompareOpEXT(VulkanUtils::GetCompareOp(pipelineState.m_depthTest.m_compareOp));
-            cmd.setDepthWriteEnableEXT(pipelineState.m_depthTest.m_writeEnabled ? VK_TRUE : VK_FALSE);
+            vkcmd.setDepthTestEnableEXT(pipelineState.m_depthTest.m_enabled ? VK_TRUE : VK_FALSE);
+            vkcmd.setDepthCompareOpEXT(VulkanUtils::GetCompareOp(pipelineState.m_depthTest.m_compareOp));
+            vkcmd.setDepthWriteEnableEXT(pipelineState.m_depthTest.m_writeEnabled ? VK_TRUE : VK_FALSE);
         }
 
         
         if (pipelineState.m_depthBias != m_currentPipelineState.m_depthBias || force)
         {
-            cmd.setDepthBias(pipelineState.m_depthBias.m_constantFactor,
+            vkcmd.setDepthBiasEnable(pipelineState.m_depthBias.m_enabled ? VK_TRUE : VK_FALSE);
+            vkcmd.setDepthBias(pipelineState.m_depthBias.m_constantFactor,
                 pipelineState.m_depthBias.m_clamp,
                 pipelineState.m_depthBias.m_slopeFactor);
         }
 
         if (pipelineState.m_frontFace != m_currentPipelineState.m_frontFace || force)
         {
-            cmd.setFrontFaceEXT(VulkanUtils::GetFrontFace(pipelineState.m_frontFace));
+            vkcmd.setFrontFaceEXT(VulkanUtils::GetFrontFace(pipelineState.m_frontFace));
         }
 
         if (pipelineState.m_polygonMode != m_currentPipelineState.m_polygonMode || force)
         {
-            cmd.setPolygonModeEXT(VulkanUtils::GetPolygonMode(pipelineState.m_polygonMode));
+            vkcmd.setPolygonModeEXT(VulkanUtils::GetPolygonMode(pipelineState.m_polygonMode));
         }
 
         if (pipelineState.m_stencilTest != m_currentPipelineState.m_stencilTest || force)
         {
-            cmd.setStencilTestEnableEXT(pipelineState.m_stencilTest.m_enabled ? VK_TRUE : VK_FALSE);
-            cmd.setStencilOp(
+            vkcmd.setStencilTestEnableEXT(pipelineState.m_stencilTest.m_enabled ? VK_TRUE : VK_FALSE);
+            vkcmd.setStencilOp(
                 VulkanUtils::GetStencilFaceFlags(pipelineState.m_stencilTest.m_face),
                 VulkanUtils::GetStencilOp(pipelineState.m_stencilTest.m_failOp),
                 VulkanUtils::GetStencilOp(pipelineState.m_stencilTest.m_passOp),
@@ -215,7 +216,64 @@ namespace pdl
                 VulkanUtils::GetCompareOp(pipelineState.m_stencilTest.m_compareOp));
         }
 
+        vkcmd.setPrimitiveRestartEnable(VK_FALSE);
+
+        if (pipelineState.m_topology != m_currentPipelineState.m_topology || force)
+        {
+            vkcmd.setPrimitiveTopologyEXT(VulkanUtils::GetPrimitiveTopology(pipelineState.m_topology));
+        }
+
+        if (pipelineState.m_rasterizerDiscard != m_currentPipelineState.m_rasterizerDiscard || force)
+        {
+            vkcmd.setRasterizerDiscardEnable(pipelineState.m_rasterizerDiscard ? VK_TRUE : VK_FALSE);
+        }
+
+        if (pipelineState.m_rasterSamples != m_currentPipelineState.m_rasterSamples || force)
+        {
+            vkcmd.setRasterizationSamplesEXT(VulkanUtils::GetMultisampleFlagBits(pipelineState.m_rasterSamples));
+        }
+        if (pipelineState.m_rasterSampleMask != m_currentPipelineState.m_rasterSampleMask || force)
+        {
+            vkcmd.setSampleMaskEXT(VulkanUtils::GetMultisampleFlagBits(pipelineState.m_rasterSamples), &pipelineState.m_rasterSampleMask);
+        }
+        if (pipelineState.m_conservativeRasterization != m_currentPipelineState.m_conservativeRasterization || force)
+        {
+            vkcmd.setConservativeRasterizationModeEXT(VulkanUtils::GetConservativeRasterizationMode(pipelineState.m_conservativeRasterization));
+        }
+
+        if (pipelineState.m_alphaToCoverage != m_currentPipelineState.m_alphaToCoverage || force)
+        {
+            vkcmd.setAlphaToCoverageEnableEXT(pipelineState.m_alphaToCoverage ? VK_TRUE : VK_FALSE);
+        }
+        
+        if (pipelineState.m_colorWriteMask != m_currentPipelineState.m_colorWriteMask || force)
+        {
+            vk::ColorComponentFlags colorCompFlags = VulkanUtils::GetColorComponentMasks(pipelineState.m_colorWriteMask);  
+            vkcmd.setColorWriteMaskEXT(0, m_lastRenderPass ? m_lastRenderPass->GetColorAttachments().size() : 1, &colorCompFlags);
+        }
+
+        vkcmd.setVertexInputEXT(0, nullptr, 0, nullptr);
+        
         m_currentPipelineState = pipelineState;
+    }
+
+    void VulkanInternalRenderer::SetViewport(ICommandBuffer* cmd, const Math::Rectangle& viewport)
+    {
+        auto vkcmd = static_cast<VulkanCommandBuffer*>(GetCommandBuffer())->GetVkCommandBuffer();
+        const vk::Viewport vkviewport = {viewport.mMin.x, viewport.mMin.y, viewport.mMax.x, viewport.mMax.y};
+        vkcmd.setViewportWithCount(1, &vkviewport);
+    }
+
+    void VulkanInternalRenderer::SetScissor(ICommandBuffer* cmd, const Math::Rectanglei& scissor)
+    {
+        auto vkcmd = static_cast<VulkanCommandBuffer*>(GetCommandBuffer())->GetVkCommandBuffer();
+        vk::Rect2D vkscissor = {{scissor.mMin.x, scissor.mMin.y}, {(uint32)scissor.mMax.x, (uint32)scissor.mMax.y}};
+        vkcmd.setScissorWithCount(1, &vkscissor);
+    }
+
+    ICommandBuffer* VulkanInternalRenderer::GetCommandBuffer()
+    {
+        return m_device.GetVulkanDeviceQueue().GetCommandBuffer();
     }
 
     bool VulkanInternalRenderer::BuildDepthBuffer(Format format, Math::Vector2i size)

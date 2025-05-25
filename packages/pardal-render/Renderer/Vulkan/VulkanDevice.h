@@ -3,14 +3,12 @@
 #include <Renderer/IRenderDevice.h>
 #include <vulkan/vulkan.hpp>
 #include <Renderer/Vulkan/VulkanDeviceQueue.h>
-
 // Created on 2025-03-23 by sisco
 
 struct ImGui_ImplVulkan_InitInfo;
 
 namespace pdl
 {
-
 class VulkanDevice : public IRenderDevice
 {
 public:
@@ -22,6 +20,8 @@ public:
     Expected<SharedPointer<ITexture>, StringView> CreateTexture(ITexture::TextureDescriptor _textureDescriptor) override;
     Expected<SharedPointer<ITextureView>, StringView> CreateTextureView(ITextureView::TextureViewDescriptor _textureDescriptor) override;
     Expected<SharedPointer<IRenderBuffer>, StringView> CreateRenderBuffer(IRenderBuffer::BufferDescriptor _bufferDescriptor) override;
+    Expected<SharedPointer<IShader>, StringView> CreateShader(IShader::ShaderDescriptor _shaderObjectDescriptor) override; 
+    Expected<SharedPointer<IShaderObject>, StringView> CreateShaderObject(IShaderObject::ShaderObjectDescriptor _shaderDescriptor) override;
 
     VulkanDeviceQueue& GetVulkanDeviceQueue() { return m_vulkanDeviceQueue; };
 

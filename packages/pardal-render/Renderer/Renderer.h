@@ -6,6 +6,8 @@
 #include <Renderer/PipelineState.h>
 #include <ImGui/ImGuiRenderer.h>
 
+#include "Math/Rectangle.h"
+
 // Created on 2025-03-23 by sisco
 
 namespace pdl
@@ -38,6 +40,9 @@ public:
     BindlessDescriptors* GetBindlessDescriptors() const { return m_bindlessDescriptors.get(); }
 
     void SetPipelineState(const PipelineState& pipelineState);
+    void SetViewport(const Math::Rectangle& viewport);
+    void SetScissor(const Math::Rectanglei& scissor);
+    
 private:
 
     void UpdateFrameInfoBuffer();
@@ -49,7 +54,9 @@ private:
     SharedPointer<BindlessDescriptors> m_bindlessDescriptors;
 
     PerFrameInfo m_frameInfo {};
-    SharedPointer<IRenderBuffer> m_frameInfoBuffer; 
+    SharedPointer<IRenderBuffer> m_frameInfoBuffer;
+
+    SharedPointer<IShader> m_testShader;
 };
 
 }

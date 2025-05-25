@@ -7,10 +7,16 @@
 
 namespace pdl
 {
+namespace Math
+{
+    class Rectangle;
+    class Rectanglei;
+}
 class ApplicationWindow;
 class RenderPass;
 class ITextureView;
 struct PipelineState;
+class ICommandBuffer;
     
 class IInternalRenderer
 {
@@ -38,7 +44,12 @@ public:
     virtual bool BeginRenderPass(const RenderPass& renderPass) = 0;
     virtual bool EndRenderPass() = 0;
 
-    virtual void SetPipelineState(const PipelineState& pipelineState, bool force = false) = 0;
+    virtual void SetPipelineState(ICommandBuffer* cmd, const PipelineState& pipelineState, bool force = false) = 0;
+
+    virtual void SetViewport(ICommandBuffer* cmd, const Math::Rectangle& viewport) = 0;
+    virtual void SetScissor(ICommandBuffer* cmd, const Math::Rectanglei& scissor) = 0;
+    
+    virtual ICommandBuffer* GetCommandBuffer() = 0;
 };
 
 }

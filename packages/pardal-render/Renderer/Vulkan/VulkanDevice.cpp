@@ -8,6 +8,8 @@
 #include <Renderer/Vulkan/VulkanTextureView.h>
 
 #include "VulkanRenderBuffer.h"
+#include "VulkanShader.h"
+#include "VulkanShaderObject.h"
 #include "backends/imgui_impl_vulkan.h"
 
 
@@ -440,7 +442,7 @@ namespace Details
         if (IsExtensionInExtensionProperties("VK_KHR_external_memory", extensionProperties))
         {
             extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-#if SLANG_WINDOWS_FAMILY
+#if PDL_PLATFORM_WINDOWS
             if (IsExtensionInExtensionProperties("VK_KHR_external_memory_win32", extensionProperties))
             {
                 extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -456,7 +458,7 @@ namespace Details
         if (IsExtensionInExtensionProperties(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME, extensionProperties))
         {
             extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
-#if SLANG_WINDOWS_FAMILY
+#if PDL_PLATFORM_WINDOWS
             if (IsExtensionInExtensionProperties(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME, extensionProperties))
             {
                 extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
@@ -618,6 +620,18 @@ namespace pdl
         auto vulkanBuffer = MakeSharedPointer<VulkanRenderBuffer>(_bufferDescriptor, m_vkDevice, m_vkPhysicalDevice);
         return vulkanBuffer;
         
+    }
+
+    Expected<SharedPointer<IShader>, StringView> VulkanDevice::CreateShader(IShader::ShaderDescriptor _shaderObjectDescriptor)
+    {
+        auto vulkanShader = MakeSharedPointer<VulkanShader>(_shaderObjectDescriptor);
+        return vulkanShader;
+    }
+
+    Expected<SharedPointer<IShaderObject>, StringView> VulkanDevice::CreateShaderObject(IShaderObject::ShaderObjectDescriptor _shaderDescriptor)
+    {
+        auto vulkanShader = MakeSharedPointer<VulkanShaderObject>(_shaderDescriptor, m_vkDevice);
+        return vulkanShader;
     }
 
     void VulkanDevice::FillImGuiInitInfo(ImGui_ImplVulkan_InitInfo& initInfo)
