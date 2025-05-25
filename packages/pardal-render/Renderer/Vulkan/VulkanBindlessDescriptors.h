@@ -4,13 +4,14 @@
 // Created on 2025-05-04 by sisco
 #include <vulkan/vulkan.hpp>
 #include <Renderer/BindlessDescriptors.h>
+#include <Renderer/Vulkan/IVulkanDescriptorSet.h>
 
 
 namespace pdl
 {
 class VulkanDevice;
 
-class VulkanBindlessDescriptors : public BindlessDescriptors
+class VulkanBindlessDescriptors : public BindlessDescriptors, public IVulkanDescriptorSet
 {
 public:
     VulkanBindlessDescriptors(const VulkanDevice& _device);
@@ -24,6 +25,9 @@ public:
     void WriteDescriptors() override;
 
     bool Bind(ICommandBuffer* commandBuffer) override;
+
+    vk::DescriptorSet GetVkDescriptorSet() const override { return m_bindlessSet; }
+    vk::DescriptorSetLayout GetVkDescriptorSetLayout() const override { return m_bindlessLayout; }
 private:
     vk::Device m_device;
     vk::DescriptorSetLayout m_bindlessLayout;

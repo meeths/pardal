@@ -1,5 +1,6 @@
 
 #pragma once
+#include "IDescriptorSet.h"
 #include "RendererTypes.h"
 #include "Containers/Vector.h"
 
@@ -14,7 +15,7 @@ class ITextureView;
 enum class TextureDescriptorHandle : uint32 { Invalid = 0xFFFFFFFF };
 enum class BufferDescriptorHandle : uint32 { Invalid = 0xFFFFFFFF };
     
-class BindlessDescriptors
+class BindlessDescriptors : public IDescriptorSet
 {
 public:
     struct BindlessDescriptorInfo
