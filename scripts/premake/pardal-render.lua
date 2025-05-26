@@ -21,11 +21,29 @@ project "pardal-render"
 
     links { "pardal-core", "imgui" }
 
+    getSlang()
+
     configureCommonFlags()
     configureCommonExternals()
     includeVulkan()
     includeImGui()
+    includeSlang()
     linkVulkan()
     setConfigurations()
     
     filter {}
+
+pardal.create_test_project("pardal-render")
+
+    includedirs {
+        "%{BASE_DIR}packages/pardal-render/",
+        "%{BASE_DIR}packages/pardal-core/"
+    }
+
+    links { "pardal-core", "pardal-render", "imgui" }
+
+    includeVulkan()
+    includeImGui()
+    includeSlang()
+    linkVulkan()
+    linkSlang()

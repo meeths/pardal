@@ -170,8 +170,8 @@ namespace pdl
         {
             const vk::Bool32 blendEnable = pipelineState.m_blendMode.m_enabled ? VK_TRUE : VK_FALSE;
             const auto blendEquation = VulkanUtils::GetBlendEquation(pipelineState.m_blendMode.m_equation);
-            vkcmd.setColorBlendEnableEXT(0, m_lastRenderPass->GetColorAttachments().size(), &blendEnable);
-            vkcmd.setColorBlendEquationEXT(0, m_lastRenderPass->GetColorAttachments().size(), &blendEquation);
+            vkcmd.setColorBlendEnableEXT(0, m_lastRenderPass ? m_lastRenderPass->GetColorAttachments().size() : 1, &blendEnable);
+            vkcmd.setColorBlendEquationEXT(0, m_lastRenderPass ? m_lastRenderPass->GetColorAttachments().size() : 1, &blendEquation);
         }
 
         if (pipelineState.m_cullMode != m_currentPipelineState.m_cullMode || force)

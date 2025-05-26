@@ -33,4 +33,5 @@ function pardal.create_test_project(projectname)
 
     filter {}
 
+    return project()
 end 

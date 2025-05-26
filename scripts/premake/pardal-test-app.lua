@@ -25,8 +25,9 @@ project "pardal-test-app"
     
     includeVulkan()
     includeImGui()
+    includeSlang()
     linkVulkan()
-     
+    linkSlang() 
     setConfigurations()
     
     filter {}
