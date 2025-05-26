@@ -359,6 +359,7 @@ bin/
 # Don't ignore vulkan bins
 !external/vulkan_*/**
 
-# Ignore external downloaded files
+# Ignore external and tools downloaded files
 external/downloaded/**
+tools/downloaded/**
 

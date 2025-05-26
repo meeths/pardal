@@ -22,6 +22,7 @@ function configureCommonExternals()
     filter {}
     includeGLM()
     includeSTB()
+    includeTracy()
 end
 
 function configureCommonFlags()

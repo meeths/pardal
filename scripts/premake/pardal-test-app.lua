@@ -30,4 +30,5 @@ project "pardal-test-app"
     linkSlang() 
     setConfigurations()
     
+    links {"Tracy"}
     filter {}
