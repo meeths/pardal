@@ -30,6 +30,8 @@ function compileTracy()
     files {
         TRACY_DIR .. "/tracy-" ..TRACY_VER.. "/public/TracyClient.cpp"
     }
+    removefatalwarnings { "All" }
+
 end 
 
 project "Tracy"
@@ -46,5 +48,6 @@ project "Tracy"
     configureCommonExternals()
     
     setConfigurations()
-    
-    filter {}
+
+
+filter {}

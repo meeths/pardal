@@ -56,7 +56,9 @@ function setConfigurations()
     filter "configurations:Profile"
         defines { "NDEBUG", "PDL_PROFILE" }
         optimize "Speed"
-        runtime "Release"        
+        runtime "Release"    
+    
+    filter {}
     end
 
 workspace "pardal"
