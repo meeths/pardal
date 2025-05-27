@@ -5,6 +5,9 @@
 #include <Log/Log.h>
 #include <Math/Vector3.h>
 
+#include "Shaders/SlangShaderCompiler.h"
+#include "Vulkan/VulkanShader.h"
+
 #ifdef PDL_VULKAN
 #include <Renderer/Vulkan/VulkanBindlessDescriptors.h>
 #include <Renderer/Vulkan/VulkanDevice.h>
@@ -12,49 +15,43 @@
 #endif
 // Created on 2025-03-23 by sisco
 
-const uint32_t triangle_spv[] = 
-{
-    0x07230203, 0x00010500, 0x00000028, 0x0000003d, 0x00000000, 0x00020011, 0x00000001, 0x0003000e, 0x00000000, 
-    0x00000001, 0x0008000f, 0x00000000, 0x00000002, 0x74726576, 0x00007865, 0x0000002d, 0x00000030, 0x00000012, 
-    0x0008000f, 0x00000004, 0x00000033, 0x67617266, 0x746e656d, 0x00000000, 0x0000003a, 0x00000037, 0x00030010, 
-    0x00000033, 0x00000007, 0x00030003, 0x0000000b, 0x00000001, 0x000a0005, 0x00000030, 0x72746e65, 0x696f5079, 
-    0x6150746e, 0x5f6d6172, 0x74726576, 0x432e7865, 0x726f6c6f, 0x00000000, 0x00040005, 0x00000002, 0x74726576, 
-    0x00007865, 0x00040005, 0x00000037, 0x6f6c6f63, 0x00000072, 0x00090005, 0x0000003a, 0x72746e65, 0x696f5079, 
-    0x6150746e, 0x5f6d6172, 0x67617266, 0x746e656d, 0x00000000, 0x00050005, 0x00000033, 0x67617266, 0x746e656d, 
-    0x00000000, 0x00040047, 0x00000005, 0x00000006, 0x00000008, 0x00040047, 0x0000000c, 0x00000006, 0x0000000c, 
-    0x00040047, 0x00000012, 0x0000000b, 0x0000002a, 0x00040047, 0x0000002d, 0x0000000b, 0x00000000, 0x00040047, 
-    0x00000030, 0x0000001e, 0x00000000, 0x00040047, 0x00000037, 0x0000001e, 0x00000000, 0x00040047, 0x0000003a, 
-    0x0000001e, 0x00000000, 0x00020013, 0x00000001, 0x00030021, 0x00000003, 0x00000001, 0x00030016, 0x00000006, 
-    0x00000020, 0x00040017, 0x00000007, 0x00000006, 0x00000002, 0x00040015, 0x00000008, 0x00000020, 0x00000001, 
-    0x0004002b, 0x00000008, 0x00000009, 0x00000003, 0x0004001c, 0x00000005, 0x00000007, 0x00000009, 0x00040020, 
-    0x0000000a, 0x00000007, 0x00000005, 0x00040017, 0x0000000d, 0x00000006, 0x00000003, 0x0004001c, 0x0000000c, 
-    0x0000000d, 0x00000009, 0x00040020, 0x0000000e, 0x00000007, 0x0000000c, 0x00040020, 0x00000011, 0x00000001, 
-    0x00000008, 0x00040015, 0x00000013, 0x00000020, 0x00000000, 0x0004002b, 0x00000006, 0x00000017, 0x00000000, 
-    0x0004002b, 0x00000006, 0x00000018, 0xbf000000, 0x0005002c, 0x00000007, 0x00000016, 0x00000017, 0x00000018, 
-    0x0004002b, 0x00000006, 0x0000001a, 0x3f000000, 0x0005002c, 0x00000007, 0x00000019, 0x0000001a, 0x0000001a, 
-    0x0005002c, 0x00000007, 0x0000001b, 0x00000018, 0x0000001a, 0x0006002c, 0x00000005, 0x00000015, 0x00000016, 
-    0x00000019, 0x0000001b, 0x00040020, 0x0000001d, 0x00000007, 0x00000007, 0x0004002b, 0x00000006, 0x00000021, 
-    0x3f800000, 0x0005002c, 0x00000007, 0x00000020, 0x00000021, 0x00000021, 0x00040017, 0x00000022, 0x00000006, 
-    0x00000004, 0x0006002c, 0x0000000d, 0x00000025, 0x00000021, 0x00000017, 0x00000017, 0x0006002c, 0x0000000d, 
-    0x00000026, 0x00000017, 0x00000021, 0x00000017, 0x0006002c, 0x0000000d, 0x00000027, 0x00000017, 0x00000017, 
-    0x00000021, 0x0006002c, 0x0000000c, 0x00000024, 0x00000025, 0x00000026, 0x00000027, 0x00040020, 0x00000029, 
-    0x00000007, 0x0000000d, 0x00040020, 0x0000002c, 0x00000003, 0x00000022, 0x00040020, 0x0000002f, 0x00000003, 
-    0x0000000d, 0x00040020, 0x00000036, 0x00000001, 0x0000000d, 0x0004003b, 0x00000011, 0x00000012, 0x00000001, 
-    0x0004003b, 0x0000002c, 0x0000002d, 0x00000003, 0x0004003b, 0x0000002f, 0x00000030, 0x00000003, 0x0004003b, 
-    0x00000036, 0x00000037, 0x00000001, 0x0004003b, 0x0000002c, 0x0000003a, 0x00000003, 0x00050036, 0x00000001, 
-    0x00000002, 0x00000000, 0x00000003, 0x000200f8, 0x00000004, 0x0004003b, 0x0000000a, 0x0000000b, 0x00000007, 
-    0x0004003b, 0x0000000e, 0x0000000f, 0x00000007, 0x0004003d, 0x00000008, 0x00000010, 0x00000012, 0x0004007c, 
-    0x00000013, 0x00000014, 0x00000010, 0x0003003e, 0x0000000b, 0x00000015, 0x00050041, 0x0000001d, 0x0000001e, 
-    0x0000000b, 0x00000014, 0x0004003d, 0x00000007, 0x0000001f, 0x0000001e, 0x00050050, 0x00000022, 0x00000023, 
-    0x0000001f, 0x00000020, 0x0003003e, 0x0000000f, 0x00000024, 0x00050041, 0x00000029, 0x0000002a, 0x0000000f, 
-    0x00000014, 0x0004003d, 0x0000000d, 0x0000002b, 0x0000002a, 0x0003003e, 0x0000002d, 0x00000023, 0x0003003e, 
-    0x00000030, 0x0000002b, 0x000100fd, 0x00010038, 0x00050036, 0x00000001, 0x00000033, 0x00000000, 0x00000003, 
-    0x000200f8, 0x00000034, 0x0004003d, 0x0000000d, 0x00000035, 0x00000037, 0x0008004f, 0x0000000d, 0x00000038, 
-    0x00000035, 0x00000035, 0x00000000, 0x00000001, 0x00000002, 0x00050050, 0x00000022, 0x00000039, 0x00000038, 
-    0x00000021, 0x0003003e, 0x0000003a, 0x00000039, 0x000100fd, 0x00010038, 
+const char* vert_code = R"(
+#version 450
+
+layout(location = 0) out vec3 fragColor;
+
+vec2 positions[3] = {
+    vec2(0.0, -0.5),
+    vec2(0.5, 0.5),
+    vec2(-0.5, 0.5)
 };
 
-const size_t triangle_spv_sizeInBytes = 1356;
+vec3 colors[3] ={
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+};
+
+[shader("vertex")]
+void vertexmain() {
+    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    fragColor = colors[gl_VertexIndex];
+}
+)";
+
+const char* frag_code = R"(
+#version 450
+
+layout(location = 0) in vec3 fragColor;
+
+layout(location = 0) out vec4 outColor;
+
+[shader("fragment")]
+void fragmentmain() {
+    outColor = vec4(fragColor, 1.0);
+}
+)";
+
 namespace pdl
 {
     class RenderPass;
@@ -137,20 +134,25 @@ namespace pdl
         m_frameInfoBuffer = frameInfoBuffer.value();
         UpdateFrameInfoBuffer();
 
-        pdl::Vector<uint8> triangleSpv(triangle_spv_sizeInBytes);
-        uint8* triangleSpvData = (uint8*)triangle_spv;
-        memcpy(triangleSpv.data(), triangleSpvData, triangleSpv.size());
+        SlangShaderCompiler::InitInfo compilerInitInfo = {
+            .m_target = SlangShaderCompiler::Target::SPIRV,
+            .m_compilerOptions = SlangShaderCompiler::CompilerOptions::TargetVulkan | SlangShaderCompiler::CompilerOptions::EnableGLSLSupport
+        };
+        SlangShaderCompiler shaderCompiler(compilerInitInfo);
 
+        auto vertShaderResults = shaderCompiler.CompileShader({"shader.vert", vert_code,  "vertexmain"});
+        auto fragShaderResults = shaderCompiler.CompileShader({"shader.frag", frag_code,  "fragmentmain"});
+        
         pdl::IShaderObject::ShaderObjectDescriptor vertexShaderDesc;
         vertexShaderDesc.m_shaderType = pdl::ShaderType::Vertex;
-        vertexShaderDesc.m_entryPoint = "vertex";
-        vertexShaderDesc.m_shaderData = &triangleSpv;
+        vertexShaderDesc.m_entryPoint = "vertexmain";
+        vertexShaderDesc.m_shaderData = &vertShaderResults.value();
         vertexShaderDesc.m_descriptorSet = GetBindlessDescriptors();
     
         pdl::IShaderObject::ShaderObjectDescriptor fragShaderDesc;
         fragShaderDesc.m_shaderType = pdl::ShaderType::Fragment;
-        fragShaderDesc.m_entryPoint = "fragment";
-        fragShaderDesc.m_shaderData = &triangleSpv;
+        fragShaderDesc.m_entryPoint = "fragmentmain";
+        fragShaderDesc.m_shaderData = &fragShaderResults.value();
         fragShaderDesc.m_descriptorSet = GetBindlessDescriptors();
     
         auto vertexShaderObj = GetRenderDevice()->CreateShaderObject(vertexShaderDesc);

@@ -1,21 +1,26 @@
 #include <Renderer/Shaders/SlangShaderCompiler.h>
 #include <Containers/Array.h>
 #include <Log/Log.h>
-
-#include "Base/DebugHelpers.h"
+#include <Base/DebugHelpers.h>
 // Created on 2025-05-25 by sisco
 
 namespace pdl
 {
-	SlangShaderCompiler::SlangShaderCompiler(const InitInfo& initInfo) : m_target(initInfo.m_target)
+	SlangShaderCompiler::SlangShaderCompiler(const InitInfo& initInfo) : m_target(initInfo.m_target), m_compilerOptions(initInfo.m_compilerOptions)
 	{
-		auto globalSessionResult = slang::createGlobalSession(m_globalSession.writeRef());
+		SlangGlobalSessionDesc globalSessionDesc = {};
+
+		globalSessionDesc.enableGLSL = (m_compilerOptions & CompilerOptions::EnableGLSLSupport) == CompilerOptions::EnableGLSLSupport;
+		
+		auto globalSessionResult = slang::createGlobalSession(&globalSessionDesc, m_globalSession.writeRef());
 		if (SLANG_FAILED(globalSessionResult))
 		{
 			pdlLogError(slang::getLastInternalErrorMessage());
 			return;
 		}
-
+		
+		
+		
 		slang::SessionDesc sessionDesc = {};
 		slang::TargetDesc targetDesc = {};
 		switch (m_target)
@@ -40,6 +45,16 @@ namespace pdl
 				}
 			);
 		}
+
+		if ((m_compilerOptions & CompilerOptions::TargetVulkan) == CompilerOptions::TargetVulkan)
+		{
+			options.push_back({
+					slang::CompilerOptionName::VulkanUseEntryPointName,
+		   {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}
+			   }
+		   );
+		}
+
 		sessionDesc.compilerOptionEntries = options.data();
 		sessionDesc.compilerOptionEntryCount = options.size();
 

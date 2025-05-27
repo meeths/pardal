@@ -15,7 +15,10 @@ struct SlangShaderCompilerTest : testing::Test
 	}
 	void SetUp() override
 	{
-		pdl::SlangShaderCompiler::InitInfo shaderCompilerInitInfo { .m_target = pdl::SlangShaderCompiler::Target::SPIRV };
+		pdl::SlangShaderCompiler::InitInfo shaderCompilerInitInfo {
+			.m_target = pdl::SlangShaderCompiler::Target::SPIRV,
+			.m_compilerOptions = SlangShaderCompiler::CompilerOptions::TargetVulkan
+		};
 		shaderCompiler = new SlangShaderCompiler(shaderCompilerInitInfo);
 	}
 	
@@ -41,12 +44,13 @@ struct SlangShaderCompilerTest : testing::Test
 	TEST_F(SlangShaderCompilerTest, BrokenSPIRVCompilationFails)
 	{
 		const char* brokenShader =
+			"Some invalid code"
 			"RWStructuredBuffer<float> result;"
 			"[shader(\"compute\")]"
 			"[numthreads(1,1,1)]"
 			"void computeMain(uint3 threadId : SV_DispatchThreadID)"
 			"{"
-			"    result[threadId.x] = threadId.x; and some shit"
+			"    result[threadId.x] = threadId.x; and some broken code here"
 			"}";
 
 		auto compileResults = this-> shaderCompiler->CompileShader({"TestShader", brokenShader, "computeMain"});

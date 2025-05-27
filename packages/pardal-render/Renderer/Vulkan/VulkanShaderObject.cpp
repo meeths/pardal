@@ -3,8 +3,7 @@
 #include <Renderer/Vulkan/IVulkanDescriptorSet.h>
 #include <Base/DebugHelpers.h>
 #include <Renderer/Vulkan/VulkanUtils.h>
-
-#include "VulkanBindlessDescriptors.h"
+#include <Renderer/Vulkan/VulkanBindlessDescriptors.h>
 
 // Created on 2025-05-24 by sisco
 
@@ -26,7 +25,7 @@ namespace pdl
         shaderCreateInfo.pName = desc.m_entryPoint.data();
         shaderCreateInfo.stage = VulkanUtils::GetShaderStageBits(m_shaderType);
         shaderCreateInfo.pNext = nullptr;
-        shaderCreateInfo.flags = vk::ShaderCreateFlagBitsEXT::eLinkStage;
+        shaderCreateInfo.flags = {};//vk::ShaderCreateFlagBitsEXT::eLinkStage;
 
         auto shaderCreateResult = device.createShaderEXT(shaderCreateInfo);
         CHECK_VK_RESULTVALUE(shaderCreateResult);
