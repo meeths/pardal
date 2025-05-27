@@ -31,6 +31,7 @@ function compileTracy()
         TRACY_DIR .. "/tracy-" ..TRACY_VER.. "/public/TracyClient.cpp"
     }
     removefatalwarnings { "All" }
+    warnings "Off"
 
 end 
 
