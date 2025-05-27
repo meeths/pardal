@@ -16,3 +16,7 @@
     auto end() { return (member_container).end(); }\
     auto cend() const { return (member_container).cend(); }
 
+#define DefineEnumMaskOperators(enum_type) \
+    inline enum_type operator| (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<char>(lhs) | static_cast<char>(rhs));} \
+    inline enum_type operator& (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<char>(lhs) & static_cast<char>(rhs));}
+     

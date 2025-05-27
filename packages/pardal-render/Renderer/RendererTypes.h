@@ -1,5 +1,6 @@
 #pragma once
 #include <Base/BaseTypes.h>
+#include <Base/BaseDefines.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -294,16 +295,8 @@ namespace pdl
         AccelerationStructureBuildInput     = 1 << 9,
         ShaderTable                         = 1 << 10,
     };
+    DefineEnumMaskOperators(BufferUsage);
     
-    inline BufferUsage operator|(BufferUsage lhs, BufferUsage rhs) 
-    {
-        return static_cast<BufferUsage>(static_cast<char>(lhs) | static_cast<char>(rhs));
-    }
-    inline BufferUsage operator&(BufferUsage lhs, BufferUsage rhs) 
-    {
-        return static_cast<BufferUsage>(static_cast<char>(lhs) & static_cast<char>(rhs));
-    }
-
     enum class TextureUsage : uint16
     {
         None = 0,
@@ -318,15 +311,8 @@ namespace pdl
         ResolveSource                       = 1 << 8,
         ResolveDestination                  = 1 << 9,
     };
-    inline TextureUsage operator|(TextureUsage lhs, TextureUsage rhs) 
-    {
-        return static_cast<TextureUsage>(static_cast<char>(lhs) | static_cast<char>(rhs));
-    }
-    inline TextureUsage operator&(TextureUsage lhs, TextureUsage rhs) 
-    {
-        return static_cast<TextureUsage>(static_cast<char>(lhs) & static_cast<char>(rhs));
-    }
-
+    DefineEnumMaskOperators(TextureUsage);
+    
     enum class TextureType : uint8
     {
         Texture1D,
@@ -422,15 +408,8 @@ namespace pdl
         RayGeneration = 1 << 6,
         Miss = 1 << 7
     };
-    inline ShaderType operator|(ShaderType lhs, ShaderType rhs) 
-    {
-        return static_cast<ShaderType>(static_cast<char>(lhs) | static_cast<char>(rhs));
-    }
-    inline ShaderType operator&(ShaderType lhs, ShaderType rhs) 
-    {
-        return static_cast<ShaderType>(static_cast<char>(lhs) & static_cast<char>(rhs));
-    }
-
+    DefineEnumMaskOperators(ShaderType);
+    
     enum class MultiSampleCount : uint8
     {
         None,
@@ -460,15 +439,8 @@ namespace pdl
         All = Red | Green | Blue | Alpha
     };
 
-    inline ColorChannelMask operator|(ColorChannelMask lhs, ColorChannelMask rhs) 
-    {
-        return static_cast<ColorChannelMask>(static_cast<char>(lhs) | static_cast<char>(rhs));
-    }
-    inline ColorChannelMask operator&(ColorChannelMask lhs, ColorChannelMask rhs) 
-    {
-        return static_cast<ColorChannelMask>(static_cast<char>(lhs) & static_cast<char>(rhs));
-    }
-
+    DefineEnumMaskOperators(ColorChannelMask);
+    
     
 }
 
