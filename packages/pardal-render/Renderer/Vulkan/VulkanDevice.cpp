@@ -55,10 +55,16 @@ namespace Details
                 auto deviceProperties = device.getProperties();
 
                 // Always favor discrete gpus over anything else
-                if (devices[bestDeviceIndex].getProperties().deviceType != vk::PhysicalDeviceType::eDiscreteGpu &&
+                if ((deviceIndex == 0 || devices[bestDeviceIndex].getProperties().deviceType != vk::PhysicalDeviceType::eDiscreteGpu) &&
                     deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
                 {
                     bestDeviceIndex = deviceIndex;
+                    continue;
+                }
+
+                if (devices[bestDeviceIndex].getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu &&
+                    deviceProperties.deviceType != vk::PhysicalDeviceType::eDiscreteGpu)
+                {
                     continue;
                 }
 
