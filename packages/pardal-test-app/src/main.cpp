@@ -28,14 +28,17 @@ int main(int argc, char** argv)
     bool useHDR = false;
 
     pdl::Renderer renderer;
-    renderer.InitializeRenderDevice({
+    if (!renderer.InitializeRenderDevice({
         .m_deviceType = pdl::RenderDeviceType::Vulkan,
         .m_applicationName = "pardal-test-app",
         .m_applicationWindow = window,
         .m_enableValidation = true,
         .m_useVSync = false,
         .m_useHDR = useHDR
-    });
+    }))
+    {
+        return -1;
+    }
 
    
     float maxColorComponentValue = useHDR ? 16.0f : 1.0f;
