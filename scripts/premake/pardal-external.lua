@@ -4,6 +4,7 @@
 ---
 
 group "30 external"
+include "scripts/premake/external/mimalloc.lua"
 include "scripts/premake/external/glm.lua"
 include "scripts/premake/external/stb.lua"
 include "scripts/premake/external/tracy.lua"

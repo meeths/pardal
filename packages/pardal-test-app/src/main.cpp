@@ -4,6 +4,7 @@
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
 #include "Math/Vector3.h"
+#include "Memory/Memory.h"
 #include "Renderer/BindlessDescriptors.h"
 #include "Renderer/ISurface.h"
 #include "Renderer/ITexture.h"
@@ -16,6 +17,7 @@
 
 int main(int argc, char** argv)
 {
+    pdl::Memory::Initialize();
 #ifndef PDL_RELEASE
     pdl::Log::Instance().RegisterLogger(pdl::MakeSharedPointer<pdl::LoggerStdout>());
 #endif

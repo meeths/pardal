@@ -19,6 +19,8 @@ project "pardal-core"
         "%{BASE_DIR}packages/pardal-core/"
     }
 
+    links { "mimalloc" }
+
     getTracy()
 
     configureCommonFlags()

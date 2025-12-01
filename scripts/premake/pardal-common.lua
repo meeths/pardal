@@ -20,6 +20,7 @@ end
 
 function configureCommonExternals()
     filter {}
+    includeMimalloc()
     includeGLM()
     includeSTB()
     includeTracy()
