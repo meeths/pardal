@@ -18,6 +18,7 @@ public:
         const Vector<uint8>* m_shaderData;
         StringView m_entryPoint;
         IDescriptorSet* m_descriptorSet = nullptr;
+        ShaderObjectDescriptor* m_nextShaderObject = nullptr;
     };
     
     virtual ~IShaderObject() = default;

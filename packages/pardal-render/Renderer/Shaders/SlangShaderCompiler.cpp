@@ -98,7 +98,7 @@ namespace pdl
 			}
 		}
 
-		std::array<slang::IComponentType*, 2> componentTypes =
+		Array<slang::IComponentType*, 2> componentTypes =
 		{
 			slangModule,
 			entryPoint

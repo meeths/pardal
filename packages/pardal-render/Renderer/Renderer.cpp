@@ -155,6 +155,8 @@ namespace pdl
         fragShaderDesc.m_shaderData = &fragShaderResults.value();
         fragShaderDesc.m_descriptorSet = GetBindlessDescriptors();
     
+        vertexShaderDesc.m_nextShaderObject = &fragShaderDesc;
+        
         auto vertexShaderObj = GetRenderDevice()->CreateShaderObject(vertexShaderDesc);
         auto fragShaderObj = GetRenderDevice()->CreateShaderObject(fragShaderDesc);
 
