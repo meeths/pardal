@@ -17,7 +17,7 @@
 int main(int argc, char** argv)
 {
 #ifndef PDL_RELEASE
-    pdl::Log::Instance().RegisterLogger(MakeSharedPointer<pdl::LoggerStdout>());
+    pdl::Log::Instance().RegisterLogger(pdl::MakeSharedPointer<pdl::LoggerStdout>());
 #endif
 
     pdl::IApplicationWindow::InitInfoBase windowInitInfo;
