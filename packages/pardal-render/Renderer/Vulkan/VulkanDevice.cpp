@@ -11,6 +11,7 @@
 #include "VulkanShader.h"
 #include "VulkanShaderObject.h"
 #include "backends/imgui_impl_vulkan.h"
+#include "Containers/VectorUtils.h"
 
 
 #ifdef PDL_PLATFORM_WINDOWS
@@ -690,7 +691,7 @@ namespace pdl
         if(initInfo.m_enableValidation)
             instanceLayerNames.push_back( "VK_LAYER_KHRONOS_validation" );
         
-        if ( !Details::CheckLayers( instanceLayerNames, instanceLayerProperties.value ) )
+        if ( !Details::CheckLayers( instanceLayerNames, VectorUtils::FromStd(instanceLayerProperties.value) ) )
         {
             pdlLogError("Layer check failed. Tip: Set the environment variable VK_LAYER_PATH to point to the location of your layers");
             return false;
@@ -740,7 +741,8 @@ namespace pdl
         // Device creation
         auto enumeratedDevices = m_vkInstance.enumeratePhysicalDevices();
         CHECK_VK_RESULTVALUE(enumeratedDevices);
-        m_vkPhysicalDevice = Details::PickBestDevice(enumeratedDevices.value);
+        auto enumeratedDevicesVector = VectorUtils::FromStd(enumeratedDevices.value);
+        m_vkPhysicalDevice = Details::PickBestDevice(enumeratedDevicesVector);
 
         m_deviceInfo.adapterName = m_vkPhysicalDevice.getProperties().deviceName.data();
 
@@ -779,7 +781,8 @@ namespace pdl
         Vector<const char*> deviceExtensionNames;
         Vector<const char*> deviceFeatures;
         auto extensionProperties = m_vkPhysicalDevice.enumerateDeviceExtensionProperties();
-        Details::EnumerateAllExtensionsAndFeatures( m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionProperties.value );
+        auto extensionPropertiesVector = VectorUtils::FromStd(extensionProperties.value);
+        Details::EnumerateAllExtensionsAndFeatures( m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector);
 
         // Queues
         int queueFamilyIndex = Details::FindQueue( m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute);

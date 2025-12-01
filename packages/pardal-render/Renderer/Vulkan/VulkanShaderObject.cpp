@@ -24,6 +24,7 @@ namespace pdl
         shaderCreateInfo.pSetLayouts = &descLayout;
         shaderCreateInfo.pName = desc.m_entryPoint.data();
         shaderCreateInfo.stage = VulkanUtils::GetShaderStageBits(m_shaderType);
+        shaderCreateInfo.nextStage = desc.m_nextShaderObject != nullptr ? VulkanUtils::GetShaderStageBits(desc.m_nextShaderObject->m_shaderType) : vk::ShaderStageFlagBits{};
         shaderCreateInfo.pNext = nullptr;
         shaderCreateInfo.flags = {};//vk::ShaderCreateFlagBitsEXT::eLinkStage;
 
