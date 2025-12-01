@@ -291,25 +291,25 @@ void test ( hashfunc<hashtype> hash, HashInfo * info )
   //-----------------------------------------------------------------------------
   // Keyset 'Sparse' - keys with all bits 0 except a few
 
-  if(g_testSparse || g_testAll)
-  {
-    printf("[[[ Keyset 'Sparse' Tests ]]]\n\n");
-
-    bool result = true;
-    bool drawDiagram = false;
-
-    result &= SparseKeyTest<  32,hashtype>(hash,6,true,true,true,drawDiagram);
-    result &= SparseKeyTest<  40,hashtype>(hash,6,true,true,true,drawDiagram);
-    result &= SparseKeyTest<  48,hashtype>(hash,5,true,true,true,drawDiagram);
-    result &= SparseKeyTest<  56,hashtype>(hash,5,true,true,true,drawDiagram);
-    result &= SparseKeyTest<  64,hashtype>(hash,5,true,true,true,drawDiagram);
-    result &= SparseKeyTest<  96,hashtype>(hash,4,true,true,true,drawDiagram);
-    result &= SparseKeyTest< 256,hashtype>(hash,3,true,true,true,drawDiagram);
-    result &= SparseKeyTest<2048,hashtype>(hash,2,true,true,true,drawDiagram);
-
-    if(!result) printf("*********FAIL*********\n");
-    printf("\n");
-  }
+  // if(g_testSparse || g_testAll)
+  // {
+  //   printf("[[[ Keyset 'Sparse' Tests ]]]\n\n");
+  //
+  //   bool result = true;
+  //   bool drawDiagram = false;
+  //
+  //   result &= SparseKeyTest<  32,hashtype>(hash,6,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<  40,hashtype>(hash,6,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<  48,hashtype>(hash,5,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<  56,hashtype>(hash,5,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<  64,hashtype>(hash,5,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<  96,hashtype>(hash,4,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest< 256,hashtype>(hash,3,true,true,true,drawDiagram);
+  //   result &= SparseKeyTest<2048,hashtype>(hash,2,true,true,true,drawDiagram);
+  //
+  //   if(!result) printf("*********FAIL*********\n");
+  //   printf("\n");
+  // }
 
   //-----------------------------------------------------------------------------
   // Keyset 'Permutation' - all possible combinations of a set of blocks

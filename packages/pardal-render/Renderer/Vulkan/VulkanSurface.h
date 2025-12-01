@@ -48,7 +48,7 @@ private:
     vk::SurfaceKHR m_vkSurface;
     vk::Semaphore m_vkNextImageAcquireSemaphore;
     vk::Semaphore m_vkEndFrameSemaphore;
-    vk::Format m_vkFormat = {};
+    [[maybe_unused]] vk::Format m_vkFormat = {};
     vk::Queue m_vkPresentQueue;
     Vector<UniquePointer<VulkanTexture>> m_images;
     Vector<UniquePointer<VulkanTextureView>> m_imageViews;

@@ -55,7 +55,7 @@ private:
     SharedPointer<VulkanTextureView> m_depthTextureView;
     RenderPass m_mainRenderPass;
 
-    bool m_pipelineStateInitialized = false;
+    [[maybe_unused]] bool m_pipelineStateInitialized = false;
     PipelineState m_currentPipelineState {};
 };
 

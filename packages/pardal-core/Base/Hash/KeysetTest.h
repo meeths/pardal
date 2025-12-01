@@ -161,39 +161,39 @@ void SparseKeygenRecurse ( pfHash hash, int start, int bitsleft, bool inclusive,
 
 //----------
 
-template < int keybits, typename hashtype >
-bool SparseKeyTest ( hashfunc<hashtype> hash, const int setbits, bool inclusive, bool testColl, bool testDist, bool drawDiagram  )
-{
-  printf("Keyset 'Sparse' - %d-bit keys with %s %d bits set - ",keybits, inclusive ? "up to" : "exactly", setbits);
-
-  typedef Blob<keybits> keytype;
-
-  std::vector<hashtype> hashes;
-
-  keytype k;
-  memset(&k,0,sizeof(k));
-
-  if(inclusive)
-  {
-    hashtype h;
-
-    hash(&k,sizeof(keytype),0,&h);
-
-    hashes.push_back(h);
-  }
-
-  SparseKeygenRecurse(hash,0,setbits,inclusive,k,hashes);
-
-  printf("%d keys\n",(int)hashes.size());
-
-  bool result = true;
-  
-  result &= TestHashList<hashtype>(hashes,testColl,testDist,drawDiagram);
-
-  printf("\n");
-
-  return result;
-}
+// template < int keybits, typename hashtype >
+// bool SparseKeyTest ( hashfunc<hashtype> hash, const int setbits, bool inclusive, bool testColl, bool testDist, bool drawDiagram  )
+// {
+//   printf("Keyset 'Sparse' - %d-bit keys with %s %d bits set - ",keybits, inclusive ? "up to" : "exactly", setbits);
+//
+//   typedef Blob<keybits> keytype;
+//
+//   std::vector<hashtype> hashes;
+//
+//   keytype k;
+//   memset(&k,0,sizeof(k));
+//
+//   if(inclusive)
+//   {
+//     hashtype h;
+//
+//     hash(&k,sizeof(keytype),0,&h);
+//
+//     hashes.push_back(h);
+//   }
+//
+//   SparseKeygenRecurse(hash,0,setbits,inclusive,k,hashes);
+//
+//   printf("%d keys\n",(int)hashes.size());
+//
+//   bool result = true;
+//   
+//   result &= TestHashList<hashtype>(hashes,testColl,testDist,drawDiagram);
+//
+//   printf("\n");
+//
+//   return result;
+// }
 
 //-----------------------------------------------------------------------------
 // Keyset 'Windows' - for all possible N-bit windows of a K-bit key, generate

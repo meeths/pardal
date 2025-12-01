@@ -17,10 +17,10 @@ public:
 	void Unmap() override;
 
 private:
-	vk::Buffer m_vkBuffer;
-	vk::DeviceMemory m_vkMemory;
-	vk::Device m_vkDevice;
-	BufferDescriptor m_bufferDescriptor;
+    vk::Buffer m_vkBuffer;
+    vk::DeviceMemory m_vkMemory;
+    vk::Device m_vkDevice;
+    [[maybe_unused]] BufferDescriptor m_bufferDescriptor;
 };
 
 }
