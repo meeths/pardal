@@ -652,9 +652,9 @@ namespace pdl
         initInfo.DescriptorPoolSize = 8;
         initInfo.MinImageCount = 2;              // >= 2
         initInfo.ImageCount = 8;                 // >= MinImageCount
-        initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;                // 0 defaults to VK_SAMPLE_COUNT_1_BIT
+        initInfo.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;                // 0 defaults to VK_SAMPLE_COUNT_1_BIT
         initInfo.UseDynamicRendering = true;
-        initInfo.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     }
 
     bool VulkanDevice::Initialize(const InitInfoBase& initInfo)

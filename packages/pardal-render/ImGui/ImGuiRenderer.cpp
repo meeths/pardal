@@ -30,7 +30,7 @@ namespace pdl
 
         io.DisplaySize.x = static_cast<float>(initInfo.m_window.GetWindowSize().x);
         io.DisplaySize.y = static_cast<float>(initInfo.m_window.GetWindowSize().y);
-        io.Fonts->Build();
+        // io.Fonts->Build();
         // Setup Platform/Renderer backends
 #ifdef PDL_PLATFORM_WINDOWS
         ImGui_ImplWin32_Init(initInfo.m_window.GetNativeWindow());
@@ -38,12 +38,12 @@ namespace pdl
 #ifdef PDL_VULKAN
         ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo = {};
         static_cast<VulkanDevice*>(initInfo.m_device)->FillImGuiInitInfo(imguiVulkanInitInfo);
-        imguiVulkanInitInfo.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
         VkFormat colorAttachmentFormats[] = {
             initInfo.m_useHDR ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R8G8B8A8_UNORM
         };
-        imguiVulkanInitInfo.PipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentFormats;
-        imguiVulkanInitInfo.PipelineRenderingCreateInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
+        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentFormats;
+        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
         ImGui_ImplVulkan_Init(&imguiVulkanInitInfo);
 #endif
         initInfo.m_window.AddMouseMoveCallback([this](Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods) {
