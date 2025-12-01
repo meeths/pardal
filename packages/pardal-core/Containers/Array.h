@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <utility>
 #include <algorithm>
-#include <iterator>
 
 namespace pdl
 {

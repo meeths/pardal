@@ -1,8 +1,6 @@
 
 #pragma once
 #include <cstdint>
-#include <cstddef>
-#include <cstring>
 #include <utility>
 #include <type_traits>
 #include <memory>
@@ -15,10 +13,6 @@
 
 namespace pdl
 {
-    // A compact, fast open-addressing hash map with linear probing.
-    // Optimized for speed and minimal dependencies; header-only.
-    // API surface tailored to current project usage (insert/emplace, [], at, find, erase(key),
-    // reserve/rehash, iteration, size/empty, swap). No exceptions are thrown.
     template <class Key, class T,
               class Hash = std::hash<Key>,
               class KeyEqual = std::equal_to<Key>,

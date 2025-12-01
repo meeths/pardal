@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <new>
-#include <utility>
 #include <type_traits>
 #include <iterator>
 #include <initializer_list>

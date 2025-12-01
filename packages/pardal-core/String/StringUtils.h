@@ -3,11 +3,13 @@
 
 // Created on 2019-03-18 by sisco
 #include <Base/DebugHelpers.h>
+#include <Containers/Array.h>
 #include <Containers/Vector.h>
 #include <String/String.h>
 
 #include <cstdarg>
 #include <locale>
+
 
 
 namespace pdl
@@ -68,10 +70,10 @@ namespace StringUtils
     }
     
     template<std::size_t SIZE>
-    std::array<char, SIZE> ToArray(const String& _src)
+    Array<char, SIZE> ToArray(const String& _src)
     {
         pdlAssert(_src.size() + 1 <= SIZE);
-        std::array<char, SIZE> dst;
+        pdl::Array<char, SIZE> dst;
         std::copy(_src.begin(), _src.end(), dst.data());
         dst[_src.size()] = 0; // null terminator
         return dst;
