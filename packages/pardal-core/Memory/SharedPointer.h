@@ -11,22 +11,25 @@
 
 namespace pdl
 {
-    #ifdef MakeSharedPointer
-    #undef MakeSharedPointer
-    #endif
     struct SharedControl
     {
-        std::atomic<std::size_t> ref{1};
+        // number of owning SharedPointer instances
+        std::atomic<std::size_t> strong{1};
+        // number of WeakPointer instances plus one while strong > 0
+        std::atomic<std::size_t> weak{1};
+        // returns the managed object pointer (base address)
+        void* (*get)(SharedControl*) = nullptr;
+        // destroys the managed object only
+        void (*dispose)(SharedControl*) = nullptr;
+        // frees the control block memory
         void (*destroy)(SharedControl*) = nullptr;
     };
-    // Lightweight, fast shared pointer without using std::shared_ptr.
-    // - No exceptions are thrown.
-    // - Thread-safe reference counting via atomics.
-    // - Optimized MakeSharedPointer performs a single allocation for control + object.
+
     template <class T>
     class SharedPointer
     {
         template<class> friend class SharedPointer;
+        template<class> friend class WeakPointer;
 
         template <class U>
         struct RawControl : SharedControl
@@ -62,13 +65,22 @@ namespace pdl
                 // Leave this as empty pointer to avoid UB.
                 return;
             }
-            rc->ref.store(1, std::memory_order_relaxed);
+            rc->strong.store(1, std::memory_order_relaxed);
+            rc->weak.store(1, std::memory_order_relaxed);
             rc->p = p;
-            rc->destroy = [](SharedControl* base)
+            rc->get = [](SharedControl* base) -> void*
+            {
+                RC* self = static_cast<RC*>(base);
+                return static_cast<void*>(self->p);
+            };
+            rc->dispose = [](SharedControl* base)
             {
                 RC* self = static_cast<RC*>(base);
                 delete self->p;
-                ::operator delete(self);
+            };
+            rc->destroy = [](SharedControl* base)
+            {
+                ::operator delete(base);
             };
             m_ptr = p;
             m_ctrl = rc;
@@ -128,7 +140,7 @@ namespace pdl
         T& operator*() const noexcept { return *m_ptr; }
         T* operator->() const noexcept { return m_ptr; }
         explicit operator bool() const noexcept { return m_ptr != nullptr; }
-        std::size_t use_count() const noexcept { return m_ctrl ? m_ctrl->ref.load(std::memory_order_acquire) : 0; }
+        std::size_t use_count() const noexcept { return m_ctrl ? m_ctrl->strong.load(std::memory_order_acquire) : 0; }
 
         // (No member casting helpers; see std::static_pointer_cast adapters below)
 
@@ -145,13 +157,22 @@ namespace pdl
                 {
                     return;
                 }
-                rc->ref.store(1, std::memory_order_relaxed);
+                rc->strong.store(1, std::memory_order_relaxed);
+                rc->weak.store(1, std::memory_order_relaxed);
                 rc->p = p;
-                rc->destroy = [](SharedControl* base)
+                rc->get = [](SharedControl* base) -> void*
+                {
+                    RC* self = static_cast<RC*>(base);
+                    return static_cast<void*>(self->p);
+                };
+                rc->dispose = [](SharedControl* base)
                 {
                     RC* self = static_cast<RC*>(base);
                     delete self->p;
-                    ::operator delete(self);
+                };
+                rc->destroy = [](SharedControl* base)
+                {
+                    ::operator delete(base);
                 };
                 m_ptr = p;
                 m_ctrl = rc;
@@ -172,7 +193,7 @@ namespace pdl
             {
                 out.m_ctrl = m_ctrl;
                 out.m_ptr = p;
-                out.m_ctrl->ref.fetch_add(1, std::memory_order_acq_rel);
+                out.m_ctrl->strong.fetch_add(1, std::memory_order_acq_rel);
             }
             return out;
         }
@@ -188,7 +209,7 @@ namespace pdl
             m_ctrl = other.m_ctrl;
             if (m_ctrl)
             {
-                m_ctrl->ref.fetch_add(1, std::memory_order_acq_rel);
+                m_ctrl->strong.fetch_add(1, std::memory_order_acq_rel);
             }
         }
 
@@ -198,7 +219,7 @@ namespace pdl
             m_ctrl = ctrl;
             if (m_ctrl)
             {
-                m_ctrl->ref.fetch_add(1, std::memory_order_acq_rel);
+                m_ctrl->strong.fetch_add(1, std::memory_order_acq_rel);
             }
         }
 
@@ -213,11 +234,16 @@ namespace pdl
         void release() noexcept
         {
             if (!m_ctrl) return;
-            if (m_ctrl->ref.fetch_sub(1, std::memory_order_acq_rel) == 1)
+            if (m_ctrl->strong.fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
-                // Last owner
+                // Last owner: dispose object then drop implicit weak hold
                 std::atomic_thread_fence(std::memory_order_acquire);
-                m_ctrl->destroy(m_ctrl);
+                m_ctrl->dispose(m_ctrl);
+                if (m_ctrl->weak.fetch_sub(1, std::memory_order_acq_rel) == 1)
+                {
+                    std::atomic_thread_fence(std::memory_order_acquire);
+                    m_ctrl->destroy(m_ctrl);
+                }
             }
             m_ptr = nullptr;
             m_ctrl = nullptr;
@@ -240,11 +266,21 @@ namespace pdl
             return SharedPointer<T>();
         }
         // Initialize control
-        blk->ctrl.ref.store(1, std::memory_order_relaxed);
-        blk->ctrl.destroy = [](SharedControl* base)
+        blk->ctrl.strong.store(1, std::memory_order_relaxed);
+        blk->ctrl.weak.store(1, std::memory_order_relaxed);
+        blk->ctrl.get = [](SharedControl* base) -> void*
+        {
+            Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
+            return static_cast<void*>(self->obj_ptr());
+        };
+        blk->ctrl.dispose = [](SharedControl* base)
         {
             Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
             self->obj_ptr()->~T();
+        };
+        blk->ctrl.destroy = [](SharedControl* base)
+        {
+            Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
             ::operator delete(self);
         };
         // Construct object in-place
