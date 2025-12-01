@@ -1,6 +1,7 @@
 
 #include <String/StringCast.h>
 #include <String/StringUtils.h>
+#include <string>
 
 // Created on 2019-03-15 by fmacias
 
