@@ -29,15 +29,15 @@ namespace pdl
         }
 
         // copy
-        WeakPointer(const WeakPointer& other) noexcept { acquire(other); }
+        WeakPointer(const WeakPointer& other) noexcept { Acquire(other); }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
         WeakPointer(const WeakPointer<U>& other) noexcept { m_ctrl = other.m_ctrl; if (m_ctrl) m_ctrl->weak.fetch_add(1, std::memory_order_acq_rel); }
         WeakPointer& operator=(const WeakPointer& other) noexcept
         {
             if (this != &other)
             {
-                release();
-                acquire(other);
+                Release();
+                Acquire(other);
             }
             return *this;
         }
@@ -46,7 +46,7 @@ namespace pdl
         {
             if (reinterpret_cast<const void*>(this) != reinterpret_cast<const void*>(&other))
             {
-                release();
+                Release();
                 m_ctrl = other.m_ctrl;
                 if (m_ctrl) m_ctrl->weak.fetch_add(1, std::memory_order_acq_rel);
             }
@@ -54,41 +54,41 @@ namespace pdl
         }
 
         // move
-        WeakPointer(WeakPointer&& other) noexcept { move_from(std::move(other)); }
+        WeakPointer(WeakPointer&& other) noexcept { MoveFrom(std::move(other)); }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
         WeakPointer(WeakPointer<U>&& other) noexcept { m_ctrl = other.m_ctrl; other.m_ctrl = nullptr; }
         WeakPointer& operator=(WeakPointer&& other) noexcept
         {
             if (this != &other)
             {
-                release();
-                move_from(std::move(other));
+                Release();
+                MoveFrom(std::move(other));
             }
             return *this;
         }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
         WeakPointer& operator=(WeakPointer<U>&& other) noexcept
         {
-            release();
+            Release();
             m_ctrl = other.m_ctrl;
             other.m_ctrl = nullptr;
             return *this;
         }
 
-        ~WeakPointer() { release(); }
+        ~WeakPointer() { Release(); }
 
-        void reset() noexcept { release(); }
+        void Reset() noexcept { Release(); }
 
-        void swap(WeakPointer& other) noexcept
+        void Swap(WeakPointer& other) noexcept
         {
             auto* c = m_ctrl; m_ctrl = other.m_ctrl; other.m_ctrl = c;
         }
 
-        bool expired() const noexcept { return !m_ctrl || m_ctrl->strong.load(std::memory_order_acquire) == 0; }
+        bool IsExpired() const noexcept { return !m_ctrl || m_ctrl->strong.load(std::memory_order_acquire) == 0; }
 
-        std::size_t use_count() const noexcept { return m_ctrl ? m_ctrl->strong.load(std::memory_order_acquire) : 0; }
+        std::size_t UseCount() const noexcept { return m_ctrl ? m_ctrl->strong.load(std::memory_order_acquire) : 0; }
 
-        SharedPointer<T> lock() const noexcept
+        SharedPointer<T> Lock() const noexcept
         {
             SharedPointer<T> out;
             SharedControl* ctrl = m_ctrl;
@@ -101,7 +101,7 @@ namespace pdl
                 if (ctrl->strong.compare_exchange_weak(s, s + 1, std::memory_order_acq_rel, std::memory_order_acquire))
                 {
                     out.m_ctrl = ctrl;
-                    out.m_ptr = static_cast<T*>(ctrl->get(ctrl));
+                    out.m_ptr = static_cast<T*>(ctrl->Get(ctrl));
                     return out;
                 }
                 // s was updated with current value by failed CAS; loop
@@ -110,7 +110,7 @@ namespace pdl
         }
 
     private:
-        void acquire(const WeakPointer& other) noexcept
+        void Acquire(const WeakPointer& other) noexcept
         {
             m_ctrl = other.m_ctrl;
             if (m_ctrl)
@@ -118,12 +118,12 @@ namespace pdl
                 m_ctrl->weak.fetch_add(1, std::memory_order_acq_rel);
             }
         }
-        void move_from(WeakPointer&& other) noexcept
+        void MoveFrom(WeakPointer&& other) noexcept
         {
             m_ctrl = other.m_ctrl;
             other.m_ctrl = nullptr;
         }
-        void release() noexcept
+        void Release() noexcept
         {
             if (!m_ctrl) return;
             if (m_ctrl->weak.fetch_sub(1, std::memory_order_acq_rel) == 1)
@@ -132,13 +132,12 @@ namespace pdl
                 if (m_ctrl->strong.load(std::memory_order_acquire) == 0)
                 {
                     std::atomic_thread_fence(std::memory_order_acquire);
-                    m_ctrl->destroy(m_ctrl);
+                    m_ctrl->Destroy(m_ctrl);
                 }
             }
             m_ctrl = nullptr;
         }
 
-    private:
         SharedControl* m_ctrl = nullptr;
     };
 }

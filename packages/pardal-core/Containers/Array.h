@@ -108,9 +108,9 @@ namespace pdl
 namespace std
 {
     template <class T, std::size_t N>
-    inline constexpr void swap(::pdl::Array<T, N>& a, ::pdl::Array<T, N>& b) noexcept(noexcept(a.swap(b)))
+    inline constexpr void swap(::pdl::Array<T, N>& a, ::pdl::Array<T, N>& b) noexcept(noexcept(a.Swap(b)))
     {
-        a.swap(b);
+        a.Swap(b);
     }
 
     // tuple-like interface for structured bindings and std::get

@@ -72,7 +72,7 @@ namespace pdl
         Vector<Math::Vector4> clearColors;
         currentFrameSwapchainImageViews.push_back(m_surface->GetCurrentTextureView());
         clearColors.emplace_back(0, 0, 0, 0);
-        m_mainRenderPass = RenderPass(currentFrameSwapchainImageViews, m_depthTextureView.get(), Math::Rectanglei({0,0}, m_surface->GetSurfaceConfig().m_size), clearColors);
+        m_mainRenderPass = RenderPass(currentFrameSwapchainImageViews, m_depthTextureView.Get(), Math::Rectanglei({0,0}, m_surface->GetSurfaceConfig().m_size), clearColors);
 
         
         return true;
@@ -291,7 +291,7 @@ namespace pdl
         m_depthTexture = std::static_pointer_cast<VulkanTexture>(depthBufferResult.value());
     
         ITextureView::TextureViewDescriptor depthStencilViewDesc;
-        depthStencilViewDesc.m_texture = m_depthTexture.get();
+        depthStencilViewDesc.m_texture = m_depthTexture.Get();
         auto depthStencilViewResults = m_device.CreateTextureView(depthStencilViewDesc);
         pdlAssert(depthStencilViewResults.has_value());
         m_depthTextureView = std::static_pointer_cast<VulkanTextureView>(depthStencilViewResults.value());

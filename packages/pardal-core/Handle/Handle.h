@@ -11,15 +11,13 @@ namespace pdl
     template<class T>
     class WeakHandle;
 
-    // Handle is a small, thread-safe reference counted handle suitable for shared resources.
-    // It is a thin, intention-revealing wrapper around SharedPointer with lifecycle helpers.
     template<class T>
     class Handle
     {
         template<class> friend class Handle;
         template<class> friend class WeakHandle;
         template<class U, class... Args>
-        friend Handle<U> make_handle(Args&&...) noexcept;
+        friend Handle<U> MakeHandle(Args&&...) noexcept;
     public:
         using element_type = T;
 
@@ -44,22 +42,22 @@ namespace pdl
         Handle& operator=(Handle&&) noexcept = default;
 
         // modifiers
-        void reset() noexcept { m_ptr.reset(); }
-        void swap(Handle& other) noexcept { m_ptr.swap(other.m_ptr); }
+        void Reset() noexcept { m_ptr.Reset(); }
+        void Swap(Handle& other) noexcept { m_ptr.Swap(other.m_ptr); }
 
         // observers
-        T* get() const noexcept { return m_ptr.get(); }
+        T* Get() const noexcept { return m_ptr.Get(); }
         T& operator*() const noexcept { return *m_ptr; }
-        T* operator->() const noexcept { return m_ptr.get(); }
-        explicit operator bool() const noexcept { return m_ptr.get() != nullptr; }
+        T* operator->() const noexcept { return m_ptr.Get(); }
+        explicit operator bool() const noexcept { return m_ptr.Get() != nullptr; }
 
-        std::size_t use_count() const noexcept { return m_ptr.use_count(); }
-        bool unique() const noexcept { return use_count() == 1; }
+        std::size_t UseCount() const noexcept { return m_ptr.UseCount(); }
+        bool IsUnique() const noexcept { return UseCount() == 1; }
 
         // Lifecycle helpers
-        bool valid() const noexcept { return m_ptr.get() != nullptr; }
+        bool IsValid() const noexcept { return m_ptr.Get() != nullptr; }
 
-        WeakHandle<T> weak() const noexcept;
+        WeakHandle<T> Weak() const noexcept;
 
     private:
         SharedPointer<T> m_ptr{};
@@ -83,22 +81,22 @@ namespace pdl
         WeakHandle(WeakHandle&&) noexcept = default;
         WeakHandle& operator=(WeakHandle&&) noexcept = default;
 
-        void reset() noexcept { m_weak.reset(); }
-        bool expired() const noexcept { return m_weak.expired(); }
-        std::size_t use_count() const noexcept { return m_weak.use_count(); }
+        void Reset() noexcept { m_weak.Reset(); }
+        bool IsExpired() const noexcept { return m_weak.IsExpired(); }
+        std::size_t UseCount() const noexcept { return m_weak.UseCount(); }
 
-        Handle<T> lock() const noexcept { Handle<T> h; h.m_ptr = m_weak.lock(); return h; }
+        Handle<T> Lock() const noexcept { Handle<T> h; h.m_ptr = m_weak.Lock(); return h; }
 
     private:
         WeakPointer<T> m_weak{};
     };
 
     template<class T>
-    inline WeakHandle<T> Handle<T>::weak() const noexcept { return WeakHandle<T>(*this); }
+    inline WeakHandle<T> Handle<T>::Weak() const noexcept { return WeakHandle<T>(*this); }
 
     // Factory akin to std::make_shared — constructs T and returns Handle<T>
     template<class T, class... Args>
-    inline Handle<T> make_handle(Args&&... args) noexcept
+    inline Handle<T> MakeHandle(Args&&... args) noexcept
     {
         Handle<T> h;
         h.m_ptr = MakeSharedPointer<T>(std::forward<Args>(args)...);

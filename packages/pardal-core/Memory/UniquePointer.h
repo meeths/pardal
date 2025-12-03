@@ -41,12 +41,12 @@ namespace pdl
         explicit UniquePointer(T* p) noexcept : m_ptr(p) {}
 
         // move
-        UniquePointer(UniquePointer&& other) noexcept : m_ptr(other.release()), m_deleter(std::move(other.m_deleter)) {}
+        UniquePointer(UniquePointer&& other) noexcept : m_ptr(other.Release()), m_deleter(std::move(other.m_deleter)) {}
         UniquePointer& operator=(UniquePointer&& other) noexcept
         {
             if (this != &other)
             {
-                reset(other.release());
+                Reset(other.Release());
                 m_deleter = std::move(other.m_deleter);
             }
             return *this;
@@ -59,22 +59,22 @@ namespace pdl
         ~UniquePointer() { if (m_ptr) m_deleter(m_ptr); }
 
         // observers
-        T* get() const noexcept { return m_ptr; }
+        T* Get() const noexcept { return m_ptr; }
         T& operator*() const noexcept { return *m_ptr; }
         T* operator->() const noexcept { return m_ptr; }
         explicit operator bool() const noexcept { return m_ptr != nullptr; }
 
-        deleter_type& get_deleter() noexcept { return m_deleter; }
-        const deleter_type& get_deleter() const noexcept { return m_deleter; }
+        deleter_type& GetDeleter() noexcept { return m_deleter; }
+        const deleter_type& GetDeleter() const noexcept { return m_deleter; }
 
         // modifiers
-        T* release() noexcept { T* p = m_ptr; m_ptr = nullptr; return p; }
-        void reset(T* p = nullptr) noexcept
+        T* Release() noexcept { T* p = m_ptr; m_ptr = nullptr; return p; }
+        void Reset(T* p = nullptr) noexcept
         {
             T* old = m_ptr; m_ptr = p;
             if (old) m_deleter(old);
         }
-        void swap(UniquePointer& other) noexcept
+        void Swap(UniquePointer& other) noexcept
         {
             using std::swap;
             swap(m_ptr, other.m_ptr);
@@ -98,12 +98,12 @@ namespace pdl
         constexpr UniquePointer(std::nullptr_t) noexcept {}
         explicit UniquePointer(T* p) noexcept : m_ptr(p) {}
 
-        UniquePointer(UniquePointer&& other) noexcept : m_ptr(other.release()), m_deleter(std::move(other.m_deleter)) {}
+        UniquePointer(UniquePointer&& other) noexcept : m_ptr(other.Release()), m_deleter(std::move(other.m_deleter)) {}
         UniquePointer& operator=(UniquePointer&& other) noexcept
         {
             if (this != &other)
             {
-                reset(other.release());
+                Reset(other.Release());
                 m_deleter = std::move(other.m_deleter);
             }
             return *this;
@@ -115,21 +115,21 @@ namespace pdl
         ~UniquePointer() { if (m_ptr) m_deleter(m_ptr); }
 
         // observers
-        T* get() const noexcept { return m_ptr; }
+        T* Get() const noexcept { return m_ptr; }
         T& operator[](std::size_t i) const noexcept { return m_ptr[i]; }
         explicit operator bool() const noexcept { return m_ptr != nullptr; }
 
-        deleter_type& get_deleter() noexcept { return m_deleter; }
-        const deleter_type& get_deleter() const noexcept { return m_deleter; }
+        deleter_type& GetDeleter() noexcept { return m_deleter; }
+        const deleter_type& GetDeleter() const noexcept { return m_deleter; }
 
         // modifiers
-        T* release() noexcept { T* p = m_ptr; m_ptr = nullptr; return p; }
-        void reset(T* p = nullptr) noexcept
+        T* Release() noexcept { T* p = m_ptr; m_ptr = nullptr; return p; }
+        void Reset(T* p = nullptr) noexcept
         {
             T* old = m_ptr; m_ptr = p;
             if (old) m_deleter(old);
         }
-        void swap(UniquePointer& other) noexcept
+        void Swap(UniquePointer& other) noexcept
         {
             using std::swap;
             swap(m_ptr, other.m_ptr);

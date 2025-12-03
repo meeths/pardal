@@ -141,7 +141,7 @@ namespace pdl
             m_images.push_back(std::move(texturePtr));
 
             ITextureView::TextureViewDescriptor swapchainImageViewDesc;
-            swapchainImageViewDesc.m_texture = m_images.back().get();
+            swapchainImageViewDesc.m_texture = m_images.back().Get();
             auto textureViewPtr = MakeUniquePointer<VulkanTextureView>(swapchainImageViewDesc, m_vkDevice);
             m_imageViews.push_back(std::move(textureViewPtr));
         }
@@ -183,7 +183,7 @@ namespace pdl
             m_imageViews.size() > m_currentImageIndex &&
             "VulkanSurface::GetCurrentTextureView: Incorrect current imageView index");
 
-        return m_imageViews[m_currentImageIndex].get();
+        return m_imageViews[m_currentImageIndex].Get();
     }
 
     bool VulkanSurface::BeginFrame()

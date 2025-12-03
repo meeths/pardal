@@ -18,11 +18,11 @@ namespace pdl
         // number of WeakPointer instances plus one while strong > 0
         std::atomic<std::size_t> weak{1};
         // returns the managed object pointer (base address)
-        void* (*get)(SharedControl*) = nullptr;
+        void* (*Get)(SharedControl*) = nullptr;
         // destroys the managed object only
-        void (*dispose)(SharedControl*) = nullptr;
+        void (*Dispose)(SharedControl*) = nullptr;
         // frees the control block memory
-        void (*destroy)(SharedControl*) = nullptr;
+        void (*Destroy)(SharedControl*) = nullptr;
     };
 
     template <class T>
@@ -44,7 +44,7 @@ namespace pdl
             SharedControl ctrl{};
             alignas(U) unsigned char storage[sizeof(U)];
 
-            U* obj_ptr() noexcept { return reinterpret_cast<U*>(storage); }
+            U* ObjPtr() noexcept { return reinterpret_cast<U*>(storage); }
         };
 
     public:
@@ -68,17 +68,17 @@ namespace pdl
             rc->strong.store(1, std::memory_order_relaxed);
             rc->weak.store(1, std::memory_order_relaxed);
             rc->p = p;
-            rc->get = [](SharedControl* base) -> void*
+            rc->Get = [](SharedControl* base) -> void*
             {
                 RC* self = static_cast<RC*>(base);
                 return static_cast<void*>(self->p);
             };
-            rc->dispose = [](SharedControl* base)
+            rc->Dispose = [](SharedControl* base)
             {
                 RC* self = static_cast<RC*>(base);
                 delete self->p;
             };
-            rc->destroy = [](SharedControl* base)
+            rc->Destroy = [](SharedControl* base)
             {
                 ::operator delete(base);
             };
@@ -87,15 +87,15 @@ namespace pdl
         }
 
         // Copy
-        SharedPointer(const SharedPointer& other) noexcept { acquire(other); }
+        SharedPointer(const SharedPointer& other) noexcept { Acquire(other); }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
-        SharedPointer(const SharedPointer<U>& other) noexcept { acquire_alias(other.m_ctrl, static_cast<T*>(other.get())); }
+        SharedPointer(const SharedPointer<U>& other) noexcept { AcquireAlias(other.m_ctrl, static_cast<T*>(other.Get())); }
         SharedPointer& operator=(const SharedPointer& other) noexcept
         {
             if (this != &other)
             {
-                release();
-                acquire(other);
+                Release();
+                Acquire(other);
             }
             return *this;
         }
@@ -104,51 +104,51 @@ namespace pdl
         {
             if (reinterpret_cast<const void*>(this) != reinterpret_cast<const void*>(&other))
             {
-                release();
-                acquire_alias(other.m_ctrl, static_cast<T*>(other.get()));
+                Release();
+                AcquireAlias(other.m_ctrl, static_cast<T*>(other.Get()));
             }
             return *this;
         }
 
         // Move
-        SharedPointer(SharedPointer&& other) noexcept { move_from(std::move(other)); }
+        SharedPointer(SharedPointer&& other) noexcept { MoveFrom(std::move(other)); }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
-        SharedPointer(SharedPointer<U>&& other) noexcept { m_ptr = static_cast<T*>(other.get()); m_ctrl = other.m_ctrl; other.m_ptr = nullptr; other.m_ctrl = nullptr; }
+        SharedPointer(SharedPointer<U>&& other) noexcept { m_ptr = static_cast<T*>(other.Get()); m_ctrl = other.m_ctrl; other.m_ptr = nullptr; other.m_ctrl = nullptr; }
         SharedPointer& operator=(SharedPointer&& other) noexcept
         {
             if (this != &other)
             {
-                release();
-                move_from(std::move(other));
+                Release();
+                MoveFrom(std::move(other));
             }
             return *this;
         }
         template<class U, class = std::enable_if_t<std::is_convertible<U*, T*>::value>>
         SharedPointer& operator=(SharedPointer<U>&& other) noexcept
         {
-            release();
-            m_ptr = static_cast<T*>(other.get());
+            Release();
+            m_ptr = static_cast<T*>(other.Get());
             m_ctrl = other.m_ctrl;
             other.m_ptr = nullptr; other.m_ctrl = nullptr;
             return *this;
         }
 
-        ~SharedPointer() { release(); }
+        ~SharedPointer() { Release(); }
 
         // Observers
-        T* get() const noexcept { return m_ptr; }
+        T* Get() const noexcept { return m_ptr; }
         T& operator*() const noexcept { return *m_ptr; }
         T* operator->() const noexcept { return m_ptr; }
         explicit operator bool() const noexcept { return m_ptr != nullptr; }
-        std::size_t use_count() const noexcept { return m_ctrl ? m_ctrl->strong.load(std::memory_order_acquire) : 0; }
+        std::size_t UseCount() const noexcept { return m_ctrl ? m_ctrl->strong.load(std::memory_order_acquire) : 0; }
 
         // (No member casting helpers; see std::static_pointer_cast adapters below)
 
         // Modifiers
-        void reset() noexcept { release(); }
-        void reset(T* p) noexcept
+        void Reset() noexcept { Release(); }
+        void Reset(T* p) noexcept
         {
-            release();
+            Release();
             if (p)
             {
                 using RC = RawControl<T>;
@@ -160,7 +160,7 @@ namespace pdl
                 rc->strong.store(1, std::memory_order_relaxed);
                 rc->weak.store(1, std::memory_order_relaxed);
                 rc->p = p;
-                rc->get = [](SharedControl* base) -> void*
+                rc->Get = [](SharedControl* base) -> void*
                 {
                     RC* self = static_cast<RC*>(base);
                     return static_cast<void*>(self->p);
@@ -178,7 +178,7 @@ namespace pdl
                 m_ctrl = rc;
             }
         }
-        void swap(SharedPointer& other) noexcept
+        void Swap(SharedPointer& other) noexcept
         {
             auto* p = m_ptr; m_ptr = other.m_ptr; other.m_ptr = p;
             auto* c = m_ctrl; m_ctrl = other.m_ctrl; other.m_ctrl = c;
@@ -186,7 +186,7 @@ namespace pdl
 
         // Create an aliasing SharedPointer<U> that shares ownership but points to p
         template<class U>
-        SharedPointer<U> alias_cast(U* p) const noexcept
+        SharedPointer<U> AliasCast(U* p) const noexcept
         {
             SharedPointer<U> out;
             if (m_ctrl)
@@ -203,7 +203,7 @@ namespace pdl
         friend SharedPointer<U> MakeSharedPointer(Args&&... args) noexcept;
 
     private:
-        void acquire(const SharedPointer& other) noexcept
+        void Acquire(const SharedPointer& other) noexcept
         {
             m_ptr = other.m_ptr;
             m_ctrl = other.m_ctrl;
@@ -213,7 +213,7 @@ namespace pdl
             }
         }
 
-        void acquire_alias(SharedControl* ctrl, T* ptr) noexcept
+        void AcquireAlias(SharedControl* ctrl, T* ptr) noexcept
         {
             m_ptr = ptr;
             m_ctrl = ctrl;
@@ -223,7 +223,7 @@ namespace pdl
             }
         }
 
-        void move_from(SharedPointer&& other) noexcept
+        void MoveFrom(SharedPointer&& other) noexcept
         {
             m_ptr = other.m_ptr;
             m_ctrl = other.m_ctrl;
@@ -231,18 +231,18 @@ namespace pdl
             other.m_ctrl = nullptr;
         }
 
-        void release() noexcept
+        void Release() noexcept
         {
             if (!m_ctrl) return;
             if (m_ctrl->strong.fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
                 // Last owner: dispose object then drop implicit weak hold
                 std::atomic_thread_fence(std::memory_order_acquire);
-                m_ctrl->dispose(m_ctrl);
+                m_ctrl->Dispose(m_ctrl);
                 if (m_ctrl->weak.fetch_sub(1, std::memory_order_acq_rel) == 1)
                 {
                     std::atomic_thread_fence(std::memory_order_acquire);
-                    m_ctrl->destroy(m_ctrl);
+                    m_ctrl->Destroy(m_ctrl);
                 }
             }
             m_ptr = nullptr;
@@ -268,17 +268,17 @@ namespace pdl
         // Initialize control
         blk->ctrl.strong.store(1, std::memory_order_relaxed);
         blk->ctrl.weak.store(1, std::memory_order_relaxed);
-        blk->ctrl.get = [](SharedControl* base) -> void*
+        blk->ctrl.Get = [](SharedControl* base) -> void*
         {
             Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
-            return static_cast<void*>(self->obj_ptr());
+            return static_cast<void*>(self->ObjPtr());
         };
-        blk->ctrl.dispose = [](SharedControl* base)
+        blk->ctrl.Dispose = [](SharedControl* base)
         {
             Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
-            self->obj_ptr()->~T();
+            self->ObjPtr()->~T();
         };
-        blk->ctrl.destroy = [](SharedControl* base)
+        blk->ctrl.Destroy = [](SharedControl* base)
         {
             Block* self = reinterpret_cast<Block*>(reinterpret_cast<char*>(base) - offsetof(Block, ctrl));
             ::operator delete(self);
@@ -300,18 +300,18 @@ namespace pdl
     template<class To, class From>
     inline SharedPointer<To> StaticPointerCast(const SharedPointer<From>& sp) noexcept
     {
-        return sp.template alias_cast<To>(static_cast<To*>(sp.get()));
+        return sp.template AliasCast<To>(static_cast<To*>(sp.Get()));
     }
     template<class To, class From>
     inline SharedPointer<To> StaticPointerCast(SharedPointer<From>& sp) noexcept
     {
-        return sp.template alias_cast<To>(static_cast<To*>(sp.get()));
+        return sp.template AliasCast<To>(static_cast<To*>(sp.Get()));
     }
     template<class To, class From>
     inline SharedPointer<To> StaticPointerCast(SharedPointer<From>&& sp) noexcept
     {
         // alias and let the temporary decrement at end of function
-        return sp.template alias_cast<To>(static_cast<To*>(sp.get()));
+        return sp.template AliasCast<To>(static_cast<To*>(sp.Get()));
     }
 }
 

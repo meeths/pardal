@@ -64,7 +64,7 @@ namespace pdl
         case RenderDeviceType::Vulkan:
             {
                 auto vulkanDevice = MakeSharedPointer<VulkanDevice>(); 
-                m_internalRenderer = MakeSharedPointer<VulkanInternalRenderer>(*vulkanDevice.get());
+                m_internalRenderer = MakeSharedPointer<VulkanInternalRenderer>(*vulkanDevice.Get());
                 m_device = vulkanDevice;
             }
             break;
@@ -89,7 +89,7 @@ namespace pdl
             .m_createDepthBuffer = true,
         };
         m_internalRenderer->Initialize(internalRendererInitInfo);
-        initInfo.m_applicationWindow.AddResizeCallback([internalRenderer = m_internalRenderer.get()](Math::Vector2i newSize)
+        initInfo.m_applicationWindow.AddResizeCallback([internalRenderer = m_internalRenderer.Get()](Math::Vector2i newSize)
         {
             internalRenderer->OnResize(newSize);
         });
@@ -98,7 +98,7 @@ namespace pdl
         switch (initInfo.m_deviceType)
         {
         case RenderDeviceType::Vulkan:
-            m_bindlessDescriptors = MakeSharedPointer<VulkanBindlessDescriptors>(*static_cast<VulkanDevice*>(m_device.get()));
+            m_bindlessDescriptors = MakeSharedPointer<VulkanBindlessDescriptors>(*static_cast<VulkanDevice*>(m_device.Get()));
             break;
         default:
             pdlNotImplemented();
@@ -110,7 +110,7 @@ namespace pdl
         ImGuiRenderer::InitInfo imguiInitInfo
         {
             .m_window = initInfo.m_applicationWindow,
-            .m_device = m_device.get(),
+            .m_device = m_device.Get(),
             .m_useHDR = initInfo.m_useHDR
         };
         
@@ -160,7 +160,7 @@ namespace pdl
         auto vertexShaderObj = GetRenderDevice()->CreateShaderObject(vertexShaderDesc);
         auto fragShaderObj = GetRenderDevice()->CreateShaderObject(fragShaderDesc);
 
-        m_testShader = GetRenderDevice()->CreateShader({{vertexShaderObj.value().get(), fragShaderObj.value().get()}}).value();
+        m_testShader = GetRenderDevice()->CreateShader({{vertexShaderObj.value().Get(), fragShaderObj.value().Get()}}).value();
         
         return true;
     }
