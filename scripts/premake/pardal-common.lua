@@ -4,17 +4,33 @@ include "premake-pardal-tests.lua"
 
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
 
-function downloadAndExtract(name, url, dstpath)
+function downloadAndExtractZIP(name, url, dstpath)
     if not os.isdir(dstpath) then
         TEMP_ZIP_PATH = BASE_DIR .. "temp/" ..name..".zip"
-        io.write("Downloading " .. name .. " ...")
+        io.write("Downloading " .. name .. " (" .. url ..")...")
         os.mkdir(BASE_DIR .. "temp")
         local result_str, response_code = http.download(url, TEMP_ZIP_PATH)
-        print("done")
-        io.write("Extracting ".. name .. "...")    
+        print("done ("..result_str ..", "  ..response_code..")")
+        io.write("Extracting ".. name .. "...")
         zip.extract(TEMP_ZIP_PATH, dstpath)
         print("done")
         os.remove(TEMP_ZIP_PATH)
+    end
+end
+
+function downloadAndInstallNSIS(name, url, dstpath)
+    if not os.isdir(dstpath) then
+        TEMP_EXE_PATH = BASE_DIR .. "temp/" ..name..".exe"
+        io.write("Downloading " .. name .. " (" .. url ..")...")
+        os.mkdir(BASE_DIR .. "temp")
+        local result_str, response_code = http.download(url, TEMP_EXE_PATH)
+        print("done ("..result_str ..", "  ..response_code..")")
+        io.write("installing ".. name .. "...")
+        install_command = TEMP_EXE_PATH .. " /S /D="..dstpath
+        print(install_command)
+        os.execute(install_command)
+        print("done")
+        os.remove(TEMP_EXE_PATH)
     end
 end
 

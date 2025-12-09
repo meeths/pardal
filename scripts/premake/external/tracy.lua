@@ -12,8 +12,8 @@ function getTracy()
     TRACY_SOURCES_URL = "https://github.com/wolfpld/tracy/archive/refs/tags/v"..TRACY_VER..".zip"
     TRACY_TOOLS_URL = "https://github.com/wolfpld/tracy/releases/download/v"..TRACY_VER.."/windows-"..TRACY_VER..".zip"
 
-    downloadAndExtract("Tracy src", TRACY_SOURCES_URL, TRACY_DIR)
-    downloadAndExtract("Tracy", TRACY_TOOLS_URL, TRACY_TOOLS_DIR)
+    downloadAndExtractZIP("Tracy src", TRACY_SOURCES_URL, TRACY_DIR)
+    downloadAndExtractZIP("Tracy", TRACY_TOOLS_URL, TRACY_TOOLS_DIR)
 end
 
 function includeTracy()
