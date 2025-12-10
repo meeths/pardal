@@ -17,11 +17,21 @@ function getSlint()
         os.execute(movecommand)
         os.execute("\"C:\\Program files\\Slint-cpp "..SLINT_VER .. "\\uninstall.exe\" /S")
     end
+    -- Patch platform header for crt flavor correct setup
+    local f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "r"))
+    local header_to_patch = f:read("*all")
+    f:close()
+    header_to_patch = header_to_patch:gsub("extern void ", "extern SLINTDLLEXPORT void ")
+    f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "w"))
+    f:write(header_to_patch)
+    f:close()
+    print("Slint platform header patched")
 end
 
 function includeSlint()
     includedirs { SLINT_DIR .."/include/slint" }
     filter {}
+        defines { "SLINTDLLEXPORT=__declspec(dllimport)" }
 end
 
 function linkSlint()
