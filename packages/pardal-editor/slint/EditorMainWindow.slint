@@ -1,0 +1,20 @@
+﻿export component EditorMainWindow inherits Window {
+    no-frame: false;
+    title: "Pardal Editor";
+    width: 800px;
+    height: 600px;
+
+    // Top application menu bar
+    menu-bar := MenuBar {
+        Menu {
+            title: "File";
+            MenuItem {
+                title: "Exit";  }
+        }
+        Menu {
+            title: "Help";
+            MenuItem {
+                title: "About";  }
+        }
+    }
+}
