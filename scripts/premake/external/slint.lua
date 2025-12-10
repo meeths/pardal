@@ -10,22 +10,51 @@ SLINT_DIR = BASE_DIR .. "external/downloaded/slint"..SLINT_VER
 function getSlint()
     SLINT_BUILD_URL = "https://github.com/slint-ui/slint/releases/download/v"..SLINT_VER.."/Slint-cpp-"..SLINT_VER.."-win64-MSVC-AMD64.exe"
     downloadAndInstallNSIS("Slint"..SLINT_VER, SLINT_BUILD_URL, SLINT_DIR)
-    --This installer doesn't allow for custom directories on command line
-    -- move files and uninstall
     if not os.isdir(SLINT_DIR) then
+        --This installer doesn't allow for custom directories on command line
+        -- move files and uninstall
         movecommand = "xcopy \"C:\\Program files\\Slint-cpp "..SLINT_VER .. "\" " .. SLINT_DIR:gsub("/", "\\") .. " /s /i /q /y"
         os.execute(movecommand)
         os.execute("\"C:\\Program files\\Slint-cpp "..SLINT_VER .. "\\uninstall.exe\" /S")
+        -- Patch platform header for crt flavor correct setup
+        local f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "r"))
+        local header_to_patch = f:read("*all")
+        f:close()
+        header_to_patch = header_to_patch:gsub("extern void ", "extern SLINTDLLEXPORT void ")
+        f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "w"))
+        f:write(header_to_patch)
+        f:close()
+        print("Slint platform header patched")
     end
-    -- Patch platform header for crt flavor correct setup
-    local f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "r"))
-    local header_to_patch = f:read("*all")
-    f:close()
-    header_to_patch = header_to_patch:gsub("extern void ", "extern SLINTDLLEXPORT void ")
-    f = assert(io.open(SLINT_DIR .. "/include/slint/slint_platform_internal.h", "w"))
-    f:write(header_to_patch)
-    f:close()
-    print("Slint platform header patched")
+end
+
+function compileSlintFiles(sourceDir, targetDir)
+
+    local function escape_pattern(str)
+        return str:gsub('([%^%$%(%)%%%.%[%]%*%+%-%q?])', '%%%1')
+    end
+
+    local function get_path(str,sep)
+        sep=sep or'/'
+        return str:match("(.*"..sep..")")
+    end
+
+    print("Cleaning up generated files...")
+    os.execute('rd /s/q "'..targetDir..'"')
+    print("Compiling slint files...")
+    slint_files = os.matchfiles(sourceDir .. "\\**.slint")
+    for i, slint_file in pairs(slint_files) do
+        slint_h_file = slint_file:gsub(escape_pattern(sourceDir), targetDir)
+        slint_h_file = slint_h_file:gsub("%.slint", ".h")
+        slint_cpp_file = slint_h_file:gsub("%.h", ".cpp")
+        if not os.isdir(get_path(slint_h_file)) then
+            os.mkdir(get_path(slint_h_file))
+        end
+        print("\tCompiling " .. slint_file)
+        os.execute(SLINT_DIR .. "/bin/slint-compiler.exe " .. slint_file .. " -o " .. slint_h_file .." --cpp-file " .. slint_cpp_file)
+    end
+
+    
 end
 
 function includeSlint()

@@ -34,6 +34,8 @@ project "pardal-editor"
     includeSlint()
     linkSlint()
     setConfigurations()
-    
+
+    compileSlintFiles(BASE_DIR .. "packages/pardal-editor/slint", BASE_DIR .. "packages/pardal-editor/generated")
+
     filter {}
     pardal.create_test_project("pardal-editor")
