@@ -3,39 +3,12 @@
 --- Created by franciscom.
 --- DateTime: 09/12/2025 12:28
 ---
-include "scripts/premake/external/slint.lua"
 
 group "10 Pardal Editor"
 
-project "pardal-editor"
-    kind "ConsoleApp"
-    links { "pardal-core" }
-    language "C++"
-    targetdir "%{BASE_DIR}bin/pardal-editor/%{cfg.buildcfg}"
-    
-    files {
-        "%{BASE_DIR}packages/pardal-editor/**.h",
-        "%{BASE_DIR}packages/pardal-editor/**.hpp",
-        "%{BASE_DIR}packages/pardal-editor/**.inl",
-        "%{BASE_DIR}packages/pardal-editor/**.cpp",
-        "%{BASE_DIR}packages/pardal-editor/**.c",
-        "%{BASE_DIR}packages/pardal-editor/**.slint"
-    }
-    
-    includedirs {
-        "%{BASE_DIR}packages/pardal-core",
-        "%{BASE_DIR}packages/pardal-editor"
-    }
-    
-    configureCommonFlags()
-    configureCommonExternals()
-    
-    getSlint()
-    includeSlint()
-    linkSlint()
-    setConfigurations()
-
-    compileSlintFiles(BASE_DIR .. "packages/pardal-editor/slint", BASE_DIR .. "packages/pardal-editor/generated")
-
-    filter {}
-    pardal.create_test_project("pardal-editor")
+externalproject "Pardal"
+filter {}
+    kind "WindowedApp"
+    language "C#"
+    location "%{BASE_DIR}packages/pardal-editor/Pardal"
+    uuid "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"
