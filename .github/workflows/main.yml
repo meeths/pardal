@@ -19,6 +19,10 @@ jobs:
         run: cmd.exe /c 'generate_pardal.bat'
       - name: Setup VS 2022
         uses: seanmiddleditch/gha-setup-vsdevenv@master
+        with: 
+          components:
+            'Microsoft.VisualStudio.Component.VC.Tools.x86.x64;Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools'
+          
       - name: Build Pardal
         run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
       - name: Test pardal-core
