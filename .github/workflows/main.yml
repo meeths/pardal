@@ -21,8 +21,9 @@ jobs:
         uses: seanmiddleditch/gha-setup-vsdevenv@master
         with: 
           components:
-            'Microsoft.VisualStudio.Component.VC.Tools.x86.x64;Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools'
-          
+            'Microsoft.VisualStudio.Component.VC.Tools.x86.x64'
+      - name: Restore NuGet packages
+        run: msbuild -t:restore projects/pardal.sln
       - name: Build Pardal
         run: MSBuild.exe projects/pardal.sln /property:Configuration=Release
       - name: Test pardal-core
