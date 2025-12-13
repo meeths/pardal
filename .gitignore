@@ -365,3 +365,4 @@ tools/downloaded/**
 
 # Ignore generated files
 packages/**/generated/**
+packages/pardal-editor/Pardal/obj
