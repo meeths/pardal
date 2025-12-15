@@ -10,6 +10,7 @@
 
   <UserControl.Resources>
     <converters:LogTypeToBrushConverter x:Key="LogTypeToBrushConverter" />
+    <converters:LogTypeToIconConverter x:Key="LogTypeToIconConverter" />
     <Style x:Key="MessageCellStyle" Selector="TextBlock">
       <Setter Property="Foreground" Value="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=Foreground}" />
     </Style>
@@ -20,7 +21,7 @@
   </Design.DataContext>
 
   <DockPanel LastChildFill="True">
-    <StackPanel Orientation="Horizontal" Margin="6" DockPanel.Dock="Top" Spacing="6">
+    <StackPanel Orientation="Horizontal" Margin="3" DockPanel.Dock="Top" Spacing="6" MinHeight="25">
       <TextBlock VerticalAlignment="Center" Text="Filter:"/>
       <TextBox Width="240" Watermark="type to filter..." Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
     </StackPanel>
@@ -30,16 +31,27 @@
               GridLinesVisibility="All"
               CanUserSortColumns="True"
               HeadersVisibility="All"
-              Margin="6"
-              MinHeight="100">
+              Margin="3"
+              MinHeight="100"
+              VerticalScrollBarVisibility="Visible">
 
       <DataGrid.Columns>
+        <DataGridTemplateColumn Header="" Width="40" IsReadOnly="True" SortMemberPath="Type">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock
+                Text="{Binding Type, Converter={StaticResource LogTypeToIconConverter}}"
+                Foreground="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=Foreground}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="16"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" IsReadOnly="True" SortMemberPath="Timestamp"
-                             Width="150"/>
+                            Width="150"/>
         <DataGridTextColumn Header="Category" Binding="{Binding Category}" IsReadOnly="True" SortMemberPath="Category"
-                             Width="150"/>
-        <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True" SortMemberPath="Type"
-                             Width="100"/>
+                            Width="150"/>
         <DataGridTextColumn Header="Message" Binding="{Binding Body}" IsReadOnly="True" SortMemberPath="Body"
                              Width="*"/>
       </DataGrid.Columns>
