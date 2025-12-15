@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Pardal.ViewModels"
+             xmlns:converters="clr-namespace:Pardal.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="220"
+             x:Class="Pardal.Controls.LogView"
+             x:CompileBindings="False">
+
+  <UserControl.Resources>
+    <converters:LogTypeToBrushConverter x:Key="LogTypeToBrushConverter" />
+    <Style x:Key="MessageCellStyle" Selector="TextBlock">
+      <Setter Property="Foreground" Value="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=Foreground}" />
+    </Style>
+  </UserControl.Resources>
+
+  <Design.DataContext>
+    <vm:LogViewModel />
+  </Design.DataContext>
+
+  <DockPanel LastChildFill="True">
+    <StackPanel Orientation="Horizontal" Margin="6" DockPanel.Dock="Top" Spacing="6">
+      <TextBlock VerticalAlignment="Center" Text="Filter:"/>
+      <TextBox Width="240" Watermark="type to filter..." Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>
+
+    <DataGrid ItemsSource="{Binding View}"
+              IsReadOnly="True"
+              GridLinesVisibility="All"
+              CanUserSortColumns="True"
+              HeadersVisibility="All"
+              Margin="6"
+              MinHeight="100">
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" IsReadOnly="True" SortMemberPath="Timestamp"
+                             Width="150"/>
+        <DataGridTextColumn Header="Category" Binding="{Binding Category}" IsReadOnly="True" SortMemberPath="Category"
+                             Width="150"/>
+        <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True" SortMemberPath="Type"
+                             Width="100"/>
+        <DataGridTextColumn Header="Message" Binding="{Binding Body}" IsReadOnly="True" SortMemberPath="Body"
+                             Width="*"/>
+      </DataGrid.Columns>
+      <DataGrid.Styles>
+        <!-- Row background color based on log type -->
+        <Style Selector="DataGridRow">
+          <Setter Property="Background" Value="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=RowBackground}" />
+        </Style>
+        <!-- Message foreground based on log type -->
+        <Style Selector="DataGridCell TextBlock">
+          <Setter Property="Foreground" Value="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=Foreground}" />
+        </Style>
+      </DataGrid.Styles>
+    </DataGrid>
+  </DockPanel>
+</UserControl>
