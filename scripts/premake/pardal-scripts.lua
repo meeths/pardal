@@ -1,7 +1,7 @@
 group "99 Pardal Scripts"
 
 project "pardal-scripts"
-    kind "Utility"
+    kind "None"
     files { 
         "%{BASE_DIR}*.yml",
         "%{BASE_DIR}*.lua", 
