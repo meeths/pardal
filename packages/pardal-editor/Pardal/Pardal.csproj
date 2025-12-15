@@ -32,5 +32,7 @@
         </PackageReference>
         <PackageReference Include="Avalonia.Themes.Simple" Version="11.3.9" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+        <PackageReference Include="Romzetron.Avalonia" Version="11.3.4" />
+        <PackageReference Include="Romzetron.Avalonia.DataGrid" Version="11.3.4" />
     </ItemGroup>
 </Project>

@@ -10,8 +10,9 @@
     </Application.DataTemplates>
   
     <Application.Styles>
-        <SimpleTheme />
+        <RomzetronTheme ColorTheme="Default" />
+        <RomzetronThemeDataGrid />
         <!-- Ensure DataGrid control templates are loaded -->
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Simple.xaml" />
+        <!--<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Romzetron.xaml" /> -->
     </Application.Styles>
 </Application>
