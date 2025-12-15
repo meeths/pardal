@@ -58,6 +58,7 @@
       <DataGrid.Styles>
         <!-- Row background color based on log type -->
         <Style Selector="DataGridRow">
+          <Setter Property="Height" Value="18"></Setter>
           <Setter Property="Background" Value="{Binding Type, Converter={StaticResource LogTypeToBrushConverter}, ConverterParameter=RowBackground}" />
         </Style>
         <!-- Message foreground based on log type -->

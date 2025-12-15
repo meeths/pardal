@@ -36,7 +36,11 @@
 
                 <controls:EngineView Grid.Row="0"/>
                 <GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch" ShowsPreview="False"/>
-                <controls:LogView Grid.Row="2"/>
+                <TabControl Grid.Row="2" >
+                    <TabItem Header="Log">
+                        <controls:LogView />
+                    </TabItem>
+                </TabControl>
             </Grid>
             
         </DockPanel>
