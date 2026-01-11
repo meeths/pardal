@@ -53,7 +53,7 @@ namespace pdl
             if (x <= 1) return 1;
             --x;
             x |= x >> 1;  x |= x >> 2;  x |= x >> 4;  x |= x >> 8;  x |= x >> 16;
-            if (sizeof(size_type) > 4) x |= x >> 32;
+            if constexpr (sizeof(size_type) > 4) x |= x >> 32;
             return x + 1;
         }
 
@@ -470,6 +470,30 @@ namespace pdl
                 // Free old buffers
                 ValueAllocTraits::deallocate(m_alloc, old_entries, old_cap);
                 ::operator delete[](old_ctrl);
+            }
+        }
+
+        // Concatenate contents of another map into this one.
+        // Existing keys in this map will be overwritten by values from 'other'.
+        void concat(const UnorderedMap& other)
+        {
+            if (other.m_size == 0) return;
+            reserve(m_size + other.m_size);
+            for (const auto& kv : other)
+            {
+                (*this)[kv.first] = kv.second;
+            }
+        }
+
+        // Move-aware concatenate. Values from 'other' are moved into this map.
+        // Existing keys in this map will be overwritten by values from 'other'.
+        void concat(UnorderedMap&& other)
+        {
+            if (other.m_size == 0) return;
+            reserve(m_size + other.m_size);
+            for (auto& kv : other)
+            {
+                (*this)[kv.first] = std::move(kv.second);
             }
         }
     };
