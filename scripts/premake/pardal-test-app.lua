@@ -2,7 +2,7 @@ group "20 Pardal Apps"
 
 project "pardal-test-app"
     kind "ConsoleApp"
-    links { "pardal-core", "pardal-render", "imgui" }
+    links { "pardal-engine", "imgui" }
     language "C++"
     targetdir "%{BASE_DIR}bin/pardal-test-app/%{cfg.buildcfg}"
     
@@ -17,6 +17,7 @@ project "pardal-test-app"
     includedirs {
         "%{BASE_DIR}packages/pardal-core",
         "%{BASE_DIR}packages/pardal-render",
+        "%{BASE_DIR}packages/pardal-engine",
         "%{BASE_DIR}packages/pardal-test-app"
     }
     

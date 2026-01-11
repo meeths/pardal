@@ -1,5 +1,7 @@
 
 function pardal.create_test_project(projectname)
+    group "25 Pardal Tests"
+
     project ( projectname .. "-tests" )
     kind "ConsoleApp"
 

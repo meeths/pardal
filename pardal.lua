@@ -1,6 +1,7 @@
 include "scripts/premake/pardal-common.lua"
 include "scripts/premake/pardal-core.lua"
 include "scripts/premake/pardal-render.lua"
+include "scripts/premake/pardal-engine.lua"
 include "scripts/premake/pardal-scripts.lua"
 include "scripts/premake/pardal-test-app.lua"
 include "scripts/premake/pardal-editor.lua"
