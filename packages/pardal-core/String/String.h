@@ -138,6 +138,29 @@ namespace pdl
 
         // Modifiers
         void clear() noexcept { _buf.resize(1); _buf[0] = '\0'; }
+        // Make the string size exactly n characters (excluding the null terminator).
+        // When growing, new characters are value-initialized to '\0'.
+        void Resize(size_type n)
+        {
+            const auto old = size();
+            _buf.resize(n + 1);
+            if (n > old)
+            {
+                std::fill(_buf.data() + old, _buf.data() + n, '\0');
+            }
+            _buf[n] = '\0';
+        }
+        // Make the string size exactly n characters, filling new characters with ch.
+        void Resize(size_type n, char ch)
+        {
+            const auto old = size();
+            _buf.resize(n + 1);
+            if (n > old)
+            {
+                std::fill(_buf.data() + old, _buf.data() + n, ch);
+            }
+            _buf[n] = '\0';
+        }
         void push_back(char ch) { 
             const auto old = size();
             _buf.resize(old + 2);
@@ -282,4 +305,18 @@ inline bool operator==(const char* a, const pdl::String& b) noexcept
 }
 inline bool operator!=(const pdl::String& a, const char* b) noexcept { return !(a == b); }
 inline bool operator!=(const char* a, const pdl::String& b) noexcept { return !(a == b); }
+
+// Provide std::hash specialization for pdl::String so it can be used as a key in hashed containers
+namespace std
+{
+    template<>
+    struct hash<pdl::String>
+    {
+        size_t operator()(const pdl::String& s) const noexcept
+        {
+            // Hash as std::string_view to avoid allocation
+            return std::hash<std::string_view>{}(std::string_view(s.data(), s.size()));
+        }
+    };
+}
 
