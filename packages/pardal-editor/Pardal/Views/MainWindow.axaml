@@ -23,7 +23,20 @@
                 </ListBox>
             </DockPanel>
 
-            <TextBlock DockPanel.Dock="Top" Text="Button bar goes here" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open..."/>
+                <Separator/>
+                <MenuItem Header="_Exit" Click="HandleExitClick"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Copy"/>
+                <MenuItem Header="Paste"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="About"/>
+            </MenuItem>
+        </Menu>
             <TextBlock DockPanel.Dock="Right" Text="Properties" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!-- Center area: EngineView on top, resizable splitter, LogView at bottom -->
