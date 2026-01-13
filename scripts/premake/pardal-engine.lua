@@ -27,7 +27,9 @@ includedirs {
 
 links { "mimalloc", "pardal-core", "pardal-render" }
 
-getTracy()
+defines { "PDL_FEATURE_IMGUI" }
+
+includeImGui()
 
 configureCommonFlags()
 configureCommonExternals()

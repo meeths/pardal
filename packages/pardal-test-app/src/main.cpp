@@ -1,6 +1,7 @@
 
 #include "Application/ApplicationWindow.h"
 #include "Base/DebugHelpers.h"
+#include "Input/InputManager.h"
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
 #include "Math/Vector3.h"
@@ -71,6 +72,8 @@ int main(int argc, char** argv)
     auto textureView = renderer.GetRenderDevice()->CreateTextureView(textureViewDescriptor);
     
     renderer.GetBindlessDescriptors()->StoreTexture(textureView->Get());
+
+    pdl::InputManager inputManager;
     
     while (!window.IsCloseRequested())
     {
@@ -92,13 +95,17 @@ int main(int argc, char** argv)
         renderer.SetScissor(scissorSize);
         
         renderer.BeginRenderPass(mainRenderPass);
-        
+        auto inputManagerResults = inputManager.Update();
+
         renderer.EndRenderPass();
         renderer.EndFrame();
         window.Update();
 
         window.SetWindowTitle(pdl::StringUtils::StringFormat("pdl test app: %.02f FPS", 1.0f/frameTimer.Lap<float, pdl::TimeTypes::Seconds>()));
 
+        if (!inputManagerResults)
+            pdlLogError("%s", inputManagerResults.error().c_str());
+        
         pdlLogFlush();
     }
     

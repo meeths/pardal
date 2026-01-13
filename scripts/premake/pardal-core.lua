@@ -21,6 +21,11 @@ project "pardal-core"
 
     links { "mimalloc" }
 
+    filter { "platforms:Win64" }
+        links "xinput.lib"
+
+    filter {}
+
     getTracy()
 
     configureCommonFlags()
