@@ -9,23 +9,20 @@ namespace pdl
     {
         TEST(VectorTest, PushPopAndSBO)
         {
-            Vector<int, 8> v;
+            Vector<int> v;
             EXPECT_TRUE(v.empty());
             EXPECT_EQ(v.size(), 0u);
             EXPECT_GE(v.capacity(), 8u);
-            EXPECT_TRUE(v.using_inline());
 
             for (int i = 0; i < 8; ++i)
             {
                 v.push_back(i * 2);
                 EXPECT_EQ(v[i], i * 2);
                 EXPECT_EQ(v.size(), static_cast<size_t>(i + 1));
-                EXPECT_TRUE(v.using_inline());
             }
 
             // Exceed inline capacity to force heap allocation
             v.push_back(16);
-            EXPECT_FALSE(v.using_inline());
             EXPECT_EQ(v.back(), 16);
             EXPECT_EQ(v.size(), 9u);
 
@@ -37,7 +34,7 @@ namespace pdl
 
         TEST(VectorTest, ResizeAndIterate)
         {
-            Vector<int, 4> v;
+            Vector<int> v;
             v.resize(3);
             EXPECT_EQ(v.size(), 3u);
             int idx = 0;
@@ -66,7 +63,7 @@ namespace pdl
 
         TEST(VectorTest, SupportsMoveOnlyTypes)
         {
-            Vector<MoveOnly, 2> v;
+            Vector<MoveOnly> v;
             v.emplace_back(1);
             v.emplace_back(2);
             // Trigger reallocation and moves
@@ -76,7 +73,7 @@ namespace pdl
             EXPECT_EQ(*v[2].p, 3);
 
             // Move the vector itself
-            Vector<MoveOnly, 2> v2 = std::move(v);
+            Vector<MoveOnly> v2 = std::move(v);
             EXPECT_EQ(*v2[0].p, 1);
             EXPECT_EQ(*v2[1].p, 2);
             EXPECT_EQ(*v2[2].p, 3);

@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include "Containers/UnorderedMap.h"
-#include <string>
-#include <vector>
-
+#include "String/String.h"
 using pdl::UnorderedMap;
 namespace pdl
 {
@@ -10,10 +8,10 @@ namespace pdl
     {
         TEST(UnorderedMapTest, BasicInsertAndLookup)
         {
-            UnorderedMap<std::string, int> m;
+            UnorderedMap<String, int> m;
             EXPECT_TRUE(m.empty());
 
-            m.insert({"a", 1});
+            m.insert_or_assign("a", 1);
             m.emplace("b", 2);
             m["c"] = 3; // operator[] default-inserts then assigns
 
@@ -81,40 +79,6 @@ namespace pdl
             a.swap(b);
             EXPECT_EQ(a.size(), 5u);
             EXPECT_EQ(b.size(), 10u);
-        }
-
-        TEST(UnorderedMapTest, ConcatCopiesAndOverwrites)
-        {
-            UnorderedMap<std::string, int> a;
-            a["x"] = 1;
-            a["y"] = 2;
-
-            UnorderedMap<std::string, int> b;
-            b["y"] = 20; // will overwrite
-            b["z"] = 3;
-
-            a.concat(b);
-
-            EXPECT_EQ(a.size(), 3u);
-            EXPECT_EQ(a.at("x"), 1);
-            EXPECT_EQ(a.at("y"), 20);
-            EXPECT_EQ(a.at("z"), 3);
-        }
-
-        TEST(UnorderedMapTest, ConcatMoveMovesValues)
-        {
-            UnorderedMap<std::string, std::string> a;
-            a["a"] = "one";
-
-            UnorderedMap<std::string, std::string> b;
-            b["b"] = "two";
-            b["a"] = "ONE"; // overwrites
-
-            a.concat(std::move(b));
-
-            EXPECT_EQ(a.size(), 2u);
-            EXPECT_EQ(a.at("a"), std::string("ONE"));
-            EXPECT_EQ(a.at("b"), std::string("two"));
         }
     }
 }

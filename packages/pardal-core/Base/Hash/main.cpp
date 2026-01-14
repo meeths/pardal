@@ -510,6 +510,9 @@ void VerifyHash ( const void * key, int len, uint32_t seed, void * out )
 
 //-----------------------------------------------------------------------------
 
+typedef Blob<128> uint128_t;
+typedef Blob<256> uint256_t;
+
 void testHash ( const char * name )
 {
   HashInfo * pInfo = findHash(name);

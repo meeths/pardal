@@ -1,3 +1,5 @@
+#include <codecvt>
+#include <locale>
 #include <Filesystem/File.h>
 #include <Base/DebugHelpers.h>
 
@@ -19,8 +21,8 @@ void File::Open(FileConstants::OpenMode openMode)
 	if(openMode & FileConstants::OpenMode::Binary) stdBitmask |= std::ios::binary;
 	if(openMode & FileConstants::OpenMode::AtEnd) stdBitmask |= std::ios::ate;
 	if(openMode & FileConstants::OpenMode::Truncate) stdBitmask |= std::ios::trunc;
-
-	m_Stream.open(m_FileName, stdBitmask);
+	
+	m_Stream.open(m_FileName.c_str(), stdBitmask);
 }
 
 bool File::IsOpen()

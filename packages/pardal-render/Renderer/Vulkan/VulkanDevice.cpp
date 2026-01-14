@@ -1,18 +1,19 @@
 #include <Renderer/Vulkan/VulkanDevice.h>
 
 #include <Base/DebugHelpers.h>
+#include <Containers/VectorUtils.h>
 #include <Log/Log.h>
-#include <Renderer/Vulkan/VulkanUtils.h>
-#include <String/StringUtils.h>
+#include <Renderer/Vulkan/VulkanRenderBuffer.h>
+#include <Renderer/Vulkan/VulkanShader.h>
+#include <Renderer/Vulkan/VulkanShaderObject.h>
 #include <Renderer/Vulkan/VulkanSurface.h>
 #include <Renderer/Vulkan/VulkanTextureView.h>
+#include <Renderer/Vulkan/VulkanUtils.h>
+#include <String/StringUtils.h>
 
-#include "VulkanRenderBuffer.h"
-#include "VulkanShader.h"
-#include "VulkanShaderObject.h"
-#include "backends/imgui_impl_vulkan.h"
-#include "Containers/VectorUtils.h"
-
+#ifdef PDL_FEATURE_IMGUI
+#include <backends/imgui_impl_vulkan.h>
+#endif
 
 #ifdef PDL_PLATFORM_WINDOWS
 #include <dxgi1_2.h>
@@ -168,7 +169,7 @@ namespace Details
 
     inline bool IsExtensionInExtensionProperties(pdl::StringView extension, const pdl::Vector<vk::ExtensionProperties>& extensionProperties)
     {
-        return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName == extension;}));
+        return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName.data() == extension;}));
     }
     inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties)
     {

@@ -12,16 +12,16 @@ TEST(StringTest, BasicConstructionAndSize)
     EXPECT_EQ(s.size(), 5u);
     EXPECT_STREQ(s.c_str(), "hello");
 
-    String s2(std::string("world"));
+    String s2("world");
     EXPECT_EQ(s2.size(), 5u);
-    EXPECT_EQ(std::string_view(s2), std::string_view("world"));
+    EXPECT_EQ(StringView(s2), StringView("world"));
 }
 
 TEST(StringTest, AppendAndFind)
 {
     String s("foo");
     s += "bar";
-    EXPECT_EQ(std::string_view(s), std::string_view("foobar"));
+    EXPECT_EQ(StringView(s), StringView("foobar"));
     EXPECT_EQ(s.find('b'), 3u);
     EXPECT_EQ(s.find("bar"), 3u);
 }
@@ -30,17 +30,17 @@ TEST(StringTest, ReplaceAndTrim)
 {
     String s("  a b a  ");
     auto trimmed = StringUtils::Trim(s);
-    EXPECT_EQ(std::string_view(trimmed), std::string_view("a b a"));
+    EXPECT_EQ(StringView(trimmed), StringView("a b a"));
 
     auto replaced = StringUtils::Replace(trimmed, String(" "), String("_"));
-    EXPECT_EQ(std::string_view(replaced), std::string_view("a_b_a"));
+    EXPECT_EQ(StringView(replaced), StringView("a_b_a"));
 }
 
 TEST(StringTest, StreamInsertion)
 {
     String s("stream");
     std::ostringstream oss;
-    oss << s;
+    oss << s.c_str();
     EXPECT_EQ(oss.str(), std::string("stream"));
 }
 
@@ -59,11 +59,11 @@ TEST(StringViewTest, BasicAndEndsWith)
 TEST(StringInteropTest, StdInterop)
 {
     String s("interop");
-    std::string stds = static_cast<std::string>(s);
+    std::string stds = static_cast<std::string>(s.c_str());
     EXPECT_EQ(stds, std::string("interop"));
 
-    String fromStd(std::string("abc"));
-    EXPECT_EQ(std::string_view(fromStd), std::string_view("abc"));
+    String fromStd(std::string("abc").c_str());
+    EXPECT_EQ(StringView(fromStd), StringView("abc"));
 }
 
 }} // namespace

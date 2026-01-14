@@ -58,18 +58,13 @@ namespace pdl
             EXPECT_TRUE(c >= b);
         }
 
-        TEST(ArrayTest, StructuredBindingsAndGet)
+        TEST(ArrayTest, StructuredBindings)
         {
             Array<int, 3> a{9,8,7};
             auto [x,y,z] = a; // structured binding copies
             EXPECT_EQ(x, 9);
             EXPECT_EQ(y, 8);
             EXPECT_EQ(z, 7);
-
-            // std::get by index
-            EXPECT_EQ(std::get<0>(a), 9);
-            EXPECT_EQ(std::get<1>(a), 8);
-            EXPECT_EQ(std::get<2>(a), 7);
         }
     }
 }

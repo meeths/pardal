@@ -5,7 +5,8 @@
 
 function includeImGui()
     filter {}
-    defines { "IMGUI_DEFINE_MATH_OPERATORS","IMGUI_DISABLE_OBSOLETE_KEYIO" }
+    
+    defines { "PDL_FEATURE_IMGUI", "IMGUI_DEFINE_MATH_OPERATORS","IMGUI_DISABLE_OBSOLETE_KEYIO" }
     includedirs "%{BASE_DIR}external/imgui"
 end
 

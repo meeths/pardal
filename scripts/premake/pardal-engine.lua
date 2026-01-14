@@ -25,9 +25,7 @@ includedirs {
     "%{BASE_DIR}packages/pardal-engine/",
 }
 
-links { "mimalloc", "pardal-core", "pardal-render" }
-
-defines { "PDL_FEATURE_IMGUI" }
+links { "pardal-core", "pardal-render" }
 
 includeImGui()
 

@@ -1,5 +1,6 @@
 
 #include <Application/ProgramArguments.h>
+#include "Containers/Vector.h"
 #include "String/String.h"
 
 // Created on 2026-01-11 by Sisco
@@ -103,7 +104,7 @@ namespace pdl
                     }
                 }
 
-                outOptions[std::string(keyStr.data(), keyStr.size())] = value;
+                outOptions[keyStr] = value;
                 i += value.empty() ? 1 : 2;
             }
             else

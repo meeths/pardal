@@ -1,6 +1,7 @@
 
 #include <Memory/Memory.h>
 #include "mimalloc-new-delete.h"
+#include "Base/DebugHelpers.h"
 // Created on 2025-12-01 by Sisco
 
 namespace pdl
@@ -16,3 +17,12 @@ namespace pdl
     }
 }
 
+void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+    return ::operator new[](size);
+}
+void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+    pdlAssert(alignmentOffset == 0);
+    return ::operator new[](size, static_cast<std::align_val_t>(alignment));
+}

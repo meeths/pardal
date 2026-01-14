@@ -21,7 +21,7 @@ namespace pdl
             return {};
 
         String utf8;
-        utf8.Resize(static_cast<size_t>(needed - 1));
+        utf8.resize(static_cast<size_t>(needed - 1));
         ::WideCharToMultiByte(CP_UTF8, 0, wcmd, -1, utf8.data(), needed, nullptr, nullptr);
         return utf8;
     }

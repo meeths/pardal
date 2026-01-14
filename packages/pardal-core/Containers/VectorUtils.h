@@ -9,20 +9,25 @@ namespace pdl
     struct VectorUtils
     {
         // Create a pdl::Vector by copying from a std::vector
-        template <typename T, std::size_t InlineCapacity = 8>
-        static Vector<T, InlineCapacity> FromStd(const std::vector<T>& src) noexcept(std::is_nothrow_copy_constructible_v<T>)
+        template <typename T>
+        static Vector<T> FromStd(std::vector<T>& src) noexcept(std::is_nothrow_move_constructible_v<T>)
         {
-            // Leverage Vector's iterator range constructor (reserves when random-access)
-            return Vector<T, InlineCapacity>(src.begin(), src.end());
+            Vector<T> dst;
+            dst.reserve(static_cast<typename Vector<T>::size_type>(src.size()));
+            for (auto& x : src)
+            {
+                dst.push_back(static_cast<T&>(x));
+            }
+            return dst;
         }
 
         // Create a pdl::Vector by moving from a std::vector
         // Note: std::vector's storage cannot be stolen; elements are moved individually.
-        template <typename T, std::size_t InlineCapacity = 8>
-        static Vector<T, InlineCapacity> FromStd(std::vector<T>&& src) noexcept(std::is_nothrow_move_constructible_v<T>)
+        template <typename T>
+        static Vector<T> FromStd(std::vector<T>&& src) noexcept(std::is_nothrow_move_constructible_v<T>)
         {
-            Vector<T, InlineCapacity> dst;
-            dst.reserve(static_cast<typename Vector<T, InlineCapacity>::size_type>(src.size()));
+            Vector<T> dst;
+            dst.reserve(static_cast<typename Vector<T>::size_type>(src.size()));
             for (auto& x : src)
             {
                 dst.emplace_back(static_cast<T&&>(x));

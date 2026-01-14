@@ -16,17 +16,17 @@ namespace StringCast
 
     String ToString(const int& value)
     {
-        return std::to_string(value);
+        return eastl::to_string(value);
     }
 
     String ToString(const unsigned int& value)
     {
-        return std::to_string(value);
+        return eastl::to_string(value);
     }
 
     String ToString(const float& value)
     {
-        return std::to_string(value);
+        return eastl::to_string(value);
     }
 
     String ToString(const String& value)
@@ -60,19 +60,19 @@ namespace StringCast
     template <>
     int FromString(const String& valueStr)
     {
-        return std::stoi(valueStr);
+        return std::stoi(valueStr.c_str());
     }
 
     template <>
     unsigned int FromString(const String& valueStr)
     {
-        return std::stoul(valueStr);
+        return std::stoul(valueStr.c_str());
     }
 
     template <>
     float FromString(const String& valueStr)
     {
-        return std::stof(valueStr);
+        return std::stof(valueStr.c_str());
     }
 
     template <>

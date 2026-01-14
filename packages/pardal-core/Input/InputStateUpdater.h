@@ -2,6 +2,7 @@
 #pragma once
 #include "Base/BaseTypes.h"
 #include "Base/Expected.h"
+#include "String/String.h"
 
 // Created on 2026-01-13 by sisco
 
@@ -10,7 +11,6 @@ namespace pdl
 struct MouseState;
 struct GamepadState;
 struct KeyboardState;
-class String;
 
 class InputStateUpdater
 {

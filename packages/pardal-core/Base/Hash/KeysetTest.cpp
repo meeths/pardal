@@ -296,6 +296,10 @@ void DumpCollisionMap ( CollisionMap<hashtype,ByteVec> & cmap )
 
 // test code
 
+typedef Blob<128> uint128_t;
+typedef Blob<256> uint256_t;
+
+
 void ReportCollisions ( pfHash hash )
 {
   printf("Hashing keyset\n");

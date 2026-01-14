@@ -27,8 +27,8 @@ namespace pdl
 
     Optional<String> EngineOptions::GetOption(StringView key) const
     {
-        if (m_options.contains(key))
-            return m_options.at(key);
+        if (m_options.contains(String(key)))
+            return m_options.at(String(key));
         return {};
     }
 
@@ -36,8 +36,8 @@ namespace pdl
 
     void EngineOptions::ParseProgramArguments()
     {
-        auto options = pdl::ProgramArguments::GetProgramArguments();
-        m_options.concat(options);
+        auto options = ProgramArguments::GetProgramArguments();
+        m_options.insert(options.begin(), options.end());
     }
 
     void EngineOptions::ParseIniFile()
