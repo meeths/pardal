@@ -82,5 +82,26 @@ namespace pdl
             EXPECT_EQ(*v2[2].p, 3);
             EXPECT_TRUE(v.empty());
         }
+
+        TEST(VectorTest, Erase)
+        {
+            Vector<int> v = { 1, 2, 3, 4, 5 };
+            auto it = v.erase(v.begin() + 2); // Erase '3'
+            EXPECT_EQ(v.size(), 4u);
+            EXPECT_EQ(v[2], 4);
+            EXPECT_EQ(it, v.begin() + 2);
+            EXPECT_EQ(*it, 4);
+
+            it = v.erase(v.begin() + 1, v.begin() + 3); // Erase '2' and '4'
+            EXPECT_EQ(v.size(), 2u);
+            EXPECT_EQ(v[0], 1);
+            EXPECT_EQ(v[1], 5);
+            EXPECT_EQ(it, v.begin() + 1);
+            EXPECT_EQ(*it, 5);
+
+            it = v.erase(v.begin(), v.end());
+            EXPECT_TRUE(v.empty());
+            EXPECT_EQ(it, v.end());
+        }
     }
 }

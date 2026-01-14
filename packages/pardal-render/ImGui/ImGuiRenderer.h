@@ -1,12 +1,14 @@
 
 #pragma once
 #include "Base/BaseTypes.h"
+#include "Containers/Vector.h"
 #include "Math/Vector2.h"
 
 // Created on 2025-04-01 by sisco
 
 namespace pdl
 {
+class ImGuiRenderable;
 class IRenderDevice;
 class ApplicationWindow;
 
@@ -26,9 +28,10 @@ public:
     void EndFrame();
     void Render();
 
+    void RegisterRenderable(ImGuiRenderable* renderable);
+    void UnregisterRenderable(ImGuiRenderable* renderable);
     
 private:
-
     void OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods);
     void OnMouseWheelV(float pos);
     void OnMouseWheelH(float pos);
@@ -36,8 +39,8 @@ private:
     void OnKeyDown(int16 key);
     void OnKeyInput(int16 key);
 
-    
     IRenderDevice* m_device;
+    Vector<ImGuiRenderable*> m_renderables;
 };
 
 }

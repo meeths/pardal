@@ -246,6 +246,34 @@ namespace pdl
             destroy_at(m_data + m_size);
         }
 
+        iterator erase(const_iterator pos) noexcept(std::is_nothrow_move_assignable_v<T>)
+        {
+            size_type index = static_cast<size_type>(pos - m_data);
+            for (size_type i = index; i < m_size - 1; ++i)
+            {
+                m_data[i] = static_cast<T&&>(m_data[i + 1]);
+            }
+            pop_back();
+            return m_data + index;
+        }
+
+        iterator erase(const_iterator first, const_iterator last) noexcept(std::is_nothrow_move_assignable_v<T>)
+        {
+            size_type first_idx = static_cast<size_type>(first - m_data);
+            size_type last_idx = static_cast<size_type>(last - m_data);
+            size_type count = last_idx - first_idx;
+            if (count > 0)
+            {
+                for (size_type i = first_idx; i < m_size - count; ++i)
+                {
+                    m_data[i] = static_cast<T&&>(m_data[i + count]);
+                }
+                destroy_range(m_size - count, m_size);
+                m_size -= count;
+            }
+            return m_data + first_idx;
+        }
+
         // Access first element (no bounds checking; undefined if empty, like std::vector)
         reference front() noexcept { return m_data[0]; }
         const_reference front() const noexcept { return m_data[0]; }

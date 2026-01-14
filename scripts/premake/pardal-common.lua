@@ -36,6 +36,7 @@ end
 
 function configureCommonExternals()
     filter {}
+    includeEASTL()
     includeMimalloc()
     includeGLM()
     includeSTB()

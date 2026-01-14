@@ -19,7 +19,7 @@ project "pardal-core"
         "%{BASE_DIR}packages/pardal-core/"
     }
 
-    links { "mimalloc" }
+    links { "mimalloc", "EASTL" }
 
     filter { "platforms:Win64" }
         links "xinput.lib"

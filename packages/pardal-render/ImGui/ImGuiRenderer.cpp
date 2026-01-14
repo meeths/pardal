@@ -16,6 +16,8 @@
 #endif
 // Created on 2025-04-01 by sisco
 
+#include <algorithm>
+
 namespace pdl
 {
     ImGuiRenderer::ImGuiRenderer(const InitInfo& initInfo)
@@ -91,6 +93,16 @@ namespace pdl
     {
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
+    }
+
+    void ImGuiRenderer::RegisterRenderable(ImGuiRenderable* renderable)
+    {
+        m_renderables.push_back(renderable);
+    }
+
+    void ImGuiRenderer::UnregisterRenderable(ImGuiRenderable* renderable)
+    {
+        m_renderables.erase(std::remove(m_renderables.begin(), m_renderables.end(), renderable), m_renderables.end());
     }
 
     void ImGuiRenderer::OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods)
