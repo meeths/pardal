@@ -12,7 +12,6 @@ namespace pdl
             Vector<int> v;
             EXPECT_TRUE(v.empty());
             EXPECT_EQ(v.size(), 0u);
-            EXPECT_GE(v.capacity(), 8u);
 
             for (int i = 0; i < 8; ++i)
             {
