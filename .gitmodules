@@ -13,3 +13,6 @@
 [submodule "external/mimalloc"]
 	path = external/mimalloc
 	url = https://github.com/microsoft/mimalloc.git
+[submodule "external/EASTL"]
+	path = external/EASTL
+	url = https://github.com/electronicarts/EASTL.git
