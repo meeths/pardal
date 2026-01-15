@@ -19,3 +19,6 @@
 [submodule "external/EABase"]
 	path = external/EABase
 	url = https://github.com/electronicarts/EABase.git
+[submodule "external/taskflow"]
+	path = external/taskflow
+	url = https://github.com/taskflow/taskflow.git
