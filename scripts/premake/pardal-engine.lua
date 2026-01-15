@@ -28,6 +28,7 @@ includedirs {
 links { "pardal-core", "pardal-render" }
 
 includeImGui()
+includeTaskflow()
 
 configureCommonFlags()
 configureCommonExternals()
