@@ -1,6 +1,7 @@
 
 #include <Filesystem/MemoryFile.h>
 #include <Math/Functions.h>
+#include <cstring>
 // Created on 2019-01-10 by fmacias
 
 namespace pdl

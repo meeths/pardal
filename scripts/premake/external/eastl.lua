@@ -8,6 +8,9 @@ function includeEASTL()
     filter {}
     includedirs "%{BASE_DIR}external/EABase/include/Common"
     includedirs "%{BASE_DIR}external/EASTL/include"
+    filter "toolset:not msc*"
+        buildoptions  { "-Wno-deprecated-literal-operator" }
+    filter {}
 end
 
 function compileEASTL()
