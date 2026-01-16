@@ -15,7 +15,7 @@ namespace pdl
 		m_Loggers.emplace_back(std::move(_logger));
 	}
 
-	void Log::LogWarning(const char* fmt, ...)
+	void Log::LogWarning(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -23,7 +23,7 @@ namespace pdl
 		va_end(args);
 	}
 
-	void Log::LogError(const char* fmt, ...)
+	void Log::LogError(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -31,7 +31,7 @@ namespace pdl
 		va_end(args);
 	}
 
-	void Log::LogInfo(const char* fmt, ...)
+	void Log::LogInfo(StringView fmt, ...)
 	{
 		va_list args;
 		va_start(args, fmt);
@@ -47,13 +47,18 @@ namespace pdl
 		}
 	}
 
-	void Log::LogDetail(LogType logType, const char* fmt, va_list args)
+	void Log::LogDetail(LogType logType, StringView fmt, va_list args)
 	{
 		SRWScopedReadLock lock(m_loggersLock);
 		
 		Array<char, 2048> buffer;
 
-		vsnprintf(buffer.data(), buffer.size(), fmt, args);
+		auto ret = vsnprintf(buffer.data(), buffer.size(), fmt.data(), args);
+		
+		if (ret < 0)
+		{
+			return;
+		}
 
 		for (auto& logger : m_Loggers)
 		{

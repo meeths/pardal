@@ -24,7 +24,7 @@ namespace pdl
             pdlLogError("Could not create surface");
             return false;
         }
-        m_surface = std::static_pointer_cast<VulkanSurface>(surfaceResults.value());
+        m_surface = eastl::static_pointer_cast<VulkanSurface>(surfaceResults.value());
 
         pdl::ISurface::SwapchainDescriptor surfaceDescriptor
         {
@@ -72,7 +72,7 @@ namespace pdl
         Vector<Math::Vector4> clearColors;
         currentFrameSwapchainImageViews.push_back(m_surface->GetCurrentTextureView());
         clearColors.emplace_back(0, 0, 0, 0);
-        m_mainRenderPass = RenderPass(currentFrameSwapchainImageViews, m_depthTextureView.Get(), Math::Rectanglei({0,0}, m_surface->GetSurfaceConfig().m_size), clearColors);
+        m_mainRenderPass = RenderPass(currentFrameSwapchainImageViews, m_depthTextureView.get(), Math::Rectanglei({0,0}, m_surface->GetSurfaceConfig().m_size), clearColors);
 
         
         return true;
@@ -288,13 +288,13 @@ namespace pdl
 
         auto depthBufferResult = m_device.CreateTexture(depthBufferDesc); 
         pdlAssert(depthBufferResult.has_value());
-        m_depthTexture = std::static_pointer_cast<VulkanTexture>(depthBufferResult.value());
+        m_depthTexture = eastl::static_pointer_cast<VulkanTexture>(depthBufferResult.value());
     
         ITextureView::TextureViewDescriptor depthStencilViewDesc;
-        depthStencilViewDesc.m_texture = m_depthTexture.Get();
+        depthStencilViewDesc.m_texture = m_depthTexture.get();
         auto depthStencilViewResults = m_device.CreateTextureView(depthStencilViewDesc);
         pdlAssert(depthStencilViewResults.has_value());
-        m_depthTextureView = std::static_pointer_cast<VulkanTextureView>(depthStencilViewResults.value());
+        m_depthTextureView = eastl::static_pointer_cast<VulkanTextureView>(depthStencilViewResults.value());
 
         return true;
         

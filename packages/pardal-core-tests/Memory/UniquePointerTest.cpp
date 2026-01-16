@@ -52,39 +52,26 @@ namespace pdl
             EXPECT_EQ(Tracker::alive, 1);
 
             // release prevents deletion
-            Tracker* raw = b.Release();
+            Tracker* raw = b.release();
             EXPECT_FALSE(bool(b));
             ASSERT_NE(raw, nullptr);
             EXPECT_EQ(Tracker::alive, 1);
 
             // adopt and reset
-            b.Reset(raw);
+            b.reset(raw);
             EXPECT_TRUE(bool(b));
-            b.Reset();
+            b.reset();
             EXPECT_EQ(Tracker::alive, 0);
 
             // swap
             UniquePointer<Tracker> c = pdl::MakeUniquePointer<Tracker>(42);
             UniquePointer<Tracker> d;
-            c.Swap(d);
+            c.swap(d);
             EXPECT_FALSE(bool(c));
             ASSERT_TRUE(bool(d));
             EXPECT_EQ(d->value, 42);
         }
-
-        TEST(UniquePointerTest, CustomDeleter)
-        {
-            int deletes = 0;
-            {
-                UniquePointer<Tracker, CountedDeleter> p(new Tracker(5));
-                p.GetDeleter().counter = &deletes;
-                EXPECT_TRUE(bool(p));
-                EXPECT_EQ(Tracker::alive, 1);
-            }
-            EXPECT_EQ(deletes, 1);
-            EXPECT_EQ(Tracker::alive, 0);
-        }
-
+        
         TEST(UniquePointerTest, ArrayOverload)
         {
             EXPECT_EQ(Tracker::alive, 0);

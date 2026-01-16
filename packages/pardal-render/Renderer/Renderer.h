@@ -37,7 +37,7 @@ public:
 
     PerFrameInfo& GetFrameInfo() { return m_frameInfo; }
 
-    BindlessDescriptors* GetBindlessDescriptors() const { return m_bindlessDescriptors.Get(); }
+    BindlessDescriptors* GetBindlessDescriptors() const { return m_bindlessDescriptors.get(); }
 
     void SetPipelineState(const PipelineState& pipelineState);
     void SetViewport(const Math::Rectangle& viewport);

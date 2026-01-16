@@ -21,14 +21,14 @@ public:
 
 	void RegisterLogger(SharedPointer<ILogger> _logger);
 	
-	void LogWarning(const char* fmt, ...) ;
-	void LogError(const char* fmt, ...) ;
-	void LogInfo(const char* fmt, ...) ;
+	void LogWarning(StringView fmt, ...) ;
+	void LogError(StringView fmt, ...) ;
+	void LogInfo(StringView fmt, ...) ;
 
 	void Flush();
 private:
 	
-	void LogDetail(LogType logType, const char* fmt, va_list args);
+	void LogDetail(LogType logType, StringView fmt, va_list args);
 	
 	Vector<SharedPointer<ILogger>> m_Loggers;
 	SRWLock m_loggersLock;

@@ -65,13 +65,13 @@ int main(int argc, char** argv)
     pdl::SharedPointer<pdl::ITexture> texture = newTexture.value();
     
     pdl::ITextureView::TextureViewDescriptor textureViewDescriptor;
-    textureViewDescriptor.m_texture = texture.Get();
+    textureViewDescriptor.m_texture = texture.get();
     textureViewDescriptor.m_baseMipLevel = 0;
     
     
     auto textureView = renderer.GetRenderDevice()->CreateTextureView(textureViewDescriptor);
     
-    renderer.GetBindlessDescriptors()->StoreTexture(textureView->Get());
+    renderer.GetBindlessDescriptors()->StoreTexture(textureView->get());
 
     pdl::InputManager inputManager;
     

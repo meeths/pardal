@@ -24,23 +24,23 @@ namespace pdl
             EXPECT_EQ(sp->value, 7);
             sp->value = 9;
             EXPECT_EQ((*sp).value, 9);
-            EXPECT_EQ(sp.UseCount(), 1u);
+            EXPECT_EQ(sp.use_count(), 1u);
             EXPECT_EQ(Tracker::alive, 1);
         }
 
         TEST(SharedPointerTest, CopyAndMoveSemantics)
         {
             auto sp1 = pdl::MakeSharedPointer<Tracker>(1);
-            EXPECT_EQ(sp1.UseCount(), 1u);
+            EXPECT_EQ(sp1.use_count(), 1u);
 
             SharedPointer<Tracker> sp2 = sp1; // copy
-            EXPECT_EQ(sp1.UseCount(), 2u);
-            EXPECT_EQ(sp2.UseCount(), 2u);
+            EXPECT_EQ(sp1.use_count(), 2u);
+            EXPECT_EQ(sp2.use_count(), 2u);
             EXPECT_EQ(Tracker::alive, 1);
 
             SharedPointer<Tracker> sp3 = std::move(sp2); // move
-            EXPECT_EQ(sp1.UseCount(), 2u);
-            EXPECT_EQ(sp3.UseCount(), 2u);
+            EXPECT_EQ(sp1.use_count(), 2u);
+            EXPECT_EQ(sp3.use_count(), 2u);
             EXPECT_FALSE(bool(sp2));
         }
 
@@ -51,20 +51,20 @@ namespace pdl
             {
                 sp = pdl::MakeSharedPointer<Tracker>(5);
                 EXPECT_EQ(Tracker::alive, 1);
-                EXPECT_EQ(sp.UseCount(), 1u);
+                EXPECT_EQ(sp.use_count(), 1u);
                 {
                     SharedPointer<Tracker> sp2 = sp;
-                    EXPECT_EQ(sp.UseCount(), 2u);
+                    EXPECT_EQ(sp.use_count(), 2u);
                     EXPECT_EQ(Tracker::alive, 1);
-                    sp2.Reset();
-                    EXPECT_EQ(sp.UseCount(), 1u);
+                    sp2.reset();
+                    EXPECT_EQ(sp.use_count(), 1u);
                     EXPECT_EQ(Tracker::alive, 1);
                 }
                 EXPECT_EQ(Tracker::alive, 1);
             }
             // sp still holds
             EXPECT_EQ(Tracker::alive, 1);
-            sp.Reset();
+            sp.reset();
             EXPECT_EQ(Tracker::alive, 0);
         }
 
@@ -79,20 +79,20 @@ namespace pdl
             {
                 SharedPointer<Tracker> sp(raw);
                 EXPECT_TRUE(bool(sp));
-                EXPECT_EQ(sp.Get(), raw);
+                EXPECT_EQ(sp.get(), raw);
                 EXPECT_EQ(sp->value, 42);
-                EXPECT_EQ(sp.UseCount(), 1u);
+                EXPECT_EQ(sp.use_count(), 1u);
 
                 // Copy to ensure control block is set up correctly
                 {
                     SharedPointer<Tracker> sp2 = sp;
-                    EXPECT_EQ(sp.UseCount(), 2u);
-                    EXPECT_EQ(sp2.UseCount(), 2u);
-                    EXPECT_EQ(sp2.Get(), raw);
+                    EXPECT_EQ(sp.use_count(), 2u);
+                    EXPECT_EQ(sp2.use_count(), 2u);
+                    EXPECT_EQ(sp2.get(), raw);
                     EXPECT_EQ(Tracker::alive, 1);
                 }
 
-                EXPECT_EQ(sp.UseCount(), 1u);
+                EXPECT_EQ(sp.use_count(), 1u);
             }
 
             // Upon leaving scope, the object should be destroyed
@@ -101,7 +101,7 @@ namespace pdl
             // Also verify constructing with nullptr yields empty shared pointer
             SharedPointer<Tracker> sp_null(nullptr);
             EXPECT_FALSE(bool(sp_null));
-            EXPECT_EQ(sp_null.UseCount(), 0u);
+            EXPECT_EQ(sp_null.use_count(), 0u);
         }
     }
 }
