@@ -107,6 +107,7 @@ namespace pdl
         BindlessDescriptors::BindlessDescriptorInfo bindlessDescriptorInfo {};
         m_bindlessDescriptors->Initialize(bindlessDescriptorInfo);
         
+#ifdef PDL_FEATURE_IMGUI
         ImGuiRenderer::InitInfo imguiInitInfo
         {
             .m_window = initInfo.m_applicationWindow,
@@ -114,8 +115,9 @@ namespace pdl
             .m_useHDR = initInfo.m_useHDR
         };
         
-        m_imguiRenderer = MakeSharedPointer<ImGuiRenderer>(imguiInitInfo);
-
+        ImGuiRenderer::Instance().Initialize(imguiInitInfo);
+#endif
+        
         m_frameInfo.eyePos = Math::Vector3(0.0f, 0.0f, 0.0f);
         m_frameInfo.projection = GetRenderDevice()->GetRenderDeviceInfo().identityProjection;
         m_frameInfo.view = glm::identity<Math::Matrix44>();
@@ -143,13 +145,13 @@ namespace pdl
         auto vertShaderResults = shaderCompiler.CompileShader({"shader.vert", vert_code,  "vertexmain"});
         auto fragShaderResults = shaderCompiler.CompileShader({"shader.frag", frag_code,  "fragmentmain"});
         
-        pdl::IShaderObject::ShaderObjectDescriptor vertexShaderDesc;
+        IShaderObject::ShaderObjectDescriptor vertexShaderDesc;
         vertexShaderDesc.m_shaderType = pdl::ShaderType::Vertex;
         vertexShaderDesc.m_entryPoint = "vertexmain";
         vertexShaderDesc.m_shaderData = &vertShaderResults.value();
         vertexShaderDesc.m_descriptorSet = GetBindlessDescriptors();
     
-        pdl::IShaderObject::ShaderObjectDescriptor fragShaderDesc;
+        IShaderObject::ShaderObjectDescriptor fragShaderDesc;
         fragShaderDesc.m_shaderType = pdl::ShaderType::Fragment;
         fragShaderDesc.m_entryPoint = "fragmentmain";
         fragShaderDesc.m_shaderData = &fragShaderResults.value();
@@ -180,14 +182,18 @@ namespace pdl
     {
         UpdateFrameInfoBuffer();
         m_bindlessDescriptors->WriteDescriptors();
-        m_imguiRenderer->BeginFrame();
+#ifdef PDL_FEATURE_IMGUI
+        ImGuiRenderer::Instance().BeginFrame();
+#endif
         return m_internalRenderer->BeginFrame();
     }
 
     bool Renderer::EndFrame()
     {
         bool frameEnded = m_internalRenderer->EndFrame();
-        m_imguiRenderer->EndFrame();
+#ifdef PDL_FEATURE_IMGUI
+        ImGuiRenderer::Instance().EndFrame();
+#endif
         return frameEnded;
     }
 
@@ -206,7 +212,9 @@ namespace pdl
     
     bool Renderer::EndRenderPass()
     {
-        m_imguiRenderer->Render();
+#ifdef PDL_FEATURE_IMGUI
+        ImGuiRenderer::Instance().Render();
+#endif
         return m_internalRenderer->EndRenderPass();
     }
 

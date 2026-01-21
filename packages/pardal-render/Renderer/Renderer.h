@@ -49,7 +49,6 @@ private:
     
     SharedPointer<IRenderDevice> m_device;
     SharedPointer<IInternalRenderer> m_internalRenderer;
-    SharedPointer<ImGuiRenderer> m_imguiRenderer;
 
     SharedPointer<BindlessDescriptors> m_bindlessDescriptors;
 

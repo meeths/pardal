@@ -1,7 +1,9 @@
 
 #pragma once
 #include "Base/BaseTypes.h"
+#include "Base/ISingleton.h"
 #include "Containers/Vector.h"
+#include "ImGui/ImGuiRenderable.h"
 #include "Math/Vector2.h"
 
 // Created on 2025-04-01 by sisco
@@ -12,7 +14,7 @@ class ImGuiRenderable;
 class IRenderDevice;
 class ApplicationWindow;
 
-class ImGuiRenderer
+class ImGuiRenderer : public ISingleton<ImGuiRenderer> 
 {
 public:
     struct InitInfo
@@ -21,7 +23,7 @@ public:
         IRenderDevice* m_device;
         bool m_useHDR = false;
     };
-    ImGuiRenderer(const InitInfo& initInfo);
+    void Initialize(const InitInfo& initInfo);
     ~ImGuiRenderer();
     
     void BeginFrame();
@@ -39,7 +41,7 @@ private:
     void OnKeyDown(int16 key);
     void OnKeyInput(int16 key);
 
-    IRenderDevice* m_device;
+    IRenderDevice* m_device = nullptr;
     Vector<ImGuiRenderable*> m_renderables;
 };
 

@@ -20,7 +20,8 @@
 
 namespace pdl
 {
-    ImGuiRenderer::ImGuiRenderer(const InitInfo& initInfo)
+    
+    void ImGuiRenderer::Initialize(const InitInfo& initInfo)
     {
         m_device = initInfo.m_device;
         
@@ -73,6 +74,7 @@ namespace pdl
 
     void ImGuiRenderer::BeginFrame()
     {
+        pdlAssert(m_device && "ImGuiRenderer::BeginFrame: Not initialized");
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
 
@@ -91,6 +93,14 @@ namespace pdl
 
     void ImGuiRenderer::Render()
     {
+        for (auto renderable : m_renderables)
+        {
+            renderable->ImGuiPreRender();
+        }
+        for (auto renderable : m_renderables)
+        {
+            renderable->ImGuiRender();
+        }
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
     }
