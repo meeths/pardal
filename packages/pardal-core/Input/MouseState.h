@@ -18,6 +18,9 @@ struct MouseState
     ButtonState mX2MB;
 
     Math::Vector2 mCursorPosition = Math::Vector2(0, 0);
+    
+    float mWheelV = 0;
+    float mWheelH = 0;
 };
 
 }

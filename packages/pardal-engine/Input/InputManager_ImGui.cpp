@@ -1,6 +1,8 @@
 #ifdef PDL_FEATURE_IMGUI
-#include <Input/InputManager_ImGui.h>
 #include <Input/InputManager.h>
+#include <Input/InputManager_ImGui.h>
+#include "ImGui/ImGuiRenderer.h"
+
 #include <imgui.h>
 
 // Created on 2026-01-13 by sisco
@@ -10,10 +12,15 @@ namespace pdl
     InputManager_ImGui::InputManager_ImGui(InputManager& inputManager) :
         m_inputManager(inputManager)
     {
-        
+        ImGuiRenderer::Instance().RegisterRenderable(this);
     }
 
-    void InputManager_ImGui::Update()
+    InputManager_ImGui::~InputManager_ImGui()
+    {
+        ImGuiRenderer::Instance().UnregisterRenderable(this);
+    }
+
+    void InputManager_ImGui::ImGuiRender()
     {
         ImGui::Begin("Input");
         ImGui::Text("Mouse position: (%.1f, %.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);

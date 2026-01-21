@@ -1,6 +1,7 @@
 
 #include <Input/InputManager.h>
 
+#include "Application/IApplicationWindow.h"
 #include "Input/InputStateUpdater.h"
 #include "Log/Log.h"
 
@@ -18,13 +19,23 @@ namespace pdl
     Expected<void, String> InputManager::Update()
     {
         auto updateResults = UpdateInternal();
-#ifdef PDL_FEATURE_IMGUI
-        m_ImGui.Update();
-#endif
-        
         return updateResults;
     }
 
+    void InputManager::ConfigureApplicationWindow(IApplicationWindow& window)
+    {
+        window.AddMouseWheelHCallback([this](auto delta){ m_mouseState.mWheelH += delta; m_mouseWheelHCallbacks(delta);});
+        window.AddMouseWheelVCallback([this](auto delta){ m_mouseState.mWheelH += delta; m_mouseWheelVCallbacks(delta);});
+        window.AddKeyDownCallback([this](auto key) {m_keyDownCallbacks(key);});
+        window.AddKeyUpCallback([this](auto key) {m_keyUpCallbacks(key);});
+        window.AddKeyInputCallback([this](auto key) {m_keyInputCallbacks(key);});
+        window.AddMouseMoveCallback([this](Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods) 
+        {
+            m_mouseMoveCallbacks(pos, lButton, rButton, mButton, mods);
+        });
+
+    }
+    
     Expected<void, String> InputManager::UpdateInternal()
     {
         auto keyboardUpdateResults = InputStateUpdater::UpdateKeyboardState( m_keyboardState);
@@ -42,7 +53,7 @@ namespace pdl
         if (gamepadCountResults.value() != m_gamepadStates.size())
         {
             m_gamepadStates.resize( gamepadCountResults.value());
-            // Fire gamepad count changed event
+            m_gamepadCountChanged(static_cast<uint8>(gamepadCountResults.value()));
         }
         
         for (uint32 i = 0; i < m_gamepadStates.size(); ++i)
