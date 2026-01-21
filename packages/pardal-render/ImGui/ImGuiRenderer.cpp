@@ -93,13 +93,16 @@ namespace pdl
 
     void ImGuiRenderer::Render()
     {
-        for (auto renderable : m_renderables)
         {
-            renderable->ImGuiPreRender();
-        }
-        for (auto renderable : m_renderables)
-        {
-            renderable->ImGuiRender();
+            auto renderables = m_renderables.LockForRead();
+            for (auto renderable : *renderables)
+            {
+                renderable->ImGuiPreRender();
+            }
+            for (auto renderable : *renderables)
+            {
+                renderable->ImGuiRender();
+            }
         }
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
@@ -107,12 +110,14 @@ namespace pdl
 
     void ImGuiRenderer::RegisterRenderable(ImGuiRenderable* renderable)
     {
-        m_renderables.push_back(renderable);
+        auto renderables = m_renderables.LockForWrite();
+        renderables->push_back(renderable);
     }
 
     void ImGuiRenderer::UnregisterRenderable(ImGuiRenderable* renderable)
     {
-        m_renderables.erase(std::remove(m_renderables.begin(), m_renderables.end(), renderable), m_renderables.end());
+        auto renderables = m_renderables.LockForWrite();
+        renderables->erase(std::remove(renderables->begin(), renderables->end(), renderable), renderables->end());
     }
 
     void ImGuiRenderer::OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods)

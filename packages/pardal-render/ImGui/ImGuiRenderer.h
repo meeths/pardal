@@ -5,6 +5,7 @@
 #include "Containers/Vector.h"
 #include "ImGui/ImGuiRenderable.h"
 #include "Math/Vector2.h"
+#include "Threading/SRWSynchronized.h"
 
 // Created on 2025-04-01 by sisco
 
@@ -42,7 +43,7 @@ private:
     void OnKeyInput(int16 key);
 
     IRenderDevice* m_device = nullptr;
-    Vector<ImGuiRenderable*> m_renderables;
+    SRWSynchronized<Vector<ImGuiRenderable*>> m_renderables;
 };
 
 }
