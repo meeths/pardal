@@ -25,15 +25,6 @@ namespace pdl
  
     }
 
-    Optional<String> EngineOptions::GetOption(StringView key) const
-    {
-        if (m_options.contains(String(key)))
-            return m_options.at(String(key));
-        return {};
-    }
-
-    // moved inline into header: EngineOptions::ParseArgsLine
-
     void EngineOptions::ParseProgramArguments()
     {
         auto options = ProgramArguments::GetProgramArguments();
