@@ -1,6 +1,7 @@
 
 #pragma once
 #include <Base/BaseTypes.h>
+#include <String/StringCast.h>
 
 // Created on 2025-03-23 by sisco
 
@@ -31,6 +32,17 @@ namespace pdl
         }
     }
 
+    template <>
+    inline RenderDeviceType StringCast::FromString<RenderDeviceType>(const StringView& valueStr)
+    {   
+        if (valueStr == "None") return RenderDeviceType::None;
+        if (valueStr == "D3D11") return RenderDeviceType::D3D11;
+        if (valueStr == "D3D12") return RenderDeviceType::D3D12;
+        if (valueStr == "Metal") return RenderDeviceType::Metal;
+        if (valueStr == "Vulkan") return RenderDeviceType::Vulkan;
+        if (valueStr == "OpenGL") return RenderDeviceType::OpenGL;
+        return RenderDeviceType::None;
+    }
 
 }
 
