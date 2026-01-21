@@ -25,7 +25,8 @@ namespace StringCast
     String ToString(const int& value);
     String ToString(const unsigned int& value);
     String ToString(const float& value);
-    String ToString(const String& value);
+    String ToString(const StringView& value);
+    String ToString(const char* const& value);
 
     String ToString(const Math::Vector3& value);
     String ToString(const Math::Vector4& value);
@@ -33,29 +34,29 @@ namespace StringCast
 
 
     template <typename T>
-    T FromString(const String& value);
+    T FromString(const StringView& value);
 
     template <>
-    bool FromString(const String& valueStr);
+    bool FromString(const StringView& valueStr);
 
     template <>
-    int FromString(const String& valueStr);
+    int FromString(const StringView& valueStr);
 
     template <>
-    unsigned int FromString(const String& valueStr);
+    unsigned int FromString(const StringView& valueStr);
 
     template <>
-    float FromString(const String& valueStr);
+    float FromString(const StringView& valueStr);
 
     template <>
-    Math::Vector3 FromString(const String& valueStr);
+    Math::Vector3 FromString(const StringView& valueStr);
     template <>
-    Math::Vector4 FromString(const String& valueStr);
+    Math::Vector4 FromString(const StringView& valueStr);
     template <>
-    Math::Quaternion FromString(const String& valueStr);
+    Math::Quaternion FromString(const StringView& valueStr);
 
     template <>
-    String FromString(const String& valueStr);
+    String FromString(const StringView& valueStr);
 
 
     // return empty string if no conversion possible
@@ -71,7 +72,7 @@ namespace StringCast
     }
 
     template <typename T>
-    T FromString(const String& /* value */)
+    T FromString(const StringView& /* value */)
     {
         return T();
     }

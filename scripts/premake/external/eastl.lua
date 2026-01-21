@@ -11,6 +11,7 @@ function includeEASTL()
     filter "toolset:not msc*"
         buildoptions  { "-Wno-deprecated-literal-operator" }
     filter {}
+    defines { "PDL_USING_EASTD", "EASTL_EASTDC_VSNPRINTF=0" }
 end
 
 function compileEASTL()

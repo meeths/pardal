@@ -34,6 +34,11 @@ namespace StringCast
         return value;
     }
 
+    String ToString(const char* const& value)
+    {
+        return value;
+    }
+
     String ToString(const Math::Vector3& value)
     {
         return StringUtils::StringFormat("(%f, %f, %f)", value.x, value.y, value.z);
@@ -52,57 +57,57 @@ namespace StringCast
     // From string
 
     template <>
-    bool FromString(const String& valueStr)
+    bool FromString(const StringView& valueStr)
     {
         return valueStr == "true";
     }
 
     template <>
-    int FromString(const String& valueStr)
+    int FromString(const StringView& valueStr)
     {
-        return std::stoi(valueStr.c_str());
+        return std::stoi(valueStr.data());
     }
 
     template <>
-    unsigned int FromString(const String& valueStr)
+    unsigned int FromString(const StringView& valueStr)
     {
-        return std::stoul(valueStr.c_str());
+        return std::stoul(valueStr.data());
     }
 
     template <>
-    float FromString(const String& valueStr)
+    float FromString(const StringView& valueStr)
     {
-        return std::stof(valueStr.c_str());
+        return std::stof(valueStr.data());
     }
 
     template <>
-    Math::Vector3 FromString<Math::Vector3>(const String& valueStr)
+    Math::Vector3 FromString<Math::Vector3>(const StringView& valueStr)
     {
         Math::Vector3 ret;
-        sscanf_s(valueStr.c_str(), "(%f, %f, %f)", &ret.x, &ret.y, &ret.z);
+        sscanf_s(valueStr.data(), "(%f, %f, %f)", &ret.x, &ret.y, &ret.z);
         return ret;
     }
 
     template <>
-    Math::Vector4 FromString<Math::Vector4>(const String& valueStr)
+    Math::Vector4 FromString<Math::Vector4>(const StringView& valueStr)
     {
         Math::Vector4 ret;
-        sscanf_s(valueStr.c_str(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
+        sscanf_s(valueStr.data(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
         return ret;
     }
 
     template <>
-    Math::Quaternion FromString<Math::Quaternion>(const String& valueStr)
+    Math::Quaternion FromString<Math::Quaternion>(const StringView& valueStr)
     {
         Math::Quaternion ret;
-        sscanf_s(valueStr.c_str(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
+        sscanf_s(valueStr.data(), "(%f, %f, %f, %f)", &ret.x, &ret.y, &ret.z, &ret.w);
         return ret;
     }
 
     template <>
-    String FromString(const String& valueStr)
+    String FromString(const StringView& valueStr)
     {
-        return valueStr;
+        return String(valueStr);
     }
 }
 }
