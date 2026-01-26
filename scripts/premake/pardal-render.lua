@@ -12,7 +12,9 @@ project "pardal-render"
         "%{BASE_DIR}packages/pardal-render/**.cpp",
         "%{BASE_DIR}packages/pardal-render/**.c"
     }
-    
+
+    defines {"PDL_VULKAN"}
+
     includedirs {
         "%{BASE_DIR}packages/pardal-render/",
         "%{BASE_DIR}packages/pardal-core/"

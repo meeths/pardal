@@ -236,14 +236,6 @@ vk::ImageUsageFlags VulkanUtils::TranslateToVkImageUsageFlags(TextureUsage usage
     return flags;
 }
 
-ITexture::TextureDescriptor VulkanUtils::SanitizeTextureDescriptor(const ITexture::TextureDescriptor& desc)
-{
-    auto descOut = desc;
-    if (descOut.m_arraySize == 0) descOut.m_arraySize = 1;
-    if (descOut.m_mipLevels == 0) descOut.m_mipLevels = CalculateMipLevels(descOut.m_extents);
-        return descOut;
-}
-
 int VulkanUtils::CalculateMipLevels(const Math::Vector3i& extents)
 {
     int32 maxSize = Math::Max(Math::Max(extents.x, extents.y), extents.z);

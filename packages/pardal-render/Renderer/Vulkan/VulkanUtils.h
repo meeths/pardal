@@ -1,11 +1,10 @@
 
 #pragma once
-#include <Base/DebugHelpers.h>
-#include <Log/Log.h>
-#include <Math/Vector3.h>
-#include <Renderer/ITexture.h>
-#include <Renderer/RendererTypes.h>
-#include <Renderer/PipelineState.h>
+#include "Base/DebugHelpers.h"
+#include "Log/Log.h"
+#include "Math/Vector3i.h"
+#include "Renderer/RendererTypes.h"
+
 #include <vulkan/vulkan.hpp>
 
 // Created on 2025-03-23 by sisco
@@ -25,7 +24,6 @@ public:
     static vk::Format TranslateToVkFormat(Format format);
     static Format TranslateFromVkFormat(vk::Format format);
     static vk::ImageUsageFlags TranslateToVkImageUsageFlags(TextureUsage usage);
-    static ITexture::TextureDescriptor SanitizeTextureDescriptor(const ITexture::TextureDescriptor& desc);
     static int CalculateMipLevels(const Math::Vector3i& extents);
     static vk::ImageAspectFlags GetVkAspectFlagsFromFormat(vk::Format format);
     static vk::ImageLayout GetImageLayoutFromState(ResourceState state);
