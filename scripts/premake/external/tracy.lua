@@ -20,7 +20,8 @@ function includeTracy()
     includedirs { TRACY_DIR .."/tracy-"..TRACY_VER.. "/public" }
     defines { 
         "TRACY_ON_DEMAND", 
-        "TRACY_ENABLE" 
+        "TRACY_ENABLE",
+        "PDL_FEATURE_TRACY"
     }
     filter {}
 end
