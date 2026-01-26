@@ -1,7 +1,7 @@
 
 #pragma once
+#ifdef PDL_FEATURE_IMGUI
 #include "Base/BaseTypes.h"
-#include "Base/ISingleton.h"
 #include "Containers/Vector.h"
 #include "ImGui/ImGuiRenderable.h"
 #include "Math/Vector2.h"
@@ -15,7 +15,7 @@ class ImGuiRenderable;
 class IRenderDevice;
 class ApplicationWindow;
 
-class ImGuiRenderer : public ISingleton<ImGuiRenderer> 
+class ImGuiRenderer 
 {
 public:
     struct InitInfo
@@ -42,9 +42,21 @@ private:
     void OnKeyDown(int16 key);
     void OnKeyInput(int16 key);
 
+    void CheckHotkeys();
+    
+    enum class ViewMode
+    {
+        Full,
+        NoMenu,
+        Hidden
+    };
+
+    ViewMode m_viewMode = ViewMode::Full;
+#ifdef PDL_VULKAN
     IRenderDevice* m_device = nullptr;
+#endif
     SRWSynchronized<Vector<ImGuiRenderable*>> m_renderables;
 };
 
 }
-
+#endif

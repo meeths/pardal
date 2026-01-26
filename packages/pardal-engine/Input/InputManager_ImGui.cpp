@@ -1,9 +1,12 @@
 #ifdef PDL_FEATURE_IMGUI
-#include <Input/InputManager.h>
-#include <Input/InputManager_ImGui.h>
-#include "ImGui/ImGuiRenderer.h"
+#include "Input/InputManager_ImGui.h"
 
 #include <imgui.h>
+
+#include "Base/ServiceLocator.h"
+#include "ImGui/ImGuiRenderer.h"
+#include "Input/InputManager.h"
+
 
 // Created on 2026-01-13 by sisco
 
@@ -12,16 +15,28 @@ namespace pdl
     InputManager_ImGui::InputManager_ImGui(InputManager& inputManager) :
         m_inputManager(inputManager)
     {
-        ImGuiRenderer::Instance().RegisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
     }
 
     InputManager_ImGui::~InputManager_ImGui()
     {
-        ImGuiRenderer::Instance().UnregisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
+    }
+
+    void InputManager_ImGui::ImGuiMenuSetup()
+    {
+        ImGuiRenderable::ImGuiMenuSetup();
+        if (ImGui::BeginMenu("Engine"))
+        {
+            if (ImGui::MenuItem("Input manager", nullptr, m_enabled)) { m_enabled = !m_enabled;}
+            ImGui::EndMenu();
+        }
     }
 
     void InputManager_ImGui::ImGuiRender()
     {
+        if (!m_enabled) return;
+        
         ImGui::Begin("Input");
         ImGui::Text("Mouse position: (%.1f, %.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
         for (uint32 i = 0; i < m_inputManager.GetGamepadCount(); ++i)

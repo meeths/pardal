@@ -13,10 +13,12 @@ class InputManager_ImGui : public ImGuiRenderable
 {
 public:
     InputManager_ImGui(InputManager& inputManager);
-    ~InputManager_ImGui();
+    ~InputManager_ImGui() override;
+    void ImGuiMenuSetup() override;
     void ImGuiRender() override;
 private:
     InputManager& m_inputManager;
+    bool m_enabled = false;
 };
 }
 #endif

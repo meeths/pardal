@@ -9,7 +9,10 @@
 
 namespace pdl
 {
-    InputManager::InputManager() : m_ImGui(*this)
+    InputManager::InputManager()
+#ifdef PDL_FEATURE_IMGUI
+    : m_ImGui(*this)
+#endif
     {
         auto results = UpdateInternal();
         if (!results)

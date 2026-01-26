@@ -10,7 +10,7 @@ class ImGuiRenderable
 {
 public:
 	virtual ~ImGuiRenderable() = default;
-	virtual void ImGuiPreRender() {};
+	virtual void ImGuiMenuSetup() {};
 	virtual void ImGuiRender() = 0;
 };
 
