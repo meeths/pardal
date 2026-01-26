@@ -1,5 +1,10 @@
 #pragma once
 
+#define pdlNOOP() do{}while(0)
+
+#define pdlNoDiscard [[nodiscard]]
+#define pdlMaybeUnused [[maybe_unused]]
+
 #define DeclareNonCopyable(classname) classname ( const classname& ) = delete; classname &operator=(classname &a) = delete
 #define DeclareNonMoveable(classname) classname(classname &&) = delete; classname &operator=(classname &&a) = delete
 
@@ -8,7 +13,7 @@
 
 #define DefineGlobalConstexprVariableAccessor(classname, name, value)     inline static constexpr classname name() { return value;}
 
-#define DefineGlobalStaticVariableAccessor(classname, name, value)     inline classname name() { static classname ret = value;  return value; }
+#define DefineGlobalStaticVariableAccessor(classname, name, value)     inline static classname name() { static classname ret = value;  return value; }
 
 #define DeclareBasicIteratorsToMemberContainer(member_container) \
     auto begin() { return (member_container).begin(); }\
