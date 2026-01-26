@@ -8,5 +8,5 @@
 function includeTaskflow()
     filter {}
     includedirs "%{BASE_DIR}external/taskflow"
-    defines { "PDL_FEATURE_TASKFLOW" }
+    defines { "PDL_FEATURE_TASKFLOW", "TF_DISABLE_EXCEPTION_HANDLING" }
 end
