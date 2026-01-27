@@ -1,5 +1,6 @@
 #include <Renderer/Vulkan/VulkanRenderer.h>
 
+#include "VulkanBuffer.h"
 #include "VulkanUtils.h"
 #include "Application/ApplicationWindow.h"
 #include "Containers/VectorUtils.h"
@@ -176,7 +177,7 @@ namespace Details
         return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName.data() == extension; }));
     }
 
-    inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties)
+    inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties, vk::PhysicalDeviceFeatures& physicalDeviceFeatures, void*& physicalDeviceFeatures2next)
     {
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
@@ -249,6 +250,9 @@ namespace Details
             vk::PhysicalDeviceShaderAtomicFloatFeaturesEXT
         >();
 
+
+        physicalDeviceFeatures2next = deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().pNext;
+        
         if (deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().features.shaderResourceMinLod)
         {
             features.push_back("shader-resource-min-lod");
@@ -411,6 +415,19 @@ namespace Details
 
 #undef SIMPLE_EXTENSION_FEATURE
 
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().bufferDeviceAddress = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorIndexing = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingPartiallyBound = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingVariableDescriptorCount = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().runtimeDescriptorArray = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().scalarBlockLayout = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().uniformBufferStandardLayout = VK_TRUE;
+        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().timelineSemaphore = VK_TRUE;
+        
         if (deviceFeatures2.get<vk::PhysicalDeviceShaderAtomicInt64Features>().shaderBufferInt64Atomics)
             features.push_back("atomic-int64");
 
@@ -587,6 +604,7 @@ namespace Details
             }
         }
 
+        physicalDeviceFeatures = deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().features;
         features.push_back("hardware-device");
     }
 
@@ -672,6 +690,76 @@ namespace pdl
     VulkanRenderer::~VulkanRenderer()
     {
     }
+
+    Expected<BufferHandle, StringView> VulkanRenderer::CreateBuffer(uint32 size, BufferUsage usage,
+        MemoryType memoryType)
+    {
+        VulkanBuffer buffer;
+        buffer.m_usage = VulkanUtils::GetBufferUsageFlags(usage);
+        buffer.m_size = size;
+        buffer.m_memoryPropertyFlags = VulkanUtils::GetMemoryPropertyFlags(memoryType);
+        
+        VkBufferCreateInfo bufferCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .flags = 0,
+            .size = size,
+            .usage = static_cast<VkBufferUsageFlags>(buffer.m_usage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr
+        };
+        
+        VmaAllocationCreateInfo allocCreateInfo{};
+        if (buffer.m_memoryPropertyFlags | vk::MemoryPropertyFlagBits::eHostVisible)
+        {
+            allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+            allocCreateInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+            allocCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        }
+        
+        allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+        VkBuffer newBuffer = VK_NULL_HANDLE; 
+        auto createBufferResults = vmaCreateBufferWithAlignment(Details::g_vmaAllocator, &bufferCreateInfo, &allocCreateInfo, 16, &newBuffer, &buffer.m_allocation, nullptr);
+        
+        if (createBufferResults != VK_SUCCESS)
+        {
+            pdlLogError("Failed to allocate buffer with error code %d", createBufferResults);
+            return Unexpected<StringView>("Failed to create buffer");
+        }
+        
+        buffer.m_buffer = newBuffer;
+        
+        if (buffer.m_memoryPropertyFlags | vk::MemoryPropertyFlagBits::eHostVisible) {
+            vmaMapMemory(Details::g_vmaAllocator, buffer.m_allocation, &buffer.m_mappedPtr);
+        }
+        
+        if (buffer.m_usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) 
+        {
+            const vk::BufferDeviceAddressInfo ai(buffer.m_buffer);
+            buffer.m_deviceAddress = m_vkDevice.getBufferAddress(&ai);
+            pdlAssert(buffer.m_deviceAddress != 0);
+        }
+        
+        return m_buffersPool.Create(std::move(buffer));
+    }
+
+    void VulkanRenderer::Destroy(BufferHandle bufferHandle)
+    {
+        if (!m_buffersPool.IsValid(bufferHandle))
+        {
+            pdlLogWarning("VulkanRenderer::Destroy: Invalid BufferHandle {0x%016X}. Maybe destroyed already?", bufferHandle.GetHandleAsVoid());
+            return;
+        }
+        
+        VulkanBuffer* bufferPtr = m_buffersPool.Get(bufferHandle);
+
+        if (bufferPtr->m_mappedPtr) {
+            vmaUnmapMemory(Details::g_vmaAllocator, bufferPtr->m_allocation);
+        }
+        
+        m_buffersPool.Destroy(bufferHandle);
+        vmaDestroyBuffer(Details::g_vmaAllocator, bufferPtr->m_buffer, bufferPtr->m_allocation);
+    }   
 
     Expected<void, StringView> VulkanRenderer::InitializeInstanceAndDevice(const InitInfo& initInfo)
     {
@@ -778,9 +866,11 @@ namespace pdl
         // Configure all available extensions
         Vector<const char*> deviceExtensionNames;
         Vector<const char*> deviceFeatures;
+        vk::PhysicalDeviceFeatures physicalDeviceFeatures;
+        void* physicalDeviceFeatures2Next;
         auto extensionProperties = m_vkPhysicalDevice.enumerateDeviceExtensionProperties();
         auto extensionPropertiesVector = VectorUtils::FromStd(extensionProperties.value);
-        Details::EnumerateAllExtensionsAndFeatures(m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector);
+        Details::EnumerateAllExtensionsAndFeatures(m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector, physicalDeviceFeatures, physicalDeviceFeatures2Next);
 
         // Queues
         m_deviceQueues.graphicsQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics);
@@ -808,7 +898,8 @@ namespace pdl
                                             0,
                                             nullptr,
                                             deviceExtensionNames.size(),
-                                            deviceExtensionNames.data());
+                                            deviceExtensionNames.data(),
+                                            &physicalDeviceFeatures, physicalDeviceFeatures2Next);
 
         // Set up chain of extensions
         auto* pNext = const_cast<void**>(&deviceCreateInfo.pNext);
@@ -903,7 +994,6 @@ namespace pdl
         CHECK_VK_RESULTVALUE(createPipelineCacheResults);
         m_vkPipelineCache = createPipelineCacheResults.value;
         
-
 #ifdef PDL_PLATFORM_WINDOWS
         vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo = {};
         surfaceCreateInfo.hinstance = static_cast<HINSTANCE>(initInfo.m_applicationWindow.GetNativeModuleHandle());
@@ -916,6 +1006,10 @@ namespace pdl
 #endif
 
 
+        auto newBuffer = CreateBuffer(1024, BufferUsage::VertexBuffer, MemoryType::DeviceLocal);
+        
+        Destroy(newBuffer.value());
+        Destroy(newBuffer.value());
         return {};
     }
 }

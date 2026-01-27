@@ -1,8 +1,7 @@
 #pragma once
 #include <Base/BaseTypes.h>
 #include <Base/BaseDefines.h>
-
-#include "Base/Handle.h"
+#include "Containers/PoolHandle.h"
 
 // Created on 2025-03-23 by sisco
 
@@ -278,8 +277,8 @@ namespace pdl
     enum class MemoryType : uint8
     {
         DeviceLocal,
-        Upload,
-        ReadBack,
+        HostVisible,
+        MemoryLess,
     };
 
     enum class BufferUsage : uint16
@@ -637,15 +636,15 @@ namespace pdl
         }
     };
    
-    using ComputePipelineHandle = Handle<struct ComputePipeline>;
-    using RenderPipelineHandle = Handle<struct RenderPipeline>;
-    using RayTracingPipelineHandle = Handle<struct RayTracingPipeline>;
-    using ShaderModuleHandle = Handle<struct ShaderModule>;
-    using SamplerHandle = Handle<struct Sampler>;
-    using BufferHandle = Handle<struct Buffer>;
-    using TextureHandle = Handle<struct Texture>;
-    using QueryPoolHandle = Handle<struct QueryPool>;
-    using AccelerationStructHandle = Handle<struct AccelerationStructure>;
+    using ComputePipelineHandle = PoolHandle<struct ComputePipeline>;
+    using RenderPipelineHandle = PoolHandle<struct RenderPipeline>;
+    using RayTracingPipelineHandle = PoolHandle<struct RayTracingPipeline>;
+    using ShaderModuleHandle = PoolHandle<struct ShaderModule>;
+    using SamplerHandle = PoolHandle<struct Sampler>;
+    using BufferHandle = PoolHandle<struct Buffer>;
+    using TextureHandle = PoolHandle<struct Texture>;
+    using QueryPoolHandle = PoolHandle<struct QueryPool>;
+    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
     
     
 }

@@ -415,7 +415,7 @@ vk::ImageUsageFlagBits VulkanUtils::GetImageUsageFlags(TextureUsage usage)
 vk::ImageUsageFlags VulkanUtils::GetImageUsageFlags(TextureUsage usage, MemoryType memoryType, const void* initData)
 {
     int imageUsageFlags = static_cast<int>(GetImageUsageFlags(usage));
-    if (memoryType == MemoryType::Upload || initData)
+    if (memoryType == MemoryType::HostVisible || initData)
     {
         imageUsageFlags |= static_cast<int>(vk::ImageUsageFlagBits::eTransferDst);
     }
@@ -498,6 +498,21 @@ uint32 VulkanUtils::FindMemoryType( vk::PhysicalDeviceMemoryProperties const & m
     }
     assert( typeIndex != uint32( ~0 ) );
     return typeIndex;
+}
+
+vk::MemoryPropertyFlags VulkanUtils::GetMemoryPropertyFlags(MemoryType memoryType)
+{
+    switch (memoryType)
+    {
+    case MemoryType::HostVisible:
+        return vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+    case MemoryType::DeviceLocal:
+        return vk::MemoryPropertyFlagBits::eDeviceLocal;
+    case MemoryType::MemoryLess:
+        return vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eLazilyAllocated;
+    }
+    pdlAssert(0 && "Unsupported MemoryType");
+    return {};
 }
 
 vk::DescriptorType VulkanUtils::GetDescriptorType(DescriptorTypes descriptorType)

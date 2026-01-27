@@ -1,5 +1,7 @@
 
 #pragma once
+#include "Renderer/RendererTypes.h"
+#include "Base/BaseTypes.h"
 #include "String/String.h"
 
 // Created on 2026-01-26 by sisco
@@ -26,6 +28,11 @@ public:
     
     virtual const RenderDeviceInfo& GetDeviceInfo() const = 0;
     
+    virtual Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
+        BufferUsage usage,
+        MemoryType memoryType) = 0;
+    
+    virtual void Destroy(BufferHandle bufferHandle) = 0;
 };
 
 }

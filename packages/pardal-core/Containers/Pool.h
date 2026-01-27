@@ -66,6 +66,14 @@ namespace pdl
 			m_freeListHead = index;
 			m_numObjects--;
 		}
+		
+		bool IsValid(PoolHandle<BaseT> _poolHandle) const
+		{
+			auto index = _poolHandle.GetIndex();
+			if(index >= m_objects.size())
+				return false;
+			return _poolHandle.GetGeneration() == m_objects[index].m_generation;
+		}
 
 		const ImplT* Get(PoolHandle<BaseT> _poolHandle) const
 		{

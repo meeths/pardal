@@ -4,7 +4,10 @@
 #include "Base/Expected.h"
 #include "Renderer/IRenderer.h"
 #include "Renderer/RenderererInfo.h"
+#include "Renderer/Vulkan/VulkanBuffer.h"
+#include "Containers/Pool.h"
 #include <vulkan/vulkan.hpp>
+
 
 // Created on 2026-01-26 by sisco
 
@@ -20,6 +23,13 @@ public:
     DeclareNonCopyable(VulkanRenderer);
     
     const RenderDeviceInfo& GetDeviceInfo() const override { return m_deviceInfo; }
+    
+    Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
+                                                    BufferUsage usage,
+                                                    MemoryType memoryType) override;
+
+    void Destroy(BufferHandle bufferHandle) override;
+    
 private:
     Expected<void, StringView> InitializeInstanceAndDevice(const InitInfo& initInfo);
     RenderDeviceInfo m_deviceInfo = {};
@@ -31,6 +41,7 @@ private:
     vk::SurfaceKHR m_vkSurface;
     
     vk::PipelineCache m_vkPipelineCache;
+    
     struct DeviceQueues 
     {
         static constexpr int32 INVALID = -1;
@@ -42,6 +53,9 @@ private:
     };
     
     DeviceQueues m_deviceQueues;
+    
+    // Pools
+    Pool<Buffer, VulkanBuffer> m_buffersPool;
 };
 
 }

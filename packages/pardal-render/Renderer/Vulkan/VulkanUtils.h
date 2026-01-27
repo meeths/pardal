@@ -35,6 +35,7 @@ public:
     static vk::ImageUsageFlagBits GetImageUsageFlags(ResourceState state);
     static vk::BufferUsageFlags GetBufferUsageFlags(BufferUsage usage);
     static uint32 FindMemoryType(vk::PhysicalDeviceMemoryProperties const & memoryProperties, uint32 typeBits, vk::MemoryPropertyFlags requirementsMask);
+    static vk::MemoryPropertyFlags GetMemoryPropertyFlags(MemoryType memoryType);
     static vk::DescriptorType GetDescriptorType(DescriptorTypes descriptorType);
     static vk::BlendOp GetBlendOp(BlendMode::BlendOp op);
     static vk::BlendFactor GetBlendFactor(BlendMode::BlendFactor factor);
