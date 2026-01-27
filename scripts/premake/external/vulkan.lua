@@ -15,6 +15,8 @@ function includeVulkan()
     }
     filter { "platforms:win32 or win64"}
         defines {"VK_USE_PLATFORM_WIN32_KHR"}
+    filter { "toolset:clang" }
+        buildoptions { "-Wno-nullability-completeness" }
     filter {}
 
 end

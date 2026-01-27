@@ -29,6 +29,19 @@ private:
     vk::Device m_vkDevice;
     vk::DebugUtilsMessengerEXT m_vkDebugMessenger;
     vk::SurfaceKHR m_vkSurface;
+    
+    vk::PipelineCache m_vkPipelineCache;
+    struct DeviceQueues 
+    {
+        static constexpr int32 INVALID = -1;
+        int32 graphicsQueueFamilyIndex = INVALID;
+        int32 computeQueueFamilyIndex = INVALID;
+
+        vk::Queue graphicsQueue;
+        vk::Queue computeQueue;
+    };
+    
+    DeviceQueues m_deviceQueues;
 };
 
 }

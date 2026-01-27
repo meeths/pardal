@@ -17,9 +17,15 @@
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
+#define VMA_IMPLEMENTATION
+#pragma clang diagnostic ignored "-Wunused-variable"
+#include <vma/vk_mem_alloc.h>
+
 // Created on 2026-01-26 by sisco
 namespace Details
 {
+    VmaAllocator g_vmaAllocator = VK_NULL_HANDLE;
+    
     static bool CheckLayers(const pdl::Vector<char const*>& layers, const pdl::Vector<vk::LayerProperties>& properties)
     {
         // return true if all layers are listed in the properties
@@ -44,7 +50,7 @@ namespace Details
         size_t mostVRAMfound = 0;
 
         // Find the best one if there's more than one
-        if(devices.size() > 1)
+        if (devices.size() > 1)
         {
             for (uint32 deviceIndex = 0; deviceIndex < devices.size(); ++deviceIndex)
             {
@@ -69,9 +75,9 @@ namespace Details
                 auto memoryProperties = device.getMemoryProperties();
                 for (auto& heap : memoryProperties.memoryHeaps)
                 {
-                    if(heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal)
+                    if (heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal)
                     {
-                        if(heap.size > mostVRAMfound)
+                        if (heap.size > mostVRAMfound)
                         {
                             mostVRAMfound = heap.size;
                             bestDeviceIndex = deviceIndex;
@@ -83,18 +89,18 @@ namespace Details
 
         return devices.at(bestDeviceIndex);
     }
-    
+
     static VkBool32 DebugUtilsMessengerCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                 vk::DebugUtilsMessageTypeFlagsEXT messageTypes,
                                                 vk::DebugUtilsMessengerCallbackDataEXT const* pCallbackData,
                                                 void* /*pUserData*/)
     {
         pdl::String debugMessage = pdl::StringUtils::StringFormat("[Vulkan %s] %s: %s [ID%s%d]",
-                                                                  vk::to_string(messageSeverity).c_str(),
-                                                                  vk::to_string(messageTypes).c_str(),
-                                                                  pCallbackData->pMessage,
-                                                                  pCallbackData->pMessageIdName,
-                                                                  pCallbackData->messageIdNumber
+                                                                vk::to_string(messageSeverity).c_str(),
+                                                                vk::to_string(messageTypes).c_str(),
+                                                                pCallbackData->pMessage,
+                                                                pCallbackData->pMessageIdName,
+                                                                pCallbackData->messageIdNumber
         );
 
         if (pCallbackData->queueLabelCount > 0)
@@ -125,13 +131,13 @@ namespace Details
             for (uint32_t i = 0; i < pCallbackData->objectCount; i++)
             {
                 debugMessage += pdl::StringUtils::StringFormat("%s %llx [%s],  ",
-                                                               vk::to_string(
-                                                                   static_cast<vk::ObjectType>(pCallbackData->pObjects[
-                                                                       i].objectType)).c_str(),
-                                                               pCallbackData->pObjects[i].objectHandle,
-                                                               pCallbackData->pObjects[i].pObjectName
-                                                                   ? pCallbackData->pObjects[i].pObjectName
-                                                                   : "???");
+                                                                vk::to_string(
+                                                                    static_cast<vk::ObjectType>(pCallbackData->pObjects[
+                                                                        i].objectType)).c_str(),
+                                                                pCallbackData->pObjects[i].objectHandle,
+                                                                pCallbackData->pObjects[i].pObjectName
+                                                                    ? pCallbackData->pObjects[i].pObjectName
+                                                                    : "???");
             }
             debugMessage += "}";
         }
@@ -139,11 +145,11 @@ namespace Details
 
         if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eError)
         {
-            pdlLogError("%s",debugMessage.c_str());
+            pdlLogError("%s", debugMessage.c_str());
         }
         else if (messageSeverity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
         {
-            pdlLogWarning("%s",debugMessage.c_str());
+            pdlLogWarning("%s", debugMessage.c_str());
         }
         else
         {
@@ -152,12 +158,12 @@ namespace Details
 
         return false;
     }
-    
-        static int FindQueue(const vk::PhysicalDevice& device, vk::QueueFlags queueFlags)
+
+    static int FindQueue(const vk::PhysicalDevice& device, vk::QueueFlags queueFlags)
     {
-        for(uint32 i = 0; i < device.getQueueFamilyProperties().size(); i++)
+        for (int i = 0; i < device.getQueueFamilyProperties().size(); i++)
         {
-            if(device.getQueueFamilyProperties()[i].queueFlags & queueFlags)
+            if (device.getQueueFamilyProperties()[i].queueFlags & queueFlags)
             {
                 return i;
             }
@@ -167,16 +173,16 @@ namespace Details
 
     inline bool IsExtensionInExtensionProperties(pdl::StringView extension, const pdl::Vector<vk::ExtensionProperties>& extensionProperties)
     {
-        return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName.data() == extension;}));
+        return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName.data() == extension; }));
     }
+
     inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties)
     {
-
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
         extensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
-        
+
         auto deviceFeatures2 = device.getFeatures2<
             vk::PhysicalDeviceFeatures2,
             vk::PhysicalDevice16BitStorageFeatures,
@@ -273,7 +279,7 @@ namespace Details
                 return false;
             if (extension)
             {
-                if(!IsExtensionInExtensionProperties(extension, extensionProperties))
+                if (!IsExtensionInExtensionProperties(extension, extensionProperties))
                     return false;
                 extensions.push_back(extension);
             }
@@ -350,16 +356,16 @@ namespace Details
         }
 
         SIMPLE_EXTENSION_FEATURE(
-            vk::PhysicalDeviceInlineUniformBlockFeaturesEXT ,
+            vk::PhysicalDeviceInlineUniformBlockFeaturesEXT,
             inlineUniformBlock,
             VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME,
-            "inline-uniform-block", );
+            "inline-uniform-block",);
 
         SIMPLE_EXTENSION_FEATURE(
             vk::PhysicalDeviceRobustness2FeaturesEXT,
             nullDescriptor,
             VK_EXT_ROBUSTNESS_2_EXTENSION_NAME,
-            "robustness2", );
+            "robustness2",);
 
         SIMPLE_EXTENSION_FEATURE(
             vk::PhysicalDeviceShaderClockFeaturesKHR,
@@ -438,9 +444,9 @@ namespace Details
         // Approximate DX12's WaveOps boolean
         if (subgroupProps.supportedOperations &
             (VK_SUBGROUP_FEATURE_BASIC_BIT | VK_SUBGROUP_FEATURE_VOTE_BIT | VK_SUBGROUP_FEATURE_ARITHMETIC_BIT |
-             VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT |
-             VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT | VK_SUBGROUP_FEATURE_CLUSTERED_BIT |
-             VK_SUBGROUP_FEATURE_QUAD_BIT | VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV))
+                VK_SUBGROUP_FEATURE_BALLOT_BIT | VK_SUBGROUP_FEATURE_SHUFFLE_BIT |
+                VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT | VK_SUBGROUP_FEATURE_CLUSTERED_BIT |
+                VK_SUBGROUP_FEATURE_QUAD_BIT | VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV))
         {
             features.push_back("wave-ops");
         }
@@ -580,8 +586,63 @@ namespace Details
                 break;
             }
         }
-        
+
         features.push_back("hardware-device");
+    }
+
+    pdl::Expected<VmaAllocator, pdl::StringView> CreateVmaAllocator(const vk::PhysicalDevice& physDev, const vk::Device& device, const vk::Instance instance, uint32_t apiVersion)
+    {
+        const VmaVulkanFunctions funcs = {
+            .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+            .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+            .vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties,
+            .vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties,
+            .vkAllocateMemory = vkAllocateMemory,
+            .vkFreeMemory = vkFreeMemory,
+            .vkMapMemory = vkMapMemory,
+            .vkUnmapMemory = vkUnmapMemory,
+            .vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges,
+            .vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges,
+            .vkBindBufferMemory = vkBindBufferMemory,
+            .vkBindImageMemory = vkBindImageMemory,
+            .vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements,
+            .vkGetImageMemoryRequirements = vkGetImageMemoryRequirements,
+            .vkCreateBuffer = vkCreateBuffer,
+            .vkDestroyBuffer = vkDestroyBuffer,
+            .vkCreateImage = vkCreateImage,
+            .vkDestroyImage = vkDestroyImage,
+            .vkCmdCopyBuffer = vkCmdCopyBuffer,
+            .vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2,
+            .vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2,
+            .vkBindBufferMemory2KHR = vkBindBufferMemory2,
+            .vkBindImageMemory2KHR = vkBindImageMemory2,
+            .vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2,
+            .vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements,
+            .vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements,
+        };
+
+        const VmaAllocatorCreateInfo ci = {
+            .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+            .physicalDevice = physDev,
+            .device = device,
+            .preferredLargeHeapBlockSize = 0,
+            .pAllocationCallbacks = nullptr,
+            .pDeviceMemoryCallbacks = nullptr,
+            .pHeapSizeLimit = nullptr,
+            .pVulkanFunctions = &funcs,
+            .instance = instance,
+            .vulkanApiVersion = apiVersion,
+        };
+        VmaAllocator vma = VK_NULL_HANDLE;
+        auto vmaCreateResults = vmaCreateAllocator(&ci, &vma);
+        
+        if (vmaCreateResults != VK_SUCCESS)
+        {
+            pdlLogError("VMA allocator creation failed with error code %d", vmaCreateResults);
+            return pdl::Unexpected("Vulkan allocator initialization failed");
+        }
+
+        return vma;
     }
 }
 
@@ -674,8 +735,8 @@ namespace pdl
             CHECK_VK_RESULTVALUE(debugMessenger);
             m_vkDebugMessenger = debugMessenger.value;
         }
-        
-                // Device creation
+
+        // Device creation
         auto enumeratedDevices = m_vkInstance.enumeratePhysicalDevices();
         CHECK_VK_RESULTVALUE(enumeratedDevices);
         auto enumeratedDevicesVector = VectorUtils::FromStd(enumeratedDevices.value);
@@ -719,28 +780,44 @@ namespace pdl
         Vector<const char*> deviceFeatures;
         auto extensionProperties = m_vkPhysicalDevice.enumerateDeviceExtensionProperties();
         auto extensionPropertiesVector = VectorUtils::FromStd(extensionProperties.value);
-        Details::EnumerateAllExtensionsAndFeatures( m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector);
+        Details::EnumerateAllExtensionsAndFeatures(m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector);
 
         // Queues
-        int queueFamilyIndex = Details::FindQueue( m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute);
-        if (queueFamilyIndex < 0)
+        m_deviceQueues.graphicsQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics);
+        m_deviceQueues.computeQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eCompute);
+        if (m_deviceQueues.graphicsQueueFamilyIndex < 0)
         {
-            return Unexpected("Could not find a suitable family index in the Vulkan physical device.");
+            return Unexpected("Could not find a suitable graphics family index in the Vulkan physical device.");
+        }
+        if (m_deviceQueues.computeQueueFamilyIndex < 0)
+        {
+            return Unexpected("Could not find a suitable compute family index in the Vulkan physical device.");
         }
 
-        float queuePriority = 0.0f;
+        float queuePriority = 1.0f;
 
-        vk::DeviceQueueCreateInfo deviceQueueCreateInfo( vk::DeviceQueueCreateFlags(), static_cast<uint32_t>( queueFamilyIndex ), 1, &queuePriority );
-        vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), deviceQueueCreateInfo, {}, deviceExtensionNames);
+        vk::DeviceQueueCreateInfo deviceQueueCreateInfo[2] = {
+            {vk::DeviceQueueCreateFlags(), static_cast<uint32_t>(m_deviceQueues.graphicsQueueFamilyIndex), 1, &queuePriority},
+            {vk::DeviceQueueCreateFlags(), static_cast<uint32_t>(m_deviceQueues.computeQueueFamilyIndex), 1, &queuePriority}
+        };
+        int numQueues = m_deviceQueues.graphicsQueueFamilyIndex == m_deviceQueues.computeQueueFamilyIndex ? 1 : 2;
+
+        vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(),
+                                            numQueues,
+                                            deviceQueueCreateInfo,
+                                            0,
+                                            nullptr,
+                                            deviceExtensionNames.size(),
+                                            deviceExtensionNames.data());
 
         // Set up chain of extensions
         auto* pNext = const_cast<void**>(&deviceCreateInfo.pNext);
-        
+
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {};
         dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-        dynamicRenderingFeature.dynamicRendering = VK_TRUE;
-        
-        if(std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
+            dynamicRenderingFeature.dynamicRendering = VK_TRUE;
+
+        if (std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
             *pNext = &dynamicRenderingFeature;
             pNext = &dynamicRenderingFeature.pNext;
@@ -760,8 +837,8 @@ namespace pdl
         descriptorIndexingFeature.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
         descriptorIndexingFeature.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
         descriptorIndexingFeature.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
-        
-        if(std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
+
+        if (std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
         {
             *pNext = &descriptorIndexingFeature;
             pNext = &descriptorIndexingFeature.pNext;
@@ -774,7 +851,7 @@ namespace pdl
         VkPhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures = {};
         shaderObjectFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
         shaderObjectFeatures.shaderObject = VK_TRUE;
-        if(std::ranges::find(deviceExtensionNames, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) != deviceExtensionNames.end())
+        if (std::ranges::find(deviceExtensionNames, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) != deviceExtensionNames.end())
         {
             *pNext = &shaderObjectFeatures;
             pNext = &shaderObjectFeatures.pNext;
@@ -784,12 +861,49 @@ namespace pdl
             return Unexpected("Shader object extension not supported");
         }
 
-        auto createDeviceResults = m_vkPhysicalDevice.createDevice( deviceCreateInfo );
+        // Add all device extensions before initializing
+        deviceCreateInfo.enabledExtensionCount = deviceExtensionNames.size();
+        deviceCreateInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
+
+        // Create device
+        auto createDeviceResults = m_vkPhysicalDevice.createDevice(deviceCreateInfo);
         CHECK_VK_RESULTVALUE(createDeviceResults);
         m_vkDevice = createDeviceResults.value;
-        // Init all dynamically loaded functions for device
+
+        // Get queues
+        m_deviceQueues.graphicsQueue = m_vkDevice.getQueue(m_deviceQueues.graphicsQueueFamilyIndex, 0);
+        m_deviceQueues.computeQueue = m_vkDevice.getQueue(m_deviceQueues.computeQueueFamilyIndex, 0);
+
+
+        // Init all dynamically loaded functions for the created device
         VULKAN_HPP_DEFAULT_DISPATCHER.init(m_vkDevice);
+
+        // Vulkan memory allocator
+        auto vmaCreateResults = Details::CreateVmaAllocator(m_vkPhysicalDevice, m_vkDevice, m_vkInstance, applicationInfo.apiVersion);
+        if (!vmaCreateResults)
+        {
+            return Unexpected(vmaCreateResults.error());
+        }
+        Details::g_vmaAllocator = vmaCreateResults.value();
         
+        // Pipeline cache
+        Vector<byte> pipelineCacheData;
+        if (!initInfo.m_pipelineCachePath.empty())
+        {
+            pdlNotImplemented();
+        }
+        vk::PipelineCacheCreateInfo pipelineCacheCreateInfo
+        (
+            {},
+            pipelineCacheData.size(),
+            pipelineCacheData.data()
+        );
+
+        auto createPipelineCacheResults = m_vkDevice.createPipelineCache(pipelineCacheCreateInfo);
+        CHECK_VK_RESULTVALUE(createPipelineCacheResults);
+        m_vkPipelineCache = createPipelineCacheResults.value;
+        
+
 #ifdef PDL_PLATFORM_WINDOWS
         vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo = {};
         surfaceCreateInfo.hinstance = static_cast<HINSTANCE>(initInfo.m_applicationWindow.GetNativeModuleHandle());
@@ -800,6 +914,8 @@ namespace pdl
 #else
 #error Implement relevant surface creation for this platform
 #endif
+
+
         return {};
     }
 }

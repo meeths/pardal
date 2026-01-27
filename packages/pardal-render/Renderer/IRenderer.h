@@ -19,6 +19,7 @@ public:
         bool m_enableValidation = true;
         bool m_useVSync = true;
         bool m_useHDR = false;
+        String m_pipelineCachePath;
     };
     
     virtual ~IRenderer() = default;
