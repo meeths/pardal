@@ -16,12 +16,12 @@
 [submodule "external/EASTL"]
 	path = external/EASTL
 	url = https://github.com/electronicarts/EASTL.git
-[submodule "external/EABase"]
-	path = external/EABase
-	url = https://github.com/electronicarts/EABase.git
 [submodule "external/taskflow"]
 	path = external/taskflow
 	url = https://github.com/taskflow/taskflow.git
 [submodule "external/implot"]
 	path = external/implot
 	url = https://github.com/epezent/implot.git
+[submodule "external/EABase"]
+	path = external/EABase
+	url = https://github.com/electronicarts/EABase.git
