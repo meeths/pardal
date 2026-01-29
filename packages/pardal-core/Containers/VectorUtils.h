@@ -36,5 +36,33 @@ namespace pdl
             src.clear();
             return dst;
         }
+        
+        template <typename T>
+        static std::vector<T> ToStd(Vector<T>& src) noexcept(std::is_nothrow_move_constructible_v<T>)
+        {
+            std::vector<T> dst;
+            dst.reserve(static_cast<typename std::vector<T>::size_type>(src.size()));
+            for (auto& x : src)
+            {
+                dst.push_back(static_cast<T&>(x));
+            }
+            return dst;
+        }
+
+        template <typename T>
+        static std::vector<T> ToStd(Vector<T>&& src) noexcept(std::is_nothrow_move_constructible_v<T>)
+        {
+            std::vector<T> dst;
+            dst.reserve(static_cast<typename std::vector<T>::size_type>(src.size()));
+            for (auto& x : src)
+            {
+                dst.emplace_back(static_cast<T&&>(x));
+            }
+            // Leave src in a valid, empty state
+            src.clear();
+            return dst;
+        }
     };
-}
+
+};
+
