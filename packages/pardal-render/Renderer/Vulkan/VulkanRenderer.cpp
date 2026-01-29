@@ -763,27 +763,20 @@ namespace pdl
                    "Layer check failed. Tip: Set the environment variable VK_LAYER_PATH to point to the location of your layers");
             }
         }
-
-        // Extensions
-        Vector<const char*> instanceExtensionNames;
-        if (initInfo.m_enableValidation)
+        else
         {
-            instanceExtensionNames.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-            instanceExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            instInitHelp.EnableLayer("VK_LAYER_KHRONOS_validation", false);
         }
 
-        instanceExtensionNames.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-        instanceExtensionNames.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
-        instanceExtensionNames.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-        instanceExtensionNames.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#else
-#error Implement the correct surface extension for this platform
-#endif
-
+        instInitHelp.PrepareCreation();
+        
         // Instance creation
-        vk::InstanceCreateInfo instanceCreateInfo({}, &applicationInfo, /*instanceLayerNames*/ nullptr, instanceExtensionNames);
+        vk::InstanceCreateInfo instanceCreateInfo({}, &applicationInfo, 
+            instInitHelp.GetEnabledLayerCount(), 
+            instInitHelp.GetEnabledLayerNames(),
+            instInitHelp.GetEnabledExtensionCount(), 
+            instInitHelp.GetEnabledExtensionNames());
+        
         auto instance = vk::createInstance(instanceCreateInfo);
         CHECK_VK_RESULTVALUE(instance);
         m_vkInstance = instance.value;
@@ -846,8 +839,6 @@ namespace pdl
 
         limits.maxShaderVisibleSamplers = deviceProperties.limits.maxPerStageDescriptorSamplers;
 
-        // BEGIN FEATURES AND EXTENSIONS AND ETC
-        
         // Queues
         m_deviceQueues.graphicsQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics);
         m_deviceQueues.computeQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eCompute);
@@ -869,16 +860,22 @@ namespace pdl
         int numQueues = m_deviceQueues.graphicsQueueFamilyIndex == m_deviceQueues.computeQueueFamilyIndex ? 1 : 2;
 
 
+        // BEGIN FEATURES AND EXTENSIONS AND ETC
+        VKEFH::DeviceInitHelp devInitHelp;
+        devInitHelp.GetPhysicalDeviceFeatures(m_vkPhysicalDevice);
+        vk::Result enumerateExtensionsResult = static_cast<vk::Result>(devInitHelp.EnumerateExtensions(m_vkPhysicalDevice));
+        CHECK_VK_RESULT(enumerateExtensionsResult);
         
-        
+        devInitHelp.PrepareCreation();
         vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(),
                                             numQueues,
                                             deviceQueueCreateInfo,
                                             0,
                                             nullptr,
-                                            0,
+                                            devInitHelp.GetEnabledExtensionCount(),
+                                            devInitHelp.GetEnabledExtensionNames(),
                                             nullptr,
-                                            nullptr
+                                            devInitHelp.GetFeaturesChain()
                                             );
 
         // Create device
