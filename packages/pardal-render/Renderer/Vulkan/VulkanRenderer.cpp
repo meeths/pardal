@@ -1,5 +1,7 @@
+#include <iostream>
 #include <Renderer/Vulkan/VulkanRenderer.h>
 
+#include "VkExtensionsFeaturesHelper.h"
 #include "VulkanBuffer.h"
 #include "VulkanUtils.h"
 #include "Application/ApplicationWindow.h"
@@ -27,23 +29,6 @@ namespace Details
 {
     VmaAllocator g_vmaAllocator = VK_NULL_HANDLE;
     
-    static bool CheckLayers(const pdl::Vector<char const*>& layers, const pdl::Vector<vk::LayerProperties>& properties)
-    {
-        // return true if all layers are listed in the properties
-        return std::ranges::all_of(layers, [&properties](char const* name)
-        {
-            bool found = std::ranges::any_of(properties, [&name](vk::LayerProperties const& property)
-            {
-                return strcmp(property.layerName, name) == 0;
-            });
-            if (!found)
-            {
-                pdlLogError("Vulkan Layer not found: %s", name);
-            }
-            return found;
-        });
-    }
-
     static vk::PhysicalDevice& PickBestDevice(pdl::Vector<vk::PhysicalDevice>& devices)
     {
         pdlAssert(!devices.empty());
@@ -177,82 +162,81 @@ namespace Details
         return (extensionProperties.end() != std::ranges::find_if(extensionProperties, [&extension](auto& val) { return val.extensionName.data() == extension; }));
     }
 
-    inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties, vk::PhysicalDeviceFeatures& physicalDeviceFeatures, void*& physicalDeviceFeatures2next)
+#define DEVICE_FEATURE_TYPES  vk::PhysicalDeviceFeatures2,\
+                                      vk::PhysicalDevice16BitStorageFeatures,\
+                                      vk::PhysicalDevice8BitStorageFeaturesKHR,\
+                                      vk::PhysicalDeviceASTCDecodeFeaturesEXT,\
+                                      vk::PhysicalDeviceBlendOperationAdvancedFeaturesEXT,\
+                                      vk::PhysicalDeviceBufferDeviceAddressFeaturesEXT,\
+                                      vk::PhysicalDeviceCoherentMemoryFeaturesAMD,\
+                                      vk::PhysicalDeviceComputeShaderDerivativesFeaturesNV,\
+                                      vk::PhysicalDeviceConditionalRenderingFeaturesEXT,\
+                                      vk::PhysicalDeviceCooperativeMatrixFeaturesNV,\
+                                      vk::PhysicalDeviceCornerSampledImageFeaturesNV,\
+                                      vk::PhysicalDeviceCoverageReductionModeFeaturesNV,\
+                                      vk::PhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV,\
+                                      vk::PhysicalDeviceDepthClipEnableFeaturesEXT,\
+                                      vk::PhysicalDeviceDescriptorIndexingFeaturesEXT,\
+                                      vk::PhysicalDeviceExclusiveScissorFeaturesNV,\
+                                      vk::PhysicalDeviceFragmentDensityMapFeaturesEXT,\
+                                      vk::PhysicalDeviceFragmentShaderBarycentricFeaturesNV,\
+                                      vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT,\
+                                      vk::PhysicalDeviceHostQueryResetFeaturesEXT,\
+                                      vk::PhysicalDeviceImagelessFramebufferFeaturesKHR,\
+                                      vk::PhysicalDeviceIndexTypeUint8FeaturesEXT,\
+                                      vk::PhysicalDeviceInlineUniformBlockFeaturesEXT,\
+                                      vk::PhysicalDeviceLineRasterizationFeaturesEXT,\
+                                      vk::PhysicalDeviceMemoryPriorityFeaturesEXT,\
+                                      vk::PhysicalDeviceMeshShaderFeaturesNV,\
+                                      vk::PhysicalDeviceMultiviewFeatures,\
+                                      vk::PhysicalDevicePipelineExecutablePropertiesFeaturesKHR,\
+                                      vk::PhysicalDeviceProtectedMemoryFeatures,\
+                                      vk::PhysicalDeviceRepresentativeFragmentTestFeaturesNV,\
+                                      vk::PhysicalDeviceSamplerYcbcrConversionFeatures,\
+                                      vk::PhysicalDeviceScalarBlockLayoutFeaturesEXT,\
+                                      vk::PhysicalDeviceShaderAtomicInt64FeaturesKHR,\
+                                      vk::PhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT,\
+                                      vk::PhysicalDeviceShaderDrawParametersFeatures,\
+                                      vk::PhysicalDeviceShaderFloat16Int8FeaturesKHR,\
+                                      vk::PhysicalDeviceShaderImageFootprintFeaturesNV,\
+                                      vk::PhysicalDeviceShaderIntegerFunctions2FeaturesINTEL,\
+                                      vk::PhysicalDeviceShaderSMBuiltinsFeaturesNV,\
+                                      vk::PhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR,\
+                                      vk::PhysicalDeviceShadingRateImageFeaturesNV,\
+                                      vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT,\
+                                      vk::PhysicalDeviceTexelBufferAlignmentFeaturesEXT,\
+                                      vk::PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT,\
+                                      vk::PhysicalDeviceTimelineSemaphoreFeaturesKHR,\
+                                      vk::PhysicalDeviceTransformFeedbackFeaturesEXT,\
+                                      vk::PhysicalDeviceUniformBufferStandardLayoutFeaturesKHR,\
+                                      vk::PhysicalDeviceVariablePointersFeatures,\
+                                      vk::PhysicalDeviceVertexAttributeDivisorFeaturesEXT,\
+                                      vk::PhysicalDeviceVulkanMemoryModelFeaturesKHR,\
+                                      vk::PhysicalDeviceYcbcrImageArraysFeaturesEXT,\
+                                      vk::PhysicalDeviceAccelerationStructureFeaturesKHR,\
+                                      vk::PhysicalDeviceRayQueryFeaturesKHR,\
+                                      vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,\
+                                      vk::PhysicalDeviceRobustness2FeaturesEXT,\
+                                      vk::PhysicalDeviceShaderClockFeaturesKHR,\
+                                      vk::PhysicalDeviceVulkan12Features,\
+                                      vk::PhysicalDeviceFragmentShadingRateFeaturesKHR,\
+                                      vk::PhysicalDeviceRayTracingInvocationReorderFeaturesNV,\
+                                      vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,\
+                                      vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT,\
+                                      vk::PhysicalDeviceShaderAtomicFloat2FeaturesEXT,\
+                                      vk::PhysicalDeviceShaderAtomicFloatFeaturesEXT
+    
+    using DeviceFeaturesChain = vk::StructureChain<DEVICE_FEATURE_TYPES>;
+    
+    inline void EnumerateAllExtensionsAndFeatures(vk::PhysicalDevice& device, pdl::Vector<const char*>& extensions, pdl::Vector<const char*>& features, const pdl::Vector<vk::ExtensionProperties>& extensionProperties, DeviceFeaturesChain& deviceFeatures2)
     {
         extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
         extensions.push_back(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
 
-        auto deviceFeatures2 = device.getFeatures2<
-            vk::PhysicalDeviceFeatures2,
-            vk::PhysicalDevice16BitStorageFeatures,
-            vk::PhysicalDevice8BitStorageFeaturesKHR,
-            vk::PhysicalDeviceASTCDecodeFeaturesEXT,
-            vk::PhysicalDeviceBlendOperationAdvancedFeaturesEXT,
-            vk::PhysicalDeviceBufferDeviceAddressFeaturesEXT,
-            vk::PhysicalDeviceCoherentMemoryFeaturesAMD,
-            vk::PhysicalDeviceComputeShaderDerivativesFeaturesNV,
-            vk::PhysicalDeviceConditionalRenderingFeaturesEXT,
-            vk::PhysicalDeviceCooperativeMatrixFeaturesNV,
-            vk::PhysicalDeviceCornerSampledImageFeaturesNV,
-            vk::PhysicalDeviceCoverageReductionModeFeaturesNV,
-            vk::PhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV,
-            vk::PhysicalDeviceDepthClipEnableFeaturesEXT,
-            vk::PhysicalDeviceDescriptorIndexingFeaturesEXT,
-            vk::PhysicalDeviceExclusiveScissorFeaturesNV,
-            vk::PhysicalDeviceFragmentDensityMapFeaturesEXT,
-            vk::PhysicalDeviceFragmentShaderBarycentricFeaturesNV,
-            vk::PhysicalDeviceFragmentShaderInterlockFeaturesEXT,
-            vk::PhysicalDeviceHostQueryResetFeaturesEXT,
-            vk::PhysicalDeviceImagelessFramebufferFeaturesKHR,
-            vk::PhysicalDeviceIndexTypeUint8FeaturesEXT,
-            vk::PhysicalDeviceInlineUniformBlockFeaturesEXT,
-            vk::PhysicalDeviceLineRasterizationFeaturesEXT,
-            vk::PhysicalDeviceMemoryPriorityFeaturesEXT,
-            vk::PhysicalDeviceMeshShaderFeaturesNV,
-            vk::PhysicalDeviceMultiviewFeatures,
-            vk::PhysicalDevicePipelineExecutablePropertiesFeaturesKHR,
-            vk::PhysicalDeviceProtectedMemoryFeatures,
-            vk::PhysicalDeviceRepresentativeFragmentTestFeaturesNV,
-            vk::PhysicalDeviceSamplerYcbcrConversionFeatures,
-            vk::PhysicalDeviceScalarBlockLayoutFeaturesEXT,
-            vk::PhysicalDeviceShaderAtomicInt64FeaturesKHR,
-            vk::PhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT,
-            vk::PhysicalDeviceShaderDrawParametersFeatures,
-            vk::PhysicalDeviceShaderFloat16Int8FeaturesKHR,
-            vk::PhysicalDeviceShaderImageFootprintFeaturesNV,
-            vk::PhysicalDeviceShaderIntegerFunctions2FeaturesINTEL,
-            vk::PhysicalDeviceShaderSMBuiltinsFeaturesNV,
-            vk::PhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR,
-            vk::PhysicalDeviceShadingRateImageFeaturesNV,
-            vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT,
-            vk::PhysicalDeviceTexelBufferAlignmentFeaturesEXT,
-            vk::PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT,
-            vk::PhysicalDeviceTimelineSemaphoreFeaturesKHR,
-            vk::PhysicalDeviceTransformFeedbackFeaturesEXT,
-            vk::PhysicalDeviceUniformBufferStandardLayoutFeaturesKHR,
-            vk::PhysicalDeviceVariablePointersFeatures,
-            vk::PhysicalDeviceVertexAttributeDivisorFeaturesEXT,
-            vk::PhysicalDeviceVulkanMemoryModelFeaturesKHR,
-            vk::PhysicalDeviceYcbcrImageArraysFeaturesEXT,
-            vk::PhysicalDeviceAccelerationStructureFeaturesKHR,
-            vk::PhysicalDeviceRayQueryFeaturesKHR,
-            vk::PhysicalDeviceRayTracingPipelineFeaturesKHR,
-            vk::PhysicalDeviceRobustness2FeaturesEXT,
-            vk::PhysicalDeviceShaderClockFeaturesKHR,
-            vk::PhysicalDeviceVulkan12Features,
-            vk::PhysicalDeviceFragmentShadingRateFeaturesKHR,
-            vk::PhysicalDeviceRayTracingInvocationReorderFeaturesNV,
-            vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
-            vk::PhysicalDeviceShaderImageAtomicInt64FeaturesEXT,
-            vk::PhysicalDeviceShaderAtomicFloat2FeaturesEXT,
-            vk::PhysicalDeviceShaderAtomicFloatFeaturesEXT
-        >();
+        deviceFeatures2 = device.getFeatures2<DEVICE_FEATURE_TYPES>();
 
-
-        physicalDeviceFeatures2next = deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().pNext;
-        
         if (deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().features.shaderResourceMinLod)
         {
             features.push_back("shader-resource-min-lod");
@@ -335,6 +319,12 @@ namespace Details
             VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,
             "extended-dynamic-states");
 
+        // SIMPLE_EXTENSION_FEATURE(
+        //     vk::PhysicalDeviceBufferAddressFeaturesEXT,
+        //     bufferDeviceAddress,
+        //     VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+        //     "buffer-device-address");
+        
         if (deviceFeatures2.get<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>().accelerationStructure &&
             IsExtensionInExtensionProperties(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME, extensionProperties) &&
             IsExtensionInExtensionProperties(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME, extensionProperties))
@@ -413,21 +403,9 @@ namespace Details
             VK_NV_COMPUTE_SHADER_DERIVATIVES_EXTENSION_NAME,
             "computeDerivativeGroupLinear");
 
+        
 #undef SIMPLE_EXTENSION_FEATURE
 
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().bufferDeviceAddress = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorIndexing = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingPartiallyBound = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().descriptorBindingVariableDescriptorCount = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().runtimeDescriptorArray = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().scalarBlockLayout = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().uniformBufferStandardLayout = VK_TRUE;
-        deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().timelineSemaphore = VK_TRUE;
-        
         if (deviceFeatures2.get<vk::PhysicalDeviceShaderAtomicInt64Features>().shaderBufferInt64Atomics)
             features.push_back("atomic-int64");
 
@@ -436,10 +414,7 @@ namespace Details
 
         if (deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().shaderSubgroupExtendedTypes)
             features.push_back("shader-subgroup-extended-types");
-
-        if (deviceFeatures2.get<vk::PhysicalDeviceVulkan12Features>().bufferDeviceAddress)
-            features.push_back("buffer-device-address");
-
+        
         // // Approx. DX12 waveops features
         VkPhysicalDeviceProperties2 extendedProps = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
         VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtProps = {
@@ -604,7 +579,6 @@ namespace Details
             }
         }
 
-        physicalDeviceFeatures = deviceFeatures2.get<vk::PhysicalDeviceFeatures2>().features;
         features.push_back("hardware-device");
     }
 
@@ -768,17 +742,26 @@ namespace pdl
 
         vk::ApplicationInfo applicationInfo(initInfo.m_applicationName.data(), 1, "PardalEngine", 1, VK_API_VERSION_1_4);
 
-        // Validation layers
-        auto instanceLayerProperties = vk::enumerateInstanceLayerProperties();
-        CHECK_VK_RESULTVALUE(instanceLayerProperties);
-        Vector<const char*> instanceLayerNames;
-        if (initInfo.m_enableValidation)
-            instanceLayerNames.push_back("VK_LAYER_KHRONOS_validation");
 
-        if (!Details::CheckLayers(instanceLayerNames, VectorUtils::FromStd(instanceLayerProperties.value)))
+        VKEFH::InstanceInitHelp instInitHelp;
+        VkResult res = instInitHelp.EnumerateExtensions();
+        if (res != VK_SUCCESS)
         {
-            return Unexpected(
-                "Layer check failed. Tip: Set the environment variable VK_LAYER_PATH to point to the location of your layers");
+            return Unexpected<StringView>("Failed to enumerate Vulkan extensions");
+        }
+        res = instInitHelp.EnumerateLayers();
+        if (res != VK_SUCCESS)
+        {
+            return Unexpected<StringView>("Failed to enumerate Vulkan layers");
+        }
+        
+        if (initInfo.m_enableValidation)
+        {
+            if (!instInitHelp.IsLayerSupported("VK_LAYER_KHRONOS_validation"))
+            {
+                return Unexpected(
+                   "Layer check failed. Tip: Set the environment variable VK_LAYER_PATH to point to the location of your layers");
+            }
         }
 
         // Extensions
@@ -800,7 +783,7 @@ namespace pdl
 #endif
 
         // Instance creation
-        vk::InstanceCreateInfo instanceCreateInfo({}, &applicationInfo, instanceLayerNames, instanceExtensionNames);
+        vk::InstanceCreateInfo instanceCreateInfo({}, &applicationInfo, /*instanceLayerNames*/ nullptr, instanceExtensionNames);
         auto instance = vk::createInstance(instanceCreateInfo);
         CHECK_VK_RESULTVALUE(instance);
         m_vkInstance = instance.value;
@@ -863,15 +846,8 @@ namespace pdl
 
         limits.maxShaderVisibleSamplers = deviceProperties.limits.maxPerStageDescriptorSamplers;
 
-        // Configure all available extensions
-        Vector<const char*> deviceExtensionNames;
-        Vector<const char*> deviceFeatures;
-        vk::PhysicalDeviceFeatures physicalDeviceFeatures;
-        void* physicalDeviceFeatures2Next;
-        auto extensionProperties = m_vkPhysicalDevice.enumerateDeviceExtensionProperties();
-        auto extensionPropertiesVector = VectorUtils::FromStd(extensionProperties.value);
-        Details::EnumerateAllExtensionsAndFeatures(m_vkPhysicalDevice, deviceExtensionNames, deviceFeatures, extensionPropertiesVector, physicalDeviceFeatures, physicalDeviceFeatures2Next);
-
+        // BEGIN FEATURES AND EXTENSIONS AND ETC
+        
         // Queues
         m_deviceQueues.graphicsQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eGraphics);
         m_deviceQueues.computeQueueFamilyIndex = Details::FindQueue(m_vkPhysicalDevice, vk::QueueFlagBits::eCompute);
@@ -892,69 +868,18 @@ namespace pdl
         };
         int numQueues = m_deviceQueues.graphicsQueueFamilyIndex == m_deviceQueues.computeQueueFamilyIndex ? 1 : 2;
 
+
+        
+        
         vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(),
                                             numQueues,
                                             deviceQueueCreateInfo,
                                             0,
                                             nullptr,
-                                            deviceExtensionNames.size(),
-                                            deviceExtensionNames.data(),
-                                            &physicalDeviceFeatures, physicalDeviceFeatures2Next);
-
-        // Set up chain of extensions
-        auto* pNext = const_cast<void**>(&deviceCreateInfo.pNext);
-
-        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature = {};
-        dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-            dynamicRenderingFeature.dynamicRendering = VK_TRUE;
-
-        if (std::ranges::find(deviceExtensionNames, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME) != deviceExtensionNames.end())
-        {
-            *pNext = &dynamicRenderingFeature;
-            pNext = &dynamicRenderingFeature.pNext;
-        }
-        else
-        {
-            return Unexpected("Dynamic rendering extension not supported");
-        }
-
-        VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeature = {};
-        descriptorIndexingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
-        descriptorIndexingFeature.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
-        descriptorIndexingFeature.descriptorBindingPartiallyBound = VK_TRUE;
-        descriptorIndexingFeature.runtimeDescriptorArray = VK_TRUE;
-        descriptorIndexingFeature.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
-        descriptorIndexingFeature.shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
-        descriptorIndexingFeature.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
-        descriptorIndexingFeature.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
-        descriptorIndexingFeature.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
-
-        if (std::ranges::find(deviceExtensionNames, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) != deviceExtensionNames.end())
-        {
-            *pNext = &descriptorIndexingFeature;
-            pNext = &descriptorIndexingFeature.pNext;
-        }
-        else
-        {
-            return Unexpected("Descriptor indexing extension not supported");
-        }
-
-        VkPhysicalDeviceShaderObjectFeaturesEXT shaderObjectFeatures = {};
-        shaderObjectFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT;
-        shaderObjectFeatures.shaderObject = VK_TRUE;
-        if (std::ranges::find(deviceExtensionNames, VK_EXT_SHADER_OBJECT_EXTENSION_NAME) != deviceExtensionNames.end())
-        {
-            *pNext = &shaderObjectFeatures;
-            pNext = &shaderObjectFeatures.pNext;
-        }
-        else
-        {
-            return Unexpected("Shader object extension not supported");
-        }
-
-        // Add all device extensions before initializing
-        deviceCreateInfo.enabledExtensionCount = deviceExtensionNames.size();
-        deviceCreateInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
+                                            0,
+                                            nullptr,
+                                            nullptr
+                                            );
 
         // Create device
         auto createDeviceResults = m_vkPhysicalDevice.createDevice(deviceCreateInfo);
