@@ -721,7 +721,7 @@ namespace pdl
     {
         if (!m_buffersPool.IsValid(bufferHandle))
         {
-            pdlLogWarning("VulkanRenderer::Destroy: Invalid BufferHandle {0x%016X}. Maybe destroyed already?", bufferHandle.GetHandleAsVoid());
+            pdlLogWarning("VulkanRenderer::Destroy: Invalid BufferHandle {0x%p}. Maybe destroyed already?", bufferHandle.GetHandleAsVoid());
             return;
         }
         
