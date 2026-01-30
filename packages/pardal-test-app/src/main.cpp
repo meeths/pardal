@@ -37,24 +37,32 @@ int main(int argc, char** argv)
     auto renderer = pdl::CreateRenderer(pdl::RenderDeviceType::Vulkan, rendererInitInfo);
 
     pdl::Chronometer frameTimer;
-    pdl::Chronometer mainTimer;
     frameTimer.Start();
-    mainTimer.Start();
 
     pdl::InputManager inputManager;
     
-    pdlMaybeUnused float mainTime = 0.0f;
+    // Testing renderer objects creation
+    auto createBufferResults = renderer->CreateBuffer(1024*1024, pdl::BufferUsage::ConstantBuffer, pdl::MemoryType::DeviceLocal);
+    if (!createBufferResults)
+    {
+        pdlLogError("%s", createBufferResults.error().data());
+    }
+    auto renderBuffer = createBufferResults.value();
+    renderer->Destroy(renderBuffer);
+    renderer->Destroy(renderBuffer);    // Logs warning
+    
+    
     while (!window.IsCloseRequested())
     {
         pdlMaybeUnused float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
-        mainTimer.Lap<float, pdl::TimeTypes::Seconds>();
         
         auto inputManagerResults = inputManager.Update();
-        mainTimer.Lap<float, pdl::TimeTypes::Seconds>();
         window.Update();
         
         if (!inputManagerResults)
+        {
             pdlLogError("%s", inputManagerResults.error().c_str());
+        }
         
         pdlLogFlush();
     }
