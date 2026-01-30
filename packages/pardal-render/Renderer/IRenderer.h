@@ -28,10 +28,13 @@ public:
     
     virtual const RenderDeviceInfo& GetDeviceInfo() const = 0;
     
+    virtual Expected<void, StringView> InitSwapchain(uint32 width, uint32 height) = 0;
+    
     virtual Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
         BufferUsage usage,
         MemoryType memoryType) = 0;
     
+    virtual void Destroy(TextureHandle bufferHandle) = 0;
     virtual void Destroy(BufferHandle bufferHandle) = 0;
 };
 

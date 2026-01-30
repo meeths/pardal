@@ -841,5 +841,21 @@ vk::ColorComponentFlags VulkanUtils::GetColorComponentMasks(ColorChannelMask col
         colorComponentMask |= vk::ColorComponentFlagBits::eA;
     return colorComponentMask;
 }
+
+vk::ColorSpaceKHR VulkanUtils::GetColorSpace(ColorSpace colorSpace)
+{
+    switch (colorSpace) {
+    case ColorSpace::Srgb:
+        return vk::ColorSpaceKHR::eSrgbNonlinear;
+    case ColorSpace::Linear:
+        return vk::ColorSpaceKHR::eExtendedSrgbLinearEXT;
+    case ColorSpace::HDR10:
+        return vk::ColorSpaceKHR::eHdr10St2084EXT;
+    case ColorSpace::BT709:
+        return vk::ColorSpaceKHR::eBt709LinearEXT;
+    }
+    pdlAssert(0 && "Unsupported ColorSpace");
+    return vk::ColorSpaceKHR::eSrgbNonlinear;
+}
 }
 

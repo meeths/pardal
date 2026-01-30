@@ -31,6 +31,11 @@ namespace pdl
         uint32 maxFramebufferDimensions[3];
 
         uint32 maxShaderVisibleSamplers;
+        uint32 maxShaderVisibleInputSamplers;
+        
+        uint32 maxSwapchainImageCount;
+        uint32 minSwapchainImageCount;
+        
     };
 
     struct RenderDeviceInfo

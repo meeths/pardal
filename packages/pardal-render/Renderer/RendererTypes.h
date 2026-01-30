@@ -2,6 +2,7 @@
 #include <Base/BaseTypes.h>
 #include <Base/BaseDefines.h>
 #include "Containers/PoolHandle.h"
+#include "Base/DebugHelpers.h"
 
 // Created on 2025-03-23 by sisco
 
@@ -117,6 +118,14 @@ namespace pdl
         FormatCount,
     };
 
+    enum class ColorSpace : uint8
+    {
+        Srgb,
+        Linear,
+        HDR10,
+        BT709
+    };
+    
     constexpr const char* to_string(Format e)
     {
         switch (e)
@@ -636,6 +645,25 @@ namespace pdl
         }
     };
    
+    struct SubmitHandle 
+    {
+        uint32 m_bufferIndex = 0;
+        uint32 m_submitId = 0;
+        SubmitHandle() = default;
+        explicit SubmitHandle(uint64 handle) : m_bufferIndex(static_cast<uint32>(handle & 0xffffffff)), m_submitId(static_cast<uint32>(handle >> 32)) 
+        {
+            pdlAssert(m_submitId);
+        }
+        bool IsEmpty() const 
+        {
+            return m_submitId == 0;
+        }
+        uint64 Handle() const 
+        {
+            return (static_cast<uint64>(m_submitId) << 32) + m_bufferIndex;
+        }
+    };
+
     using ComputePipelineHandle = PoolHandle<struct ComputePipeline>;
     using RenderPipelineHandle = PoolHandle<struct RenderPipeline>;
     using RayTracingPipelineHandle = PoolHandle<struct RayTracingPipeline>;
@@ -644,6 +672,7 @@ namespace pdl
     using BufferHandle = PoolHandle<struct Buffer>;
     using TextureHandle = PoolHandle<struct Texture>;
     using QueryPoolHandle = PoolHandle<struct QueryPool>;
+    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
     using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
     
     

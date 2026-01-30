@@ -1,22 +1,35 @@
 
 #pragma once
+#include <vulkan/vulkan.hpp>
 #include "Base/BaseDefines.h"
 #include "Base/Expected.h"
+#include "Containers/Pool.h"
 #include "Renderer/IRenderer.h"
 #include "Renderer/RenderererInfo.h"
 #include "Renderer/Vulkan/VulkanBuffer.h"
-#include "Containers/Pool.h"
-#include <vulkan/vulkan.hpp>
+#include "Renderer/Vulkan/VulkanTexture.h"
 
 
 // Created on 2026-01-26 by sisco
 
 namespace pdl
 {
+    class VulkanImmediateCommand;
+    class VulkanSwapchain;
 
 class VulkanRenderer : public IRenderer
 {
 public:
+    struct DeviceQueues 
+    {
+        static constexpr int32 INVALID = -1;
+        int32 graphicsQueueFamilyIndex = INVALID;
+        int32 computeQueueFamilyIndex = INVALID;
+
+        vk::Queue graphicsQueue;
+        vk::Queue computeQueue;
+    };
+
     VulkanRenderer(const InitInfo& initInfo);
     ~VulkanRenderer() override;
 
@@ -24,12 +37,24 @@ public:
     
     const RenderDeviceInfo& GetDeviceInfo() const override { return m_deviceInfo; }
     
+    Expected<void, StringView> InitSwapchain(uint32 width, uint32 height) override;
+    
+    Expected<TextureHandle, StringView> CreateTexture(VulkanTexture& vulkanImage);
     Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
                                                     BufferUsage usage,
                                                     MemoryType memoryType) override;
 
+    void Destroy(TextureHandle bufferHandle) override;
     void Destroy(BufferHandle bufferHandle) override;
     
+    const vk::PhysicalDevice& GetPhysicalDevice() const { return m_vkPhysicalDevice; }
+    const vk::Device& GetDevice() const { return m_vkDevice; }
+    const vk::SurfaceKHR& GetSurface() const { return m_vkSurface; }
+    const DeviceQueues& GetDeviceQueues() const { return m_deviceQueues; }
+        
+    // Object getters
+    VulkanTexture* Get(const TextureHandle& handle) { return m_imagesPool.Get(handle); }
+    VulkanBuffer* Get(const BufferHandle& handle) { return m_buffersPool.Get(handle); }
 private:
     Expected<void, StringView> InitializeInstanceAndDevice(const InitInfo& initInfo);
     RenderDeviceInfo m_deviceInfo = {};
@@ -42,20 +67,18 @@ private:
     
     vk::PipelineCache m_vkPipelineCache;
     
-    struct DeviceQueues 
-    {
-        static constexpr int32 INVALID = -1;
-        int32 graphicsQueueFamilyIndex = INVALID;
-        int32 computeQueueFamilyIndex = INVALID;
-
-        vk::Queue graphicsQueue;
-        vk::Queue computeQueue;
-    };
     
     DeviceQueues m_deviceQueues;
     
     // Pools
     Pool<Buffer, VulkanBuffer> m_buffersPool;
+    Pool<Texture, VulkanTexture> m_imagesPool;
+    
+    // Essential objects
+    UniquePointer<VulkanSwapchain> m_swapchain;
+    UniquePointer<VulkanImmediateCommand> m_immediateCommand;
+    vk::Semaphore m_vkTimelineSemaphore;
+    vk::DescriptorSetLayout m_inputAttachmentDescriptorSetLayout;
 };
 
 }

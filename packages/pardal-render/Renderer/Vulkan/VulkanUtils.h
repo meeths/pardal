@@ -52,6 +52,7 @@ public:
     static vk::SampleCountFlagBits GetMultisampleFlagBits(MultiSampleCount multisampleCount);
     static vk::ConservativeRasterizationModeEXT GetConservativeRasterizationMode(ConservativeRasterization conservativeMode);
     static vk::ColorComponentFlags GetColorComponentMasks(ColorChannelMask colorMask);
+    static vk::ColorSpaceKHR GetColorSpace(ColorSpace colorSpace);
 };
 
 }
