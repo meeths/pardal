@@ -22,6 +22,8 @@ class VulkanUtils
 {
 public:
     static vk::Format TranslateToVkFormat(Format format);
+    static bool IsDepthFormat(vk::Format format);
+    static bool IsStencilFormat(vk::Format format);
     static Format TranslateFromVkFormat(vk::Format format);
     static vk::ImageUsageFlags TranslateToVkImageUsageFlags(TextureUsage usage);
     static int CalculateMipLevels(const Math::Vector3i& extents);

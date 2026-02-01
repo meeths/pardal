@@ -205,6 +205,36 @@ vk::Format VulkanUtils::TranslateToVkFormat(Format format)
     }
 }
 
+bool VulkanUtils::IsDepthFormat(vk::Format format)
+{
+    switch (format)
+    {
+    case vk::Format::eD16Unorm:
+    case vk::Format::eD32Sfloat:
+    case vk::Format::eX8D24UnormPack32:
+    case vk::Format::eD16UnormS8Uint:
+    case vk::Format::eD24UnormS8Uint:
+    case vk::Format::eD32SfloatS8Uint:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool VulkanUtils::IsStencilFormat(vk::Format format)
+{
+    switch (format)
+    {
+    case vk::Format::eS8Uint:
+    case vk::Format::eD16UnormS8Uint:
+    case vk::Format::eD24UnormS8Uint:
+    case vk::Format::eD32SfloatS8Uint:
+        return true;
+    default:
+        return false;
+    }
+}
+
 Format VulkanUtils::TranslateFromVkFormat(vk::Format format)
 {
     return ReverseMap<Format, vk::Format>(VulkanUtils::TranslateToVkFormat, Format::Unknown, Format::FormatCount)(format);
