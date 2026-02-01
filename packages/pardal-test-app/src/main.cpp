@@ -61,9 +61,14 @@ int main(int argc, char** argv)
             continue;
         }
         auto* commandBuffer = getCommandBufferResults.value();
-        commandBuffer->BeginRecording({}, {}, {});
-        commandBuffer->EndRecording();
-        auto submitResults = renderer->SubmitCommandBuffer(commandBuffer);
+        pdl::RenderPass rp;
+        rp.m_colorAttachments[0].clearColor.x = 1.0f;
+        rp.m_colorAttachments[0].loadOp = pdl::LoadOp::Clear;
+        pdl::Framebuffer fb;
+        fb.m_colorAttachments[0].m_texture = renderer->GetCurrentSwapchainTexture();
+        commandBuffer->BeginRendering(rp, fb, {});
+        commandBuffer->EndRendering();
+        auto submitResults = renderer->SubmitCommandBuffer(commandBuffer, renderer->GetCurrentSwapchainTexture());
         if (!submitResults)
         {
             pdlLogError("Error submitting command buffer: %s", submitResults.error().data());
