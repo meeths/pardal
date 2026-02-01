@@ -40,6 +40,9 @@ public:
     
     virtual void Destroy(TextureHandle bufferHandle) = 0;
     virtual void Destroy(BufferHandle bufferHandle) = 0;
+    
+    virtual TextureHandle GetCurrentSwapchainTexture() const = 0;
+
 };
 
 }

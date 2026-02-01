@@ -145,5 +145,28 @@ namespace pdl
         
         m_vkLayout = newLayout;
     }
+
+    vk::ImageView& VulkanTexture::GetOrCreateVkImageViewForFramebuffer(VulkanRenderer& vulkanRenderer, uint8 level, uint8 layer)
+    {
+        pdlAssert(level < RenderererConstants::MaxMipLevels());
+        pdlAssert(layer < 6);
+
+        if (m_vkFramebufferImageViews[level][layer] != vk::ImageView{}) 
+        {
+            return m_vkFramebufferImageViews[level][layer];
+        }
+
+        VkImageView view = CreateView(vulkanRenderer,
+                                   vk::ImageViewType::e2D,
+                                   m_vkFormat,
+                                   GetAspectFlags(),
+                                   level,
+                                   1u,
+                                   layer,
+                                   1);
+
+        m_vkFramebufferImageViews[level][layer] = view;
+        return m_vkFramebufferImageViews[level][layer];
+    }
 }
 

@@ -13,7 +13,7 @@ namespace pdl
         : m_renderer(renderer), m_queueFamilyIndex(queueFamilyIndex)
     {
         auto& device = m_renderer.GetDevice();
-        m_queue = device.getQueue(queueFamilyIndex, 0);
+        m_queue = device.getQueue(m_queueFamilyIndex, 0);
         
         vk::CommandPoolCreateInfo poolInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer | vk::CommandPoolCreateFlagBits::eTransient, queueFamilyIndex);
         auto createCommandPoolResults = device.createCommandPool(poolInfo);
@@ -56,7 +56,7 @@ namespace pdl
         m_renderer.GetDevice().destroyCommandPool(m_commandPool);
     }
 
-    const VulkanCommandBufferObject& VulkanImmediateCommand::Acquire()
+    VulkanCommandBufferObject& VulkanImmediateCommand::Acquire()
     {   
         pdlAssert(m_availableCommands && "No available commands");
         

@@ -887,5 +887,60 @@ vk::ColorSpaceKHR VulkanUtils::GetColorSpace(ColorSpace colorSpace)
     pdlAssert(0 && "Unsupported ColorSpace");
     return vk::ColorSpaceKHR::eSrgbNonlinear;
 }
+
+vk::AttachmentLoadOp VulkanUtils::GetAttachmentLoadOp(LoadOp loadOp)
+{
+    switch (loadOp)
+    {
+    case LoadOp::Load:
+        return vk::AttachmentLoadOp::eLoad;
+    case LoadOp::Clear:
+        return vk::AttachmentLoadOp::eClear;
+    case LoadOp::DontCare:
+        return vk::AttachmentLoadOp::eDontCare;
+    default:
+        pdlAssert(0 && "Unsupported LoadOp");
+        return vk::AttachmentLoadOp::eLoad;
+    }
+}
+ 
+
+vk::AttachmentStoreOp VulkanUtils::GetAttachmentStoreOp(StoreOp storeOp)
+{
+    switch (storeOp)
+    {
+    case StoreOp::Store:
+        return vk::AttachmentStoreOp::eStore;
+    case StoreOp::DontCare:
+        return vk::AttachmentStoreOp::eDontCare;
+    default:
+        pdlAssert(0 && "Unsupported StoreOp");
+        return vk::AttachmentStoreOp::eStore;
+    }
+}
+
+vk::ResolveModeFlagBits VulkanUtils::GetResolveModeFlag(ResolveMode resolveMode)
+{
+    switch (resolveMode) 
+    {
+    case ResolveMode::None:
+        return vk::ResolveModeFlagBits::eNone;
+        break;
+    case ResolveMode::SampleZero:
+        return vk::ResolveModeFlagBits::eSampleZero;
+        break;
+    case ResolveMode::Average:
+        return vk::ResolveModeFlagBits::eAverage;
+        break;
+    case ResolveMode::Min:
+        return vk::ResolveModeFlagBits::eMin;
+        break;
+    case ResolveMode::Max:
+        return vk::ResolveModeFlagBits::eMax;
+        break;
+    }
+    pdlAssert(0 && "Unsupported ResolveMode");
+    return vk::ResolveModeFlagBits::eNone;
+}
 }
 

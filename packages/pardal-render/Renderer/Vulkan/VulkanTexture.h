@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vma/vk_mem_alloc.h>
 
+#include "VulkanCommandBuffer.h"
 #include "Base/BaseDefines.h"
 #include "Base/BaseTypes.h"
 // Created on 2026-01-30 by sisco
@@ -30,7 +31,8 @@ struct VulkanTexture
     vk::ImageLayout m_vkLayout = vk::ImageLayout::eUndefined;
 
     vk::ImageView m_vkImageView;
-
+    Array<Array<vk::ImageView, 6>, RenderererConstants::MaxMipLevels()> m_vkFramebufferImageViews;
+    
     Flags m_flags = {};
     
     VmaAllocation m_vmaAllocation;
@@ -62,6 +64,7 @@ struct VulkanTexture
     
     vk::ImageAspectFlags GetAspectFlags() const;
     void TransitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
+    vk::ImageView& GetOrCreateVkImageViewForFramebuffer(VulkanRenderer& vulkanRenderer, uint8 level, uint8 layer);
 };
     
 DefineEnumMaskOperators(VulkanTexture::Flags);

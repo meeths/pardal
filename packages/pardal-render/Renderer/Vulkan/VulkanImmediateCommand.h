@@ -20,7 +20,12 @@ public:
     VulkanImmediateCommand(VulkanRenderer& renderer, uint32_t queueFamilyIndex);
     ~VulkanImmediateCommand();
     
-    const VulkanCommandBufferObject& Acquire(); 
+    VulkanCommandBufferObject& Acquire(); 
+    vk::Semaphore AcquireLastSubmitSemaphore() 
+    {
+        return std::exchange(m_lastSubmitSemaphore.semaphore, {});
+    }
+
     void Submit(VulkanCommandBufferObject& command);
     void Wait();
 private:

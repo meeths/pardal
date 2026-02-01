@@ -55,6 +55,9 @@ public:
     static vk::ConservativeRasterizationModeEXT GetConservativeRasterizationMode(ConservativeRasterization conservativeMode);
     static vk::ColorComponentFlags GetColorComponentMasks(ColorChannelMask colorMask);
     static vk::ColorSpaceKHR GetColorSpace(ColorSpace colorSpace);
+    static vk::AttachmentLoadOp GetAttachmentLoadOp(LoadOp loadOp);
+    static vk::AttachmentStoreOp GetAttachmentStoreOp(StoreOp storeOp);
+    static vk::ResolveModeFlagBits GetResolveModeFlag(ResolveMode resolveMode);
 };
 
 }

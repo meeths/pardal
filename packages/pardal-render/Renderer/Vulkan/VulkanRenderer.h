@@ -58,11 +58,11 @@ public:
     // Object getters
     VulkanTexture* Get(const TextureHandle& handle) { return m_imagesPool.Get(handle); }
     VulkanBuffer* Get(const BufferHandle& handle) { return m_buffersPool.Get(handle); }
+    
+    TextureHandle GetCurrentSwapchainTexture() const override;
 private:
     Expected<void, StringView> InitializeInstanceAndDevice(const InitInfo& initInfo);
-
-
-private:
+    
     RenderDeviceInfo m_deviceInfo = {};
     
     vk::Instance m_vkInstance;

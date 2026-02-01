@@ -12,22 +12,33 @@ class VulkanRenderer;
 class VulkanCommandBuffer : public ICommandBuffer
 {
 public:
-    VulkanCommandBuffer(VulkanRenderer& renderer, VulkanCommandBufferObject& command);
+    VulkanCommandBuffer() = default;
+    VulkanCommandBuffer(VulkanRenderer* renderer, VulkanCommandBufferObject* command);
     ~VulkanCommandBuffer() override;
 
-    void BeginRecording(const RenderPass& renderPass, const Framebuffer& desc, const Dependencies& dependencies) override;
-    void EndRecording() override;
+    void BeginRendering(const RenderPass& renderPass, const Framebuffer& framebuffer, const Dependencies& dependencies) override;
+    void EndRendering() override;
     bool IsRecording() const override { return m_isRecording; }
     
     void TransitionToShaderReadonly(TextureHandle textureHandle) override;
 
+    VulkanCommandBufferObject* m_command = nullptr;
+
 private:
-    
     void BufferBarrier(BufferHandle bufferHandle, vk::PipelineStageFlags2 srcStage, vk::PipelineStageFlags2 dstStage);
     
-    VulkanRenderer& m_renderer;
-    VulkanCommandBufferObject& m_command;
+    VulkanRenderer* m_renderer = nullptr;;
+//    VulkanCommandBufferObject* m_command = nullptr;
     bool m_isRecording = false;
+    
+    Framebuffer m_currentFramebuffer;
+    struct 
+    {
+        Array<vk::DescriptorImageInfo, RenderererConstants::MaxColorAttachments()> m_imageInfos;
+        Array<vk::WriteDescriptorSet, RenderererConstants::MaxColorAttachments()> m_writes;
+        uint32_t m_count = 0;
+    } m_currentInputAttachments;
+
 };
 
 }

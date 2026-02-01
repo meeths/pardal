@@ -12,6 +12,7 @@ class RenderererConstants
 {
 public:
     DefineGlobalConstexprVariableAccessor(uint8, MaxColorAttachments, 8)
+    DefineGlobalConstexprVariableAccessor(uint8, MaxMipLevels, 16)
 };
 
 }

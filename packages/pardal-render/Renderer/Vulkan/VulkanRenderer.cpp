@@ -34,6 +34,8 @@ namespace Details
 {
     VmaAllocator g_vmaAllocator = VK_NULL_HANDLE;
     
+    pdl::VulkanCommandBuffer g_currentCommandBuffer;
+    
     static vk::PhysicalDevice& PickBestDevice(pdl::Vector<vk::PhysicalDevice>& devices)
     {
         pdlAssert(!devices.empty());
@@ -274,7 +276,10 @@ namespace pdl
         {
             return Unexpected("Vulkan device not initialized");
         }
-        return nullptr;
+        
+        Details::g_currentCommandBuffer = {this, &m_immediateCommand->Acquire()};
+        
+        return &Details::g_currentCommandBuffer;
     }
 
     Expected<void, StringView> VulkanRenderer::SubmitCommandBuffer(ICommandBuffer* commandBuffer, TextureHandle presentTarget)
@@ -290,7 +295,26 @@ namespace pdl
         {
             return Unexpected("Cannot submit command buffer that is still recording");
         }
+        
+        if (presentTarget) 
+        {
+            auto* texture = Get(presentTarget);
+            texture->TransitionLayout(vkCommandBuffer->m_command->m_commandBuffer,
+                                 vk::ImageLayout::ePresentSrcKHR);
+        }
 
+        m_immediateCommand->Submit(*vkCommandBuffer->m_command);
+        
+        if (presentTarget)
+        {
+            auto presentResults = m_swapchain->Present(m_immediateCommand->AcquireLastSubmitSemaphore());
+            if (!presentResults)
+            {
+                pdlLogError("Failed to present swapchain image: %s", presentResults.error().data());
+            }
+        }
+        Details::g_currentCommandBuffer = {};
+        
         return {};
     }
 
@@ -402,7 +426,12 @@ namespace pdl
         
         m_buffersPool.Destroy(bufferHandle);
         vmaDestroyBuffer(Details::g_vmaAllocator, bufferPtr->m_buffer, bufferPtr->m_allocation);
-    }   
+    }
+
+    TextureHandle VulkanRenderer::GetCurrentSwapchainTexture() const
+    {
+        return m_swapchain->GetCurrentImage();
+    }
 
     Expected<void, StringView> VulkanRenderer::InitializeInstanceAndDevice(const InitInfo& initInfo)
     {
@@ -623,9 +652,6 @@ namespace pdl
         }
         
         m_immediateCommand = MakeUniquePointer<VulkanImmediateCommand>(*this, m_deviceQueues.graphicsQueueFamilyIndex);
-        
-        auto command = m_immediateCommand->Acquire();
-        m_immediateCommand->Submit(command);
         
         return {};
     }
