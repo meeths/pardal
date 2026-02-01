@@ -7,6 +7,7 @@
 #include "Log/LoggerStdout.h"
 #include "Math/Vector3.h"
 #include "Memory/Memory.h"
+#include "Renderer/ICommandBuffer.h"
 #include "Renderer/RenderererDevices.h"
 #include "Renderer/Shaders/device_host_structs.h"
 #include "Renderer/Vulkan/VulkanRenderer.h"
@@ -41,17 +42,6 @@ int main(int argc, char** argv)
 
     pdl::InputManager inputManager;
     
-    // Testing renderer objects creation
-    auto createBufferResults = renderer->CreateBuffer(1024*1024, pdl::BufferUsage::ConstantBuffer, pdl::MemoryType::DeviceLocal);
-    if (!createBufferResults)
-    {
-        pdlLogError("%s", createBufferResults.error().data());
-    }
-    auto renderBuffer = createBufferResults.value();
-    renderer->Destroy(renderBuffer);
-    renderer->Destroy(renderBuffer);    // Logs warning
-    
-    
     while (!window.IsCloseRequested())
     {
         pdlMaybeUnused float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
@@ -62,6 +52,22 @@ int main(int argc, char** argv)
         if (!inputManagerResults)
         {
             pdlLogError("%s", inputManagerResults.error().c_str());
+        }
+
+        auto getCommandBufferResults = renderer->GetCommandBuffer();
+        if (!getCommandBufferResults)
+        {
+            pdlLogError("%s", getCommandBufferResults.error().data());
+            continue;
+        }
+        auto* commandBuffer = getCommandBufferResults.value();
+        commandBuffer->BeginRecording({}, {}, {});
+        commandBuffer->EndRecording();
+        auto submitResults = renderer->SubmitCommandBuffer(commandBuffer);
+        if (!submitResults)
+        {
+            pdlLogError("Error submitting command buffer: %s", submitResults.error().data());
+            continue;
         }
         
         pdlLogFlush();
