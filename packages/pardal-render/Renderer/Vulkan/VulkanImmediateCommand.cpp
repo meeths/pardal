@@ -56,12 +56,12 @@ namespace pdl
         m_renderer.GetDevice().destroyCommandPool(m_commandPool);
     }
 
-    const VulkanImmediateCommand::Command& VulkanImmediateCommand::Acquire()
+    const VulkanCommandBufferObject& VulkanImmediateCommand::Acquire()
     {   
         pdlAssert(m_availableCommands && "No available commands");
         
-        Command* currentCommand = nullptr;
-        for (Command& command : m_commands) 
+        VulkanCommandBufferObject* currentCommand = nullptr;
+        for (VulkanCommandBufferObject& command : m_commands) 
         {
             if (command.m_isAvailable) 
             {
@@ -87,7 +87,7 @@ namespace pdl
         return *currentCommand;
     }
 
-    void VulkanImmediateCommand::Submit(Command& command)
+    void VulkanImmediateCommand::Submit(VulkanCommandBufferObject& command)
     {
         pdlAssert(command.m_commandBuffer);
         pdlAssert(command.m_isAvailable == false);
