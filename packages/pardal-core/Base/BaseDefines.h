@@ -24,5 +24,7 @@
 #define DefineEnumMaskOperators(enum_type) \
     constexpr enum_type operator | (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<std::underlying_type_t<enum_type>>(lhs) | static_cast<std::underlying_type_t<enum_type>>(rhs));} \
     constexpr enum_type operator & (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<std::underlying_type_t<enum_type>>(lhs) & static_cast<std::underlying_type_t<enum_type>>(rhs));} \
+    constexpr enum_type operator &= (enum_type& lhs, enum_type other) { lhs = lhs & other; return lhs; }\
+    constexpr enum_type operator |= (enum_type& lhs, enum_type other) { lhs = lhs | other; return lhs; }\
     constexpr bool operator! (enum_type lhs) { return static_cast<std::underlying_type_t<enum_type>>(lhs) == 0; }
      
