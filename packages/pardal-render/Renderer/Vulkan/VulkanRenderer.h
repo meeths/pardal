@@ -39,6 +39,9 @@ public:
     
     Expected<void, StringView> InitSwapchain(uint32 width, uint32 height) override;
     
+    Expected<ICommandBuffer*, StringView> GetCommandBuffer() override;
+    Expected<void, StringView> SubmitCommandBuffer(ICommandBuffer* commandBuffer, TextureHandle presentTarget) override;
+
     Expected<TextureHandle, StringView> CreateTexture(VulkanTexture& vulkanImage);
     Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
                                                     BufferUsage usage,
@@ -57,6 +60,9 @@ public:
     VulkanBuffer* Get(const BufferHandle& handle) { return m_buffersPool.Get(handle); }
 private:
     Expected<void, StringView> InitializeInstanceAndDevice(const InitInfo& initInfo);
+
+
+private:
     RenderDeviceInfo m_deviceInfo = {};
     
     vk::Instance m_vkInstance;

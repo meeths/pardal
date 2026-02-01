@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.hpp>
 #include <vma/vk_mem_alloc.h>
 
+#include "Base/BaseDefines.h"
 #include "Base/BaseTypes.h"
 // Created on 2026-01-30 by sisco
 
@@ -12,6 +13,13 @@ class VulkanRenderer;
 
 struct VulkanTexture
 {
+    enum class Flags : uint32
+    {
+        OwnsVkImage = 1 << 0,
+        IsResolveAttachment = 1 << 1
+        
+    };
+    
     vk::Image m_vkImage;
     vk::ImageUsageFlags m_vkUsage;
     vk::Format m_vkFormat = vk::Format::eUndefined;
@@ -23,10 +31,11 @@ struct VulkanTexture
 
     vk::ImageView m_vkImageView;
 
-    bool m_ownsVkImage = false;
+    Flags m_flags = {};
     
     VmaAllocation m_vmaAllocation;
     void* m_mappedPtr = nullptr;
+    
 
     vk::ImageView CreateView(VulkanRenderer& renderer,
         vk::ImageViewType viewType,
@@ -50,7 +59,12 @@ struct VulkanTexture
     {
         m_vkImageView = CreateView(renderer, viewType, format, aspectFlags, baseMip, numMips, baseLayer, numLayers, componentMapping);
     }
+    
+    vk::ImageAspectFlags GetAspectFlags() const;
+    void TransitionLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout newLayout);
 };
+    
+DefineEnumMaskOperators(VulkanTexture::Flags);
 
 }
 

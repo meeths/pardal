@@ -3,6 +3,7 @@
 
 #include "VkExtensionsFeaturesHelper.h"
 #include "VulkanBuffer.h"
+#include "VulkanCommandBuffer.h"
 #include "VulkanUtils.h"
 #include "Application/ApplicationWindow.h"
 #include "Containers/VectorUtils.h"
@@ -267,6 +268,32 @@ namespace pdl
         return {};
     }
 
+    Expected<ICommandBuffer*, StringView> VulkanRenderer::GetCommandBuffer()
+    {
+        if (!m_vkDevice)
+        {
+            return Unexpected("Vulkan device not initialized");
+        }
+        return nullptr;
+    }
+
+    Expected<void, StringView> VulkanRenderer::SubmitCommandBuffer(ICommandBuffer* commandBuffer, TextureHandle presentTarget)
+    {
+        if (!m_vkDevice)
+        {
+            return Unexpected("Vulkan device not initialized");
+        }
+        
+        VulkanCommandBuffer* vkCommandBuffer = static_cast<VulkanCommandBuffer*>(commandBuffer);
+        pdlAssert(vkCommandBuffer);
+        if (vkCommandBuffer->IsRecording())
+        {
+            return Unexpected("Cannot submit command buffer that is still recording");
+        }
+
+        return {};
+    }
+
     Expected<TextureHandle, StringView> VulkanRenderer::CreateTexture(VulkanTexture& vulkanImage)
     {
         return m_imagesPool.Create(std::move(vulkanImage));
@@ -337,7 +364,7 @@ namespace pdl
         if (texturePtr->m_vkImageView)
             m_vkDevice.destroyImageView(texturePtr->m_vkImageView);
 
-        if (texturePtr->m_ownsVkImage)
+        if (!!(texturePtr->m_flags & VulkanTexture::Flags::OwnsVkImage))
         {
             if (texturePtr->m_vkImage)
             {

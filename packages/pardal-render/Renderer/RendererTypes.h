@@ -1,13 +1,28 @@
 #pragma once
-#include <Base/BaseTypes.h>
-#include <Base/BaseDefines.h>
-#include "Containers/PoolHandle.h"
+#include "Base/BaseDefines.h"
+#include "Base/BaseTypes.h"
 #include "Base/DebugHelpers.h"
-
+#include "Containers/Array.h"
+#include "Containers/PoolHandle.h"
+#include "Math/Vector4.h"
+#include "Renderer/RenderererConstants.h"
+#include <algorithm>
 // Created on 2025-03-23 by sisco
 
 namespace pdl
 {
+        
+    using ComputePipelineHandle = PoolHandle<struct ComputePipeline>;
+    using RenderPipelineHandle = PoolHandle<struct RenderPipeline>;
+    using RayTracingPipelineHandle = PoolHandle<struct RayTracingPipeline>;
+    using ShaderModuleHandle = PoolHandle<struct ShaderModule>;
+    using SamplerHandle = PoolHandle<struct Sampler>;
+    using BufferHandle = PoolHandle<struct Buffer>;
+    using TextureHandle = PoolHandle<struct Texture>;
+    using QueryPoolHandle = PoolHandle<struct QueryPool>;
+    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
+    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
+
    enum class Format : uint8
     {
         Unknown,
@@ -664,16 +679,60 @@ namespace pdl
         }
     };
 
-    using ComputePipelineHandle = PoolHandle<struct ComputePipeline>;
-    using RenderPipelineHandle = PoolHandle<struct RenderPipeline>;
-    using RayTracingPipelineHandle = PoolHandle<struct RayTracingPipeline>;
-    using ShaderModuleHandle = PoolHandle<struct ShaderModule>;
-    using SamplerHandle = PoolHandle<struct Sampler>;
-    using BufferHandle = PoolHandle<struct Buffer>;
-    using TextureHandle = PoolHandle<struct Texture>;
-    using QueryPoolHandle = PoolHandle<struct QueryPool>;
-    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
-    using AccelerationStructHandle = PoolHandle<struct AccelerationStructure>;
+    struct RenderPass
+    {
+        struct Attachment final {
+            Math::Vector4 clearColor = {0.0f, 0.0f, 0.0f, 0.0f};
+            float clearDepth = 1.0f;
+            uint32 clearStencil = 0;
+            LoadOp loadOp = LoadOp::Invalid;
+            StoreOp storeOp = StoreOp::Store;
+            ResolveMode resolveMode = ResolveMode::Average;
+            uint8_t layer = 0;
+            uint8_t level = 0;
+        };
+        
+        Array<Attachment, RenderererConstants::MaxColorAttachments()> m_colorAttachments;
+        Attachment m_depthAttachment;
+        Attachment m_stencilAttachment;
+        
+        uint8 GetNumColorAttachments() const
+        {
+            return static_cast<uint8>(std::ranges::count_if(m_colorAttachments, [](const Attachment& attachment)
+            {
+                return attachment.loadOp != LoadOp::Invalid;
+            }));
+        }
+    };
+    
+    struct Framebuffer
+    {
+        struct Attachment
+        {
+            TextureHandle m_texture;
+            TextureHandle m_resolveMSAATexture;
+        };
+        
+        Array<Attachment, RenderererConstants::MaxColorAttachments()> m_colorAttachments;
+        Attachment m_depthStencilTexture;
+        
+        uint8 GetNumColorAttachments() const
+        {
+            return static_cast<uint8>(std::ranges::count_if(m_colorAttachments, [](const Attachment& attachment)
+            {
+                return attachment.m_texture != TextureHandle();
+            }));       
+        }
+    };
+    
+    struct Dependencies 
+    {
+        static constexpr uint32 kMaxDependencies = 8;
+        TextureHandle m_textures[kMaxDependencies] = {};
+        BufferHandle m_buffers[kMaxDependencies] = {};
+        TextureHandle m_inputAttachments[kMaxDependencies] = {};
+    };
+
     
     
 }
