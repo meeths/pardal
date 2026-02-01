@@ -22,6 +22,7 @@
     auto cend() const { return (member_container).cend(); }
 
 #define DefineEnumMaskOperators(enum_type) \
-    inline enum_type operator| (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<char>(lhs) | static_cast<char>(rhs));} \
-    inline enum_type operator& (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<char>(lhs) & static_cast<char>(rhs));}
+    constexpr enum_type operator | (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<std::underlying_type_t<enum_type>>(lhs) | static_cast<std::underlying_type_t<enum_type>>(rhs));} \
+    constexpr enum_type operator & (enum_type lhs, enum_type rhs) { return static_cast<enum_type>(static_cast<std::underlying_type_t<enum_type>>(lhs) & static_cast<std::underlying_type_t<enum_type>>(rhs));} \
+    constexpr bool operator! (enum_type lhs) { return static_cast<std::underlying_type_t<enum_type>>(lhs) == 0; }
      
