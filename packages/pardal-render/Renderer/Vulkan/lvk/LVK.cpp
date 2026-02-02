@@ -37,6 +37,8 @@
 #include <GLFW/glfw3native.h>
 #endif // LVK_WITH_GLFW
 
+#include <SPIRV-Reflect/spirv_reflect.c>
+
 #include "vulkan/VulkanClasses.h"
 
 namespace {

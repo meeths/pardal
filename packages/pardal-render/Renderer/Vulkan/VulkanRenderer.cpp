@@ -27,6 +27,9 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 #define VMA_IMPLEMENTATION
 #pragma clang diagnostic ignored "-Wunused-variable"
+#ifndef VMA_VULKAN_VERSION
+#define VMA_VULKAN_VERSION 1003000
+#endif
 #include <vma/vk_mem_alloc.h>
 
 // Created on 2026-01-26 by sisco

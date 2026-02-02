@@ -13,7 +13,6 @@
 #include <slang.h>
 #include <slang-com-helper.h>
 #include <slang-com-ptr.h>
-#include <core/slang-basic.h>
 #endif // defined(LVK_WITH_SLANG) && LVK_WITH_SLANG
 
 #include "VulkanUtils.h"
@@ -788,7 +787,7 @@ lvk::Result lvk::compileShaderSlang(lvk::ShaderStage stage,
     return Result(Result::Code::RuntimeError, "slang::createGlobalSession() failed");
   }
 
-  const slang::CompilerOptionEntry compilerOptions[] = {
+  slang::CompilerOptionEntry compilerOptions[] = {
       {.name = slang::CompilerOptionName::Capability,
        .value = {.kind = slang::CompilerOptionValueKind::String, .stringValue0 = "SPV_GOOGLE_user_type"}},
       {.name = slang::CompilerOptionName::Capability,
@@ -865,23 +864,24 @@ lvk::Result lvk::compileShaderSlang(lvk::ShaderStage stage,
       return "intersectionMain";
     case Stage_Callable:
       return "callableMain";
+    default:
+      return "unknown shader type";
     }
-    return "unknown shader type";
   }();
   if (SLANG_FAILED(slangModule->findEntryPointByName(entryPointName, entryPoint.writeRef()))) {
     LVK_ASSERT_MSG(entryPoint, "Entry point %s() not found", entryPointName);
     return Result(Result::Code::RuntimeError, "Entry point not found");
   }
 
-  Slang::List<slang::IComponentType*> componentTypes;
-  componentTypes.add(slangModule);
-  componentTypes.add(entryPoint);
+  std::vector<slang::IComponentType*> componentTypes;
+  componentTypes.push_back(slangModule);
+  componentTypes.push_back(entryPoint);
 
   Slang::ComPtr<slang::IComponentType> composedProgram;
   {
     Slang::ComPtr<slang::IBlob> diagnosticBlob;
     SlangResult result = session->createCompositeComponentType(
-        componentTypes.getBuffer(), componentTypes.getCount(), composedProgram.writeRef(), diagnosticBlob.writeRef());
+        componentTypes.data(), componentTypes.size(), composedProgram.writeRef(), diagnosticBlob.writeRef());
     if (diagnosticBlob) {
       pdlLogWarning("%s\n", (const char*)diagnosticBlob->getBufferPointer());
     }

@@ -7,7 +7,9 @@
 
 #pragma once
 
+#ifndef VMA_VULKAN_VERSION
 #define VMA_VULKAN_VERSION 1003000
+#endif
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
@@ -24,7 +26,7 @@
 #include <cassert>
 #include <cstdio>
 #include <vector>
-
+#pragma clang diagnostic ignored "-Wunused-variable"
 #include <vma/vk_mem_alloc.h>
 #include "../LVK.h"
 
