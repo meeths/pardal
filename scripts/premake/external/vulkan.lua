@@ -12,7 +12,8 @@ function includeVulkan()
         "VULKAN_HPP_NO_EXCEPTIONS",
         "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
         "VULKAN_HPP_NO_SPACESHIP_OPERATOR",
-        "PDL_VULKAN"
+        "PDL_VULKAN",
+        "LVK_WITH_SLANG"
     }
     filter { "platforms:win32 or win64"}
         defines {"VK_USE_PLATFORM_WIN32_KHR"}
@@ -37,9 +38,11 @@ function linkVulkan()
 
     filter "configurations:Debug"
         ignoredefaultlibraries { "msvcrt.lib" }
+        links {"glslangd.lib", "SPIRV-Toolsd.lib", "SPIRV-Tools-optd.lib"}
 
     filter "configurations:Release"
         ignoredefaultlibraries { "msvcrtd.lib" }
+        links {"glslang.lib", "SPIRV-Tools.lib", "SPIRV-Tools-opt.lib"}
 
     filter {}
 
