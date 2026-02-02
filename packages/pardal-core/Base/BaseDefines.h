@@ -28,3 +28,5 @@
     constexpr enum_type operator |= (enum_type& lhs, enum_type other) { lhs = lhs | other; return lhs; }\
     constexpr bool operator! (enum_type lhs) { return static_cast<std::underlying_type_t<enum_type>>(lhs) == 0; }
      
+#define CONCAT_IMPL(x,y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x,y)
