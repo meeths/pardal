@@ -54,6 +54,7 @@ function configureCommonFlags()
     editAndContinue "Off"
     exceptionhandling "Off"
     characterset "Unicode"
+    vectorextensions "AVX2"
 end
 
 function setConfigurations()
