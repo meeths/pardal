@@ -7,6 +7,7 @@ VULKAN_SDK_VERSION = "1.4.335.0"
 
 function includeVulkan()
     includedirs { "%{BASE_DIR}external/vulkan_" .. VULKAN_SDK_VERSION .. "/Include" }
+    includedirs { "%{BASE_DIR}external/vulkan_" .. VULKAN_SDK_VERSION .. "/Source" }
     defines {
         "VULKAN_HPP_NO_EXCEPTIONS",
         "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
