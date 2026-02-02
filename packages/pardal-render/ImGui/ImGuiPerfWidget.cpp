@@ -7,7 +7,7 @@
 #include "ImGuiRenderer.h"
 #include "implot.h"
 #include "Base/ServiceLocator.h"
-#include "Containers/ScrollingVector.h"
+#include "Containers/CircularVector.h"
 
 // Created on 2026-01-25 by sisco
 
@@ -20,20 +20,20 @@ namespace Details
         float x;
         float y;
     };
-    static pdl::ScrollingVector<DataPoint> g_scrollingFrameMsBuffer(1000);
-    static pdl::ScrollingVector<DataPoint> g_scrollingMainMsBuffer(1000);
+    static pdl::CircularVector<DataPoint> g_scrollingFrameMsBuffer(1000);
+    static pdl::CircularVector<DataPoint> g_scrollingMainMsBuffer(1000);
 }
 
 namespace pdl
 {
     ImGuiPerfWidget::ImGuiPerfWidget()
     {
-        ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
+        //ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
     }
 
     ImGuiPerfWidget::~ImGuiPerfWidget()
     {
-        ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
+        //ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
     }
 
     void ImGuiPerfWidget::Update(float _frameTime, float _mainTime)
