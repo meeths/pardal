@@ -1128,7 +1128,7 @@ lvk::VulkanSwapchain::VulkanSwapchain(VulkanContext& ctx, uint32_t width, uint32
 
   // trim the image extent
   width_ = width = std::min(width, caps.maxImageExtent.width);
-  height_ = height = std::min(height, caps.maxImageExtent.width);
+  height_ = height = std::min(height, caps.maxImageExtent.height);
 
   auto chooseUsageFlags = [](const VkSurfaceCapabilitiesKHR& caps, const VkFormatProperties& props) -> VkImageUsageFlags {
     VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
@@ -7286,7 +7286,8 @@ lvk::Result lvk::VulkanContext::initSwapchain(uint32_t width, uint32_t height) {
   if (swapchain_) {
     // destroy the old swapchain first
     // TODO: replace with VK_EXT_swapchain_maintenance1
-    VK_ASSERT(vkDeviceWaitIdle(vkDevice_));
+    auto results = vkDeviceWaitIdle(vkDevice_);
+    VK_ASSERT(results);
     swapchain_ = nullptr;
     vkDestroySemaphore(vkDevice_, timelineSemaphore_, nullptr);
   }

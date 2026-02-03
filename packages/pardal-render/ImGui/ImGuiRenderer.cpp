@@ -4,15 +4,15 @@
 #include <implot.h>
 
 #include "Application/ApplicationWindow.h"
-#if 0
 
-#ifdef PDL_PLATFORM_WINDOWS
-#include <backends/imgui_impl_win32.cpp>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#   include <windows.h>
 #endif
 
 #ifdef PDL_VULKAN
-#include <backends/imgui_impl_vulkan.cpp>
-#include <Renderer/Vulkan/VulkanDevice.h>
+#include <Renderer/Vulkan/VulkanRenderer.h>
+#include <Renderer/Vulkan/lvk/HelpersImGui.h> 
 #endif
 // Created on 2025-04-01 by sisco
 
@@ -159,34 +159,18 @@ namespace pdl
     void ImGuiRenderer::Initialize(const InitInfo& initInfo)
     {
 #ifdef PDL_VULKAN
-        m_device = initInfo.m_device;
+        auto* vulkanRenderer = static_cast<VulkanRenderer*>(initInfo.m_renderer);
         
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImPlot::CreateContext();
-        
+        m_lvkImGuiRenderer = MakeUniquePointer<lvk::ImGuiRenderer>(*vulkanRenderer->GetLVKContext(), nullptr);
+
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
         io.DisplaySize.x = static_cast<float>(initInfo.m_window.GetWindowSize().x);
         io.DisplaySize.y = static_cast<float>(initInfo.m_window.GetWindowSize().y);
-        // io.Fonts->Build();
+
         // Setup Platform/Renderer backends
-#ifdef PDL_PLATFORM_WINDOWS
-        ImGui_ImplWin32_Init(initInfo.m_window.GetNativeWindow());
-#endif
-#ifdef PDL_VULKAN
-        ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo = {};
-        static_cast<VulkanDevice*>(initInfo.m_device)->FillImGuiInitInfo(imguiVulkanInitInfo);
-        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-        VkFormat colorAttachmentFormats[] = {
-            initInfo.m_useHDR ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_R8G8B8A8_UNORM
-        };
-        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = colorAttachmentFormats;
-        imguiVulkanInitInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
-        ImGui_ImplVulkan_Init(&imguiVulkanInitInfo);
-#endif
         initInfo.m_window.AddMouseMoveCallback([this](Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods) {
             OnMouseMove(pos, lButton, rButton, mButton, mods);
         });
@@ -206,38 +190,12 @@ namespace pdl
 
     ImGuiRenderer::~ImGuiRenderer()
     {
-#ifdef PDL_VULKAN        
-        ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-        ImPlot::DestroyContext();
-        ImGui::DestroyContext();
-#endif
     }
 
-    void ImGuiRenderer::BeginFrame()
-    {
-        #ifdef PDL_VULKAN        
-        pdlAssert(m_device && "ImGuiRenderer::BeginFrame: Not initialized");
-        ImGui::NewFrame();
-#ifdef PDL_PLATFORM_WINDOWS
-        ImGui_ImplWin32_NewFrame();
-#endif
-#ifdef PDL_VULKAN
-        ImGui_ImplVulkan_NewFrame();
-#endif
-#endif
-    }
-
-    void ImGuiRenderer::EndFrame()
-    {
-        ImGui::EndFrame();
-    }
 
     void ImGuiRenderer::Render()
     {
 #ifdef PDL_VULKAN        
-        CheckHotkeys();
-        
         if (m_viewMode != ViewMode::Hidden)
         {
             auto renderables = m_renderables.LockForRead();
@@ -260,7 +218,6 @@ namespace pdl
             }
         }
         ImGui::Render();
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<VulkanDevice*>(m_device)->GetVulkanDeviceQueue().GetCommandBuffer()->GetVkCommandBuffer());
 #endif        
     }
 
@@ -275,7 +232,7 @@ namespace pdl
         auto renderables = m_renderables.LockForWrite();
         renderables->erase(std::remove(renderables->begin(), renderables->end(), renderable), renderables->end());
     }
-
+    
     void ImGuiRenderer::OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods)
     {
         ImGui::GetIO().MousePos = ImVec2(pos.x, pos.y);
@@ -304,21 +261,17 @@ namespace pdl
     {
         ImGui::GetIO().AddKeyEvent(Details::VirtualKeyToImGuiKey(key), true);
 
+        if (Details::VirtualKeyToImGuiKey(key) == ImGuiKey_F11)
+        {
+            m_viewMode = static_cast<ViewMode>((static_cast<int>(m_viewMode) + 1) % 3);  
+        }
+
     }
 
     void ImGuiRenderer::OnKeyInput(int16 key)
     {
         ImGui::GetIO().AddInputCharacter(key);
     }
-
-    void ImGuiRenderer::CheckHotkeys()
-    {
-        if (ImGui::IsKeyPressed(ImGuiKey_F11))
-        {
-            m_viewMode = static_cast<ViewMode>((static_cast<int>(m_viewMode) + 1) % 3);  
-        }
-    }
 }
 
 #endif 
-#endif

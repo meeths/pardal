@@ -28,12 +28,12 @@ namespace pdl
 {
     ImGuiPerfWidget::ImGuiPerfWidget()
     {
-        //ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
     }
 
     ImGuiPerfWidget::~ImGuiPerfWidget()
     {
-        //ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
     }
 
     void ImGuiPerfWidget::Update(float _frameTime, float _mainTime)

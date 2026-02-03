@@ -7,6 +7,7 @@
 
 #include "HelpersImGui.h"
 
+
 #if LVK_WITH_GLFW
 #include "imgui/backends/imgui_impl_glfw.cpp"
 #endif // LVK_WITH_GLFW
@@ -14,6 +15,10 @@
 #include <math.h>
 
 #include <vector>
+
+#if LVK_WITH_IMPLOT
+#include "implot.h"
+#endif
 
 namespace {
 
@@ -119,7 +124,7 @@ ImGuiRenderer::ImGuiRenderer(lvk::IContext& device, lvk::LVKwindow* window, cons
 #endif // LVK_WITH_IMPLOT
 
   ImGuiIO& io = ImGui::GetIO();
-  io.BackendRendererName = "imgui-lvk";
+  io.BackendRendererName = "imgui-lvk-pdl";
   io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
   io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -129,7 +134,10 @@ ImGuiRenderer::ImGuiRenderer(lvk::IContext& device, lvk::LVKwindow* window, cons
   ImGui_ImplGlfw_InitForOther(window, window ? true : false);
 #endif // LVK_WITH_GLFW
 
-  updateFont(defaultFontTTF, fontSizePixels);
+  if (defaultFontTTF)
+  {
+    updateFont(defaultFontTTF, fontSizePixels);
+  }
 
   vert_ = ctx_.createShaderModule({codeVS, Stage_Vert, "Shader Module: imgui (vert)"});
   frag_ = ctx_.createShaderModule({codeFS, Stage_Frag, "Shader Module: imgui (frag)"});

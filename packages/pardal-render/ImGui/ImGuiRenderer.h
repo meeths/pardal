@@ -5,14 +5,16 @@
 #include "Containers/Vector.h"
 #include "ImGui/ImGuiRenderable.h"
 #include "Math/Vector2.h"
+#include "Memory/UniquePointer.h"
+#include "Renderer/Vulkan/lvk/HelpersImGui.h"
 #include "Threading/SRWSynchronized.h"
 
 // Created on 2025-04-01 by sisco
 
 namespace pdl
 {
+class IRenderer;
 class ImGuiRenderable;
-class IRenderDevice;
 class ApplicationWindow;
 
 class ImGuiRenderer 
@@ -21,19 +23,20 @@ public:
     struct InitInfo
     {
         ApplicationWindow& m_window;
-        IRenderDevice* m_device;
-        bool m_useHDR = false;
+        IRenderer* m_renderer;
     };
     void Initialize(const InitInfo& initInfo);
     ~ImGuiRenderer();
     
-    void BeginFrame();
-    void EndFrame();
     void Render();
 
     void RegisterRenderable(ImGuiRenderable* renderable);
     void UnregisterRenderable(ImGuiRenderable* renderable);
-    
+
+
+#ifdef PDL_VULKAN
+     lvk::ImGuiRenderer& GetRenderer() const { return *m_lvkImGuiRenderer; }
+#endif
 private:
     void OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods);
     void OnMouseWheelV(float pos);
@@ -42,8 +45,6 @@ private:
     void OnKeyDown(int16 key);
     void OnKeyInput(int16 key);
 
-    void CheckHotkeys();
-    
     enum class ViewMode
     {
         Full,
@@ -53,7 +54,7 @@ private:
 
     ViewMode m_viewMode = ViewMode::Full;
 #ifdef PDL_VULKAN
-    IRenderDevice* m_device = nullptr;
+    UniquePointer<lvk::ImGuiRenderer> m_lvkImGuiRenderer;
 #endif
     SRWSynchronized<Vector<ImGuiRenderable*>> m_renderables;
 };

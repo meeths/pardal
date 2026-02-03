@@ -13,7 +13,8 @@ function includeVulkan()
         "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
         "VULKAN_HPP_NO_SPACESHIP_OPERATOR",
         "PDL_VULKAN",
-        "LVK_WITH_SLANG"
+        "LVK_WITH_SLANG",
+        "LVK_WITH_IMPLOT"
     }
     filter { "platforms:win32 or win64"}
         defines {"VK_USE_PLATFORM_WIN32_KHR"}

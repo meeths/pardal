@@ -22,7 +22,9 @@ public:
         bool m_enableValidation = true;
         bool m_useVSync = true;
         bool m_useHDR = false;
+        bool m_useLinearColorSpace = false;
         String m_pipelineCachePath;
+        int m_preferredDeviceIndex = -1;
     };
     
     virtual ~IRenderer() = default;
@@ -31,17 +33,6 @@ public:
     
     virtual Expected<void, StringView> InitSwapchain(uint32 width, uint32 height) = 0;
     
-    virtual Expected<ICommandBuffer*, StringView> GetCommandBuffer() = 0;
-    virtual Expected<void, StringView> SubmitCommandBuffer(ICommandBuffer* commandBuffer, TextureHandle presentTarget = {}) = 0;
-    
-    virtual Expected<BufferHandle, StringView> CreateBuffer(uint32 size, 
-        BufferUsage usage,
-        MemoryType memoryType) = 0;
-    
-    virtual void Destroy(TextureHandle bufferHandle) = 0;
-    virtual void Destroy(BufferHandle bufferHandle) = 0;
-    
-    virtual TextureHandle GetCurrentSwapchainTexture() const = 0;
 
 };
 

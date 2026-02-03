@@ -15,12 +15,12 @@ namespace pdl
     InputManager_ImGui::InputManager_ImGui(InputManager& inputManager) :
         m_inputManager(inputManager)
     {
-        //ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().RegisterRenderable(this);
     }
 
     InputManager_ImGui::~InputManager_ImGui()
     {
-        //ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
+        ServiceLocator<ImGuiRenderer>::Ref().UnregisterRenderable(this);
     }
 
     void InputManager_ImGui::ImGuiMenuSetup()
