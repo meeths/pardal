@@ -1,7 +1,9 @@
 
 #include "Application/ApplicationWindow.h"
 #include "Base/DebugHelpers.h"
+#include "Base/ServiceLocator.h"
 #include "ImGui/ImGuiPerfWidget.h"
+#include "ImGui/ImGuiRenderer.h"
 #include "Input/InputManager.h"
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
@@ -12,7 +14,6 @@
 #include "Renderer/Shaders/device_host_structs.h"
 #include "Renderer/Vulkan/VulkanRenderer.h"
 #include "Renderer/Vulkan/lvk/HelpersImGui.h"
-#include "Renderer/Vulkan/lvk/vulkan/VulkanClasses.h"
 #include "String/StringUtils.h"
 #include "Time/Chronometer.h"
 
@@ -67,62 +68,9 @@ int main(int argc, char** argv)
         .m_useVSync = true,
         .m_useHDR = false
     };
-    //auto renderer = pdl::CreateRenderer(pdl::RenderDeviceType::Vulkan, rendererInitInfo);
-
-    lvk::ContextConfig contextConfig;
-    pdl::UniquePointer<lvk::VulkanContext> context = pdl::MakeUniquePointer<lvk::VulkanContext>(contextConfig, window.GetNativeWindow());
-
-    lvk::HWDeviceDesc devices[16];
-    const uint32_t numDevices = context->queryDevices(devices, LVK_ARRAY_NUM_ELEMENTS(devices));
-
-    if (!numDevices) {
-        LVK_ASSERT_MSG(false, "GPU is not found");
-    }
-    int selectedDevice = -1;
-    lvk::HWDeviceType preferredDeviceType = lvk::HWDeviceType_Discrete;
+    auto renderer = pdl::CreateRenderer(pdl::RenderDeviceType::Vulkan, rendererInitInfo);
+    auto* context = ((pdl::VulkanRenderer*)renderer.get())->GetLVKContext();
     
-    if (selectedDevice < 0) {
-        selectedDevice = [preferredDeviceType, &devices, numDevices]() -> int {
-            // define device type priority order
-            lvk::HWDeviceType priority[4] = {preferredDeviceType};
-            {
-                int index = 1;
-                for (int type = lvk::HWDeviceType_Integrated; type <= lvk::HWDeviceType_Software; type++) {
-                    if (type != preferredDeviceType)
-                        priority[index++] = (lvk::HWDeviceType)type;
-                }
-            }
-            // search devices in priority order
-            for (lvk::HWDeviceType type : priority) {
-                for (uint32_t i = 0; i < numDevices; i++) {
-                    if (devices[i].type == type)
-                        return (int)i;
-                }
-            }
-            return 0;
-        }();
-    }
-
-    if (selectedDevice >= numDevices) {
-        LVK_ASSERT_MSG(false, "Invalid device index");
-    }
-
-    lvk::Result res = context->initContext(devices[selectedDevice]);
-
-    if (!res.isOk()) {
-        LVK_ASSERT_MSG(false, "createVulkanContextWithSwapchain() failed");
-    }
-
-    if (window.GetWindowSize().x > 0 && window.GetWindowSize().y > 0) {
-        res = context->initSwapchain(window.GetWindowSize().x, window.GetWindowSize().y);
-        if (!res.isOk()) {
-            LVK_ASSERT_MSG(false, "initSwapchain() failed");
-        }
-    }
-    
-    auto imgui_ = std::make_unique<lvk::ImGuiRenderer>(
-    *context, nullptr);
-
     lvk::Result outResult;
     lvk::Holder<lvk::ShaderModuleHandle> vert_ = context->createShaderModule({codeSlang, lvk::Stage_Vert, "Shader Module: main (vert)"}, &outResult);
     lvk::Holder<lvk::ShaderModuleHandle> frag_ = context->createShaderModule({codeSlang, lvk::Stage_Frag, "Shader Module: main (frag)"}, &outResult);
@@ -147,7 +95,7 @@ int main(int argc, char** argv)
     
     while (!window.IsCloseRequested())
     {
-        pdlMaybeUnused float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
+        float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
         perfWidget.Update(deltaTime, 0);
         auto inputManagerResults = inputManager.Update();
         window.Update();
@@ -157,11 +105,7 @@ int main(int argc, char** argv)
             pdlLogError("%s", inputManagerResults.error().c_str());
         }
 
-        lvk::RenderPass rp
-        {
-            
-        };
-        
+      
         auto& cmd = context->acquireCommandBuffer();
         lvk::Framebuffer framebuffer{
                 .color = {{.texture = context->getCurrentSwapchainTexture()}}
@@ -172,34 +116,14 @@ int main(int argc, char** argv)
         cmd.cmdBindRenderPipeline(renderPipelineState_Triangle_);
         cmd.cmdDraw(3);
 
+        auto& imguiRenderer  = pdl::ServiceLocator<pdl::ImGuiRenderer>::Ref();
         
-        imgui_->beginFrame(framebuffer);
-        perfWidget.ImGuiRender();
-        imgui_->endFrame(cmd);
+        imguiRenderer.GetRenderer().beginFrame(framebuffer);
+        imguiRenderer.Render();
+        imguiRenderer.GetRenderer().endFrame(cmd);
         cmd.cmdEndRendering();
         context->submit(cmd, context->getCurrentSwapchainTexture());
 
-        
-        // auto getCommandBufferResults = renderer->GetCommandBuffer();
-        // if (!getCommandBufferResults)
-        // {
-        //     pdlLogError("%s", getCommandBufferResults.error().data());
-        //     continue;
-        // }
-        // auto* commandBuffer = getCommandBufferResults.value();
-        // pdl::RenderPass rp;
-        // rp.m_colorAttachments[0].clearColor.x = 1.0f;
-        // rp.m_colorAttachments[0].loadOp = pdl::LoadOp::Clear;
-        // pdl::Framebuffer fb;
-        // fb.m_colorAttachments[0].m_texture = renderer->GetCurrentSwapchainTexture();
-        // commandBuffer->BeginRendering(rp, fb, {});
-        // commandBuffer->EndRendering();
-        // auto submitResults = renderer->SubmitCommandBuffer(commandBuffer, renderer->GetCurrentSwapchainTexture());
-        // if (!submitResults)
-        // {
-        //     pdlLogError("Error submitting command buffer: %s", submitResults.error().data());
-        //     continue;
-        // }
         
         pdlLogFlush();
     }
