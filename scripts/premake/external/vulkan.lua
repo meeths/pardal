@@ -4,16 +4,17 @@
 ---
 
 VULKAN_SDK_VERSION = "1.4.341.1"
+VULKAN_DIR = BASE_DIR .. "external/downloaded/VulkanSDK/"..VULKAN_SDK_VERSION
 
 function getVulkan()
     VULKAN_INSTALLER = BASE_DIR .. "temp/slang.zip"
     VULKAN_URL = "https://sdk.lunarg.com/sdk/download/" .. VULKAN_SDK_VERSION .. "/windows/vulkansdk-windows-X64-" .. VULKAN_SDK_VERSION .. ".exe"
-    downloadAndInstallEXE("Vulkan_" .. VULKAN_SDK_VERSION, VULKAN_URL, "C:/VulkanSDK/" .. VULKAN_SDK_VERSION, "--accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.vma com.lunarg.vulkan.volk copy_only=1")
+    downloadAndInstallEXE("Vulkan_" .. VULKAN_SDK_VERSION, VULKAN_URL, VULKAN_DIR, "--root " .. VULKAN_DIR .. " --accept-licenses --default-answer --confirm-command install com.lunarg.vulkan.vma com.lunarg.vulkan.volk copy_only=1")
 end
 
 function includeVulkan()
-    includedirs { "C:/VulkanSDK/" .. VULKAN_SDK_VERSION .. "/Include" }
-    includedirs { "C:/VulkanSDK/" .. VULKAN_SDK_VERSION .. "/Source" }
+    includedirs { VULKAN_DIR .. "/Include" }
+    includedirs { VULKAN_DIR .. "/Source" }
     defines {
         "VULKAN_HPP_NO_EXCEPTIONS",
         "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
@@ -32,12 +33,12 @@ end
 
 function linkVulkan()
     filter { "platforms:Win32" }
-        libdirs {"C:/VulkanSDK/" .. VULKAN_SDK_VERSION .. "/Lib32"}
+        libdirs { VULKAN_DIR .. "/Lib32"}
     filter { "platforms:Win64"}
-        libdirs { "C:/VulkanSDK/" .. VULKAN_SDK_VERSION .. "/Lib" }
+        libdirs { VULKAN_DIR .. "/Lib" }
 
     filter {}
-        postbuildcommands { "{copy} C:/VulkanSDK/" .. VULKAN_SDK_VERSION .. "/Bin/shaderc_shared.dll %{cfg.buildtarget.directory}" }
+        postbuildcommands { "{copy} " .. VULKAN_DIR .."/Bin/shaderc_shared.dll %{cfg.buildtarget.directory}" }
 
     filter "kind:not StaticLib"
 --        links "vulkan-1.lib"
