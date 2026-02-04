@@ -3746,7 +3746,8 @@ lvk::VulkanContext::VulkanContext(const lvk::ContextConfig& config, void* window
 
   glslang_initialize_process();
 
-  LVK_ASSERT(createInstance().isOk());
+  auto createResults = createInstance();
+  LVK_ASSERT(createResults.isOk());
 
   if (!surface) {
     if (config_.enableHeadlessSurface) {
