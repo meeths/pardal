@@ -23,6 +23,7 @@ project "pardal-render"
 
     links { "pardal-core", "imgui" }
 
+    getVulkan()
     getSlang()
 
     configureCommonFlags()

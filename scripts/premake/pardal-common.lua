@@ -34,6 +34,23 @@ function downloadAndInstallNSIS(name, url, dstpath)
     end
 end
 
+
+function downloadAndInstallEXE(name, url, dstpath, options)
+    if not os.isdir(dstpath) then
+        TEMP_EXE_PATH = BASE_DIR .. "temp/" ..name..".exe"
+        io.write("Downloading " .. name .. " (" .. url ..")...")
+        os.mkdir(BASE_DIR .. "temp")
+        local result_str, response_code = http.download(url, TEMP_EXE_PATH)
+        print("done ("..result_str ..", "  ..response_code..")")
+        io.write("installing ".. name .. "...")
+        install_command = TEMP_EXE_PATH .. " "..options
+        print(install_command)
+        os.execute(install_command)
+        print("done")
+        os.remove(TEMP_EXE_PATH)
+    end
+end
+
 function configureCommonExternals()
     filter {}
     includeEASTL()
