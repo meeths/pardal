@@ -22,6 +22,3 @@
 [submodule "external/implot"]
 	path = external/implot
 	url = https://github.com/epezent/implot.git
-[submodule "external/EABase"]
-	path = external/EABase
-	url = https://github.com/electronicarts/EABase.git
