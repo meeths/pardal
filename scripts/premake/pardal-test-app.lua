@@ -27,8 +27,10 @@ project "pardal-test-app"
     includeVulkan()
     includeImGui()
     includeSlang()
+    includeAssimp()
     linkVulkan()
     linkSlang() 
+    linkAssimp()
     setConfigurations()
     
     links {"Tracy"}

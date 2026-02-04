@@ -31,6 +31,7 @@ project "pardal-render"
     includeVulkan()
     includeImGui()
     includeSlang()
+    includeAssimp()
     linkVulkan()
     setConfigurations()
     
