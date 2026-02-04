@@ -17,8 +17,6 @@ function includeVulkan()
     includedirs { VULKAN_DIR .. "/Source" }
     defines {
         "VULKAN_HPP_NO_EXCEPTIONS",
-        "VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1",
-        "VULKAN_HPP_NO_SPACESHIP_OPERATOR",
         "PDL_VULKAN",
         "LVK_WITH_SLANG",
         "LVK_WITH_IMPLOT"
@@ -41,7 +39,6 @@ function linkVulkan()
         postbuildcommands { "{copy} " .. VULKAN_DIR .."/Bin/shaderc_shared.dll %{cfg.buildtarget.directory}" }
 
     filter "kind:not StaticLib"
---        links "vulkan-1.lib"
         links "shaderc_shared.lib"
 
     filter "configurations:Debug"
