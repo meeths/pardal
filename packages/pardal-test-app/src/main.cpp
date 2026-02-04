@@ -16,6 +16,10 @@
 #include "String/StringUtils.h"
 #include "Time/Chronometer.h"
 
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 const char* codeSlang = R"(
 static const float2 pos[3] = float2[3](
   float2(-0.6, -0.4),
@@ -91,6 +95,8 @@ int main(int argc, char** argv)
     pdl::ImGuiPerfWidget perfWidget;
 
     pdl::InputManager inputManager;
+    
+    pdlMaybeUnused auto scene = aiImportFile("Test",aiProcessPreset_TargetRealtime_MaxQuality);
     
     while (!window.IsCloseRequested())
     {
