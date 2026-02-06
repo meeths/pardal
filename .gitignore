@@ -356,8 +356,9 @@ projects
 libs/
 
 bin/
-# Don't ignore vulkan bins
-!external/vulkan_*/**
+
+# Don't ignore assimp bins
+!external/assimp*/**
 
 # Ignore external and tools downloaded files
 external/downloaded/**
