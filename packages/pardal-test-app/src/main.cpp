@@ -20,6 +20,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Profiling/Instrumentation.h"
+
 const char* codeSlang = R"(
 static const float2 pos[3] = float2[3](
   float2(-0.6, -0.4),
@@ -100,6 +102,8 @@ int main(int argc, char** argv)
     
     while (!window.IsCloseRequested())
     {
+        pdlProfileScopedN("Main loop");
+        
         float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
         perfWidget.Update(deltaTime, 0);
         auto inputManagerResults = inputManager.Update();
@@ -118,16 +122,27 @@ int main(int argc, char** argv)
         cmd.cmdBeginRendering({.color = {{.loadOp = lvk::LoadOp_Clear, .clearColor = {{1.0f, 0.0f, 1.0f, 0.0f}}}}},
                                  framebuffer);
         
-        cmd.cmdBindRenderPipeline(renderPipelineState_Triangle_);
-        cmd.cmdDraw(3);
+        {
+            pdlProfileScopedN("Triangle rendering");
+            cmd.cmdPushDebugGroupLabel("Triangle");
+            cmd.cmdBindRenderPipeline(renderPipelineState_Triangle_);
+            cmd.cmdDraw(3);
+            cmd.cmdPopDebugGroupLabel();
+        }
 
         auto& imguiRenderer  = pdl::ServiceLocator<pdl::ImGuiRenderer>::Ref();
-        
-        imguiRenderer.GetRenderer().beginFrame(framebuffer);
-        imguiRenderer.Render();
-        imguiRenderer.GetRenderer().endFrame(cmd);
-        cmd.cmdEndRendering();
-        context->submit(cmd, context->getCurrentSwapchainTexture());
+
+        {
+            pdlProfileScopedN("ImGui rendering");
+            imguiRenderer.GetRenderer().beginFrame(framebuffer);
+            imguiRenderer.Render();
+            imguiRenderer.GetRenderer().endFrame(cmd);
+        }
+        {
+            pdlProfileScopedN("Submitting command buffer");
+            cmd.cmdEndRendering();
+            context->submit(cmd, context->getCurrentSwapchainTexture());
+        }
 
         
         pdlLogFlush();
