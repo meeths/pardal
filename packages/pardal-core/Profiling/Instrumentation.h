@@ -3,12 +3,14 @@
 
 // Created on 2026-01-23 by sisco
 #ifdef PDL_FEATURE_TRACY
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 
 #define pdlProfilerInit() TracyNoop
 
 #define pdlProfileScoped() ZoneScoped
 #define pdlProfileScopedN(name) ZoneScopedN(name)
+#define pdlProfileScopedC(color) ZoneScopedC(color)
+#define pdlProfileScopedNC(name, color) ZoneScopedNC(name, color)
 #define pdlProfileAddText(text, size) ZoneText(text, size)
 
 #define pdlFrameMark() FrameMark

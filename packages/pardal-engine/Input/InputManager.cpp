@@ -4,6 +4,7 @@
 #include "Application/IApplicationWindow.h"
 #include "Input/InputStateUpdater.h"
 #include "Log/Log.h"
+#include "Profiling/Instrumentation.h"
 
 // Created on 2026-01-13 by sisco
 
@@ -21,6 +22,7 @@ namespace pdl
 
     Expected<void, String> InputManager::Update()
     {
+        pdlProfileScoped();
         auto updateResults = UpdateInternal();
         return updateResults;
     }
