@@ -69,9 +69,14 @@ namespace pdl
 
     Expected<void, String> InputStateUpdater::UpdateKeyboardState(KeyboardState& outKeyboardState)
     {
+        BYTE keyStates[256];
+        if (!GetKeyboardState(keyStates))
+        {
+            return Unexpected(String("Error getting keyboard state"));
+        }
         for (auto i = 0; i < 255; ++i)
         {
-            outKeyboardState.mKeys[i] = GetKeyState(i) & 0x8000;
+            outKeyboardState.mKeys[i] = keyStates[i] & 0x80;
         }
         return {};
     }
