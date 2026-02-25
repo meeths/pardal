@@ -1,5 +1,7 @@
 pardal = {}
 
+pardal.profiler = "None"
+
 include "premake-pardal-tests.lua"
 
 BASE_DIR = _MAIN_SCRIPT_DIR .. "/"
