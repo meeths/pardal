@@ -21,6 +21,11 @@ function includeVulkan()
         "LVK_WITH_SLANG",
         "LVK_WITH_IMPLOT"
     }
+
+    if pardal.profiler == "Tracy" then
+        defines {"LVK_WITH_TRACY", "LVK_WITH_TRACY_GPU"}
+    end
+    
     filter { "platforms:win32 or win64"}
         defines {"VK_USE_PLATFORM_WIN32_KHR"}
     filter { "toolset:clang" }
@@ -45,7 +50,7 @@ function linkVulkan()
         ignoredefaultlibraries { "msvcrt.lib" }
         links {"glslangd.lib", "SPIRV-Toolsd.lib", "SPIRV-Tools-optd.lib"}
 
-    filter "configurations:Release"
+    filter "configurations:Release or Profile"
         ignoredefaultlibraries { "msvcrtd.lib" }
         links {"glslang.lib", "SPIRV-Tools.lib", "SPIRV-Tools-opt.lib"}
 

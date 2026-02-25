@@ -7222,7 +7222,7 @@ lvk::Result lvk::VulkanContext::initContext(const HWDeviceDesc& desc) {
 
   if (hasHostQuery) {
     pimpl_->tracyVkCtx_ = TracyVkContextHostCalibrated(
-        vkPhysicalDevice_, vkDevice_, vkResetQueryPool, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsEXT);
+        vkPhysicalDevice_, vkDevice_, vkResetQueryPool, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsKHR);
   } else {
     const VkCommandPoolCreateInfo ciCommandPool = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
