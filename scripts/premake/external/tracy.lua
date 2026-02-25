@@ -3,8 +3,9 @@
 --- Created by franciscom.
 --- DateTime: 26/05/2025 16:17
 ---
+pardal.profiler = "Tracy"
 
-TRACY_VER = "0.11.1"
+TRACY_VER = "0.13.1"
 TRACY_DIR = BASE_DIR .. "external/downloaded/tracy"..TRACY_VER
 TRACY_TOOLS_DIR = BASE_DIR .. "tools/downloaded/tracy"..TRACY_VER
 
