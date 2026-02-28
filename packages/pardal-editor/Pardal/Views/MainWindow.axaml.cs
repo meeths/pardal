@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Pardal.Controls;
 
 namespace Pardal.Views;
 
