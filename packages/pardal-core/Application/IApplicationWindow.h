@@ -23,9 +23,11 @@ public:
     {
         bool m_fullScreen = false;
         Math::Vector2i m_windowSize = Math::Vector2i(1280, 720);
+        Math::Vector2i m_windowPosition = Math::Vector2i(0, 0);
         String m_windowTitle = "Pardal";
 
         bool m_showCursor = true;
+        void* m_parentWindow = nullptr;
     };
 
     IApplicationWindow() = default;
