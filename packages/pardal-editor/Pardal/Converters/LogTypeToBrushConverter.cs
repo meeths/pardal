@@ -23,9 +23,6 @@ public class LogTypeToBrushConverter : IValueConverter
             },
             "RowBackground" => type switch
             {
-                LogType.Info => new SolidColorBrush(Color.FromArgb(0x10, 0x22, 0x8B, 0x22)), // light green
-                LogType.Warning => new SolidColorBrush(Color.FromArgb(0x20, 0xFF, 0xA5, 0x00)), // light orange
-                LogType.Error => new SolidColorBrush(Color.FromArgb(0x20, 0xFF, 0x00, 0x00)), // light red
                 _ => Brushes.Transparent
             },
             _ => Brushes.Transparent
