@@ -19,7 +19,9 @@ function compileEASTL()
     files {
         "%{BASE_DIR}external/EASTL/source/**.cpp",
         "%{BASE_DIR}external/EASTL/include/**.h",
+        "%{BASE_DIR}external/EASTL/**.natvis",
         "%{BASE_DIR}external/EABAse/include/Common/**.h",
+        "%{BASE_DIR}external/EABAse/**.natvis",
     }
 end
 
