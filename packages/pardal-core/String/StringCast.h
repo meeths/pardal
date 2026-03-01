@@ -43,6 +43,9 @@ namespace StringCast
     int FromString(const StringView& valueStr);
 
     template <>
+    unsigned long long FromString(const StringView& valueStr);
+
+    template <>
     unsigned int FromString(const StringView& valueStr);
 
     template <>
