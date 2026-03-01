@@ -1,6 +1,7 @@
 
 #include <Engine/Engine.h>
 
+#include "CoreSystems.h"
 #include "EngineOptions.h"
 #include "Application/ApplicationWindow.h"
 #include "Application/IApplicationWindow.h"
@@ -69,9 +70,10 @@ namespace pdl
 
 	Expected<void, StringView> Engine::Initialize()
 	{
-		Memory::Initialize();
+		pdlAssert(CoreSystems::IsInitialized());
+		
 #ifndef PDL_RELEASE
-		Log::Instance().RegisterLogger(pdl::MakeSharedPointer<LoggerStdout>());
+		ServiceLocator<Log>::Ref().RegisterLogger(pdl::MakeSharedPointer<LoggerStdout>());
 #endif
 		
 		IApplicationWindow::InitInfoBase windowInitInfo;
@@ -79,12 +81,26 @@ namespace pdl
 		windowInitInfo.m_windowTitle = m_engineOptions.GetOption("window_title").value_or(Defaults::WindowTitle);
 		windowInitInfo.m_fullScreen = m_engineOptions.GetOption<bool>("fullscreen").value_or(Defaults::Fullscreen);
 		
+		if (auto windowHandleOption = m_engineOptions.GetOption<unsigned long long>("parent_window"))
+		{
+			windowInitInfo.m_parentWindow = reinterpret_cast<void*>(windowHandleOption.value());
+		}
+		
+		if (const auto windowRectOption =  m_engineOptions.GetOption<Math::Vector4>("window_rect"))
+		{
+			auto windowRect = windowRectOption.value();
+			windowInitInfo.m_windowPosition = {windowRect.x, windowRect.y};
+			windowInitInfo.m_windowSize = {windowRect.z, windowRect.w};
+		}
+		
 		m_applicationWindow = MakeSharedPointer<ApplicationWindow>(windowInitInfo);
 		m_applicationWindow->AddCloseCallback([this](){ m_closeRequested = true; });
 
 		auto initializeRendererResults = InitializeRenderer();
 		if (!initializeRendererResults)
-			return initializeRendererResults;
+		{
+			return Unexpected(initializeRendererResults.error());
+		}
 
 		m_inputManager = MakeSharedPointer<InputManager>();
 		

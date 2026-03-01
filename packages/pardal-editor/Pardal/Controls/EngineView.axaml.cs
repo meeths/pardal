@@ -81,6 +81,7 @@ public partial class EngineView : UserControl
         // For now, we use a default path or let the user provide it.
         // Assuming pardal-test-app.exe is in the same directory as the editor or a known location.
         // In a real scenario, this might come from a configuration.
+        //RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-engine-app\\Debug\\pardal-engine-app.exe");
         RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-test-app\\Debug\\pardal-test-app.exe");
     }
 
@@ -112,7 +113,7 @@ public partial class EngineView : UserControl
         double scaling = topLevel.RenderScaling;
 
         ProcessStartInfo startInfo = new ProcessStartInfo(exePath);
-        startInfo.Arguments = $"--parent-window {handle} --window-rect {(int)(bounds.X * scaling)} {(int)(bounds.Y * scaling)} {(int)(bounds.Width * scaling)} {(int)(bounds.Height * scaling)}";
+        startInfo.Arguments = $"--parent_window {handle} --window_rect ({(int)(bounds.X * scaling)}, {(int)(bounds.Y * scaling)}, {(int)(bounds.Width * scaling)}, {(int)(bounds.Height * scaling)})";
         startInfo.UseShellExecute = false;
         startInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
         startInfo.CreateNoWindow = true;
