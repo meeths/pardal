@@ -46,14 +46,8 @@ namespace pdl
 			);
 		}
 
-		if ((m_compilerOptions & CompilerOptions::TargetVulkan) == CompilerOptions::TargetVulkan)
-		{
-			options.push_back({
-					slang::CompilerOptionName::VulkanUseEntryPointName,
-		   {slang::CompilerOptionValueKind::Int, 1, 0, nullptr, nullptr}
-			   }
-		   );
-		}
+		// No VulkanUseEntryPointName: Slang renames all entry points to "main" in
+		// SPIRV output, which matches the LVK RenderPipelineDesc entryPoint* defaults.
 
 		sessionDesc.compilerOptionEntries = options.data();
 		sessionDesc.compilerOptionEntryCount = options.size();

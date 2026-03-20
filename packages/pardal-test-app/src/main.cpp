@@ -9,10 +9,12 @@
 #include "Log/LoggerStdout.h"
 #include "Math/Vector3.h"
 #include "Memory/Memory.h"
+#include "Renderer/IRHICommandBuffer.h"
+#include "Renderer/IRHIContext.h"
+#include "Renderer/IRenderer.h"
 #include "Renderer/RenderererDevices.h"
-#include "Renderer/Shaders/device_host_structs.h"
+#include "Renderer/Shaders/SlangShaderCompiler.h"
 #include "Renderer/Vulkan/VulkanRenderer.h"
-#include "Renderer/Vulkan/lvk/HelpersImGui.h"
 #include "String/StringUtils.h"
 #include "Time/Chronometer.h"
 
@@ -74,80 +76,101 @@ int main(int argc, char** argv)
         .m_useHDR = false
     };
     auto renderer = pdl::CreateRenderer(pdl::RenderDeviceType::Vulkan, rendererInitInfo);
-    auto* context = ((pdl::VulkanRenderer*)renderer.get())->GetLVKContext();
-    
-    lvk::Result outResult;
-    lvk::Holder<lvk::ShaderModuleHandle> vert_ = context->createShaderModule({codeSlang, lvk::Stage_Vert, "Shader Module: main (vert)"}, &outResult);
-    lvk::Holder<lvk::ShaderModuleHandle> frag_ = context->createShaderModule({codeSlang, lvk::Stage_Frag, "Shader Module: main (frag)"}, &outResult);
+    pdl::IRHIContext* rhi = renderer->GetRHIContext();
 
-    lvk::Holder<lvk::RenderPipelineHandle> renderPipelineState_Triangle_ = context->createRenderPipeline(
-    {
-        .smVert = vert_,
-        .smFrag = frag_,
-        .color = {{.format = context->getSwapchainFormat()}},
-    },
-    &outResult);
+    // Compile shaders
+    pdl::SlangShaderCompiler compiler({
+        .m_target          = pdl::SlangShaderCompiler::Target::SPIRV,
+        .m_compilerOptions = pdl::SlangShaderCompiler::CompilerOptions::TargetVulkan,
+    });
 
-    LVK_ASSERT(renderPipelineState_Triangle_.valid());
+    auto vertSpirv = compiler.CompileShader({ "main_vert", codeSlang, "vertexMain" });
+    auto fragSpirv = compiler.CompileShader({ "main_frag", codeSlang, "fragmentMain" });
+    pdlAssert(vertSpirv.has_value());
+    pdlAssert(fragSpirv.has_value());
 
-    
+    auto vertResult = rhi->CreateShaderModule({ .spirvData = vertSpirv->data(), .spirvSize = vertSpirv->size(), .debugName = "main_vert" });
+    auto fragResult = rhi->CreateShaderModule({ .spirvData = fragSpirv->data(), .spirvSize = fragSpirv->size(), .debugName = "main_frag" });
+    pdlAssert(vertResult.has_value());
+    pdlAssert(fragResult.has_value());
+
+    pdl::Holder<pdl::ShaderModuleHandle> vert(rhi, *vertResult);
+    pdl::Holder<pdl::ShaderModuleHandle> frag(rhi, *fragResult);
+
+    pdl::RenderPipelineDesc pipelineDesc;
+    pipelineDesc.vertexShader        = vert;
+    pipelineDesc.fragmentShader      = frag;
+    pipelineDesc.colorAttachments[0].format = rhi->GetSwapchainFormat();
+    pipelineDesc.numColorAttachments = 1;
+    pipelineDesc.debugName           = "Triangle";
+
+    auto pipelineResult = rhi->CreateRenderPipeline(pipelineDesc);
+    pdlAssert(pipelineResult.has_value());
+    pdl::Holder<pdl::RenderPipelineHandle> trianglePipeline(rhi, *pipelineResult);
+
+
     pdl::Chronometer frameTimer;
     frameTimer.Start();
-    
+
     pdl::ImGuiPerfWidget perfWidget;
 
     pdl::InputManager inputManager;
-    
+
     pdlMaybeUnused auto scene = aiImportFile("Test",aiProcessPreset_TargetRealtime_MaxQuality);
-    
+
     while (!window.IsCloseRequested())
     {
         pdlProfileScopedN("Main loop");
-        
+
         float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
         perfWidget.Update(deltaTime, 0);
         auto inputManagerResults = inputManager.Update();
         window.Update();
-        
+
         if (!inputManagerResults)
         {
             pdlLogError("%s", inputManagerResults.error().c_str());
         }
 
-      
-        auto& cmd = context->acquireCommandBuffer();
-        lvk::Framebuffer framebuffer{
-                .color = {{.texture = context->getCurrentSwapchainTexture()}}
-        };
-        cmd.cmdBeginRendering({.color = {{.loadOp = lvk::LoadOp_Clear, .clearColor = {{1.0f, 0.0f, 1.0f, 0.0f}}}}},
-                                 framebuffer);
-        
+        pdl::TextureHandle swapchainTexture = rhi->GetCurrentSwapchainTexture();
+
+        pdl::Framebuffer framebuffer;
+        framebuffer.m_colorAttachments[0].m_texture = swapchainTexture;
+
+        pdl::RenderPass renderPass;
+        renderPass.m_colorAttachments[0].clearColor = { 1.0f, 0.0f, 1.0f, 0.0f };
+        renderPass.m_colorAttachments[0].loadOp     = pdl::LoadOp::Clear;
+        renderPass.m_colorAttachments[0].storeOp    = pdl::StoreOp::Store;
+
+        auto& cmd = rhi->AcquireCommandBuffer();
+        cmd.CmdBeginRendering(renderPass, framebuffer);
+
         {
             pdlProfileScopedN("Triangle rendering");
-            cmd.cmdPushDebugGroupLabel("Triangle");
-            cmd.cmdBindRenderPipeline(renderPipelineState_Triangle_);
-            cmd.cmdDraw(3);
-            cmd.cmdPopDebugGroupLabel();
+            cmd.CmdPushDebugGroupLabel("Triangle");
+            cmd.CmdBindRenderPipeline(trianglePipeline);
+            cmd.CmdDraw(3);
+            cmd.CmdPopDebugGroupLabel();
         }
 
-        auto& imguiRenderer  = pdl::ServiceLocator<pdl::ImGuiRenderer>::Ref();
+        auto& imguiRenderer = pdl::ServiceLocator<pdl::ImGuiRenderer>::Ref();
 
         {
             pdlProfileScopedN("ImGui rendering");
-            imguiRenderer.GetRenderer().beginFrame(framebuffer);
+            imguiRenderer.BeginFrame(swapchainTexture);
             imguiRenderer.Render();
-            imguiRenderer.GetRenderer().endFrame(cmd);
+            imguiRenderer.EndFrame(cmd);
         }
         {
             pdlProfileScopedN("Submitting command buffer");
-            cmd.cmdEndRendering();
-            context->submit(cmd, context->getCurrentSwapchainTexture());
+            cmd.CmdEndRendering();
+            rhi->Submit(cmd, swapchainTexture);
         }
 
-        
+
         pdlLogFlush();
     }
-    
+
     return 0;
-    
+
 }

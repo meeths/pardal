@@ -1,5 +1,6 @@
 
 #pragma once
+#include "Base/Expected.h"
 #include "Renderer/RendererTypes.h"
 #include "Base/BaseTypes.h"
 #include "String/String.h"
@@ -9,6 +10,7 @@
 namespace pdl
 {
     class ICommandBuffer;
+    class IRHIContext;
     struct RenderDeviceInfo;
     class ApplicationWindow;
 
@@ -26,13 +28,14 @@ public:
         String m_pipelineCachePath;
         int m_preferredDeviceIndex = -1;
     };
-    
+
     virtual ~IRenderer() = default;
-    
+
     virtual const RenderDeviceInfo& GetDeviceInfo() const = 0;
-    
+
     virtual Expected<void, StringView> InitSwapchain(uint32 width, uint32 height) = 0;
-    
+
+    virtual IRHIContext* GetRHIContext() = 0;
 
 };
 

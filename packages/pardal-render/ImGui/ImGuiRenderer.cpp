@@ -11,8 +11,9 @@
 #endif
 
 #ifdef PDL_VULKAN
-#include <Renderer/Vulkan/VulkanRenderer.h>
-#include <Renderer/Vulkan/lvk/HelpersImGui.h> 
+#include <Renderer/IRenderer.h>
+#include <Renderer/Vulkan/VulkanRHIContext.h>
+#include <Renderer/Vulkan/lvk/HelpersImGui.h>
 #endif
 // Created on 2025-04-01 by sisco
 
@@ -159,9 +160,10 @@ namespace pdl
     void ImGuiRenderer::Initialize(const InitInfo& initInfo)
     {
 #ifdef PDL_VULKAN
-        auto* vulkanRenderer = static_cast<VulkanRenderer*>(initInfo.m_renderer);
-        
-        m_lvkImGuiRenderer = MakeUniquePointer<lvk::ImGuiRenderer>(*vulkanRenderer->GetLVKContext(), nullptr);
+        m_rhiContext = static_cast<VulkanRHIContext*>(initInfo.m_renderer->GetRHIContext());
+        auto* lvkCtx = m_rhiContext->GetLVKContext();
+
+        m_lvkImGuiRenderer = MakeUniquePointer<lvk::ImGuiRenderer>(*lvkCtx, nullptr);
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -272,6 +274,20 @@ namespace pdl
     {
         ImGui::GetIO().AddInputCharacter(key);
     }
+
+#ifdef PDL_VULKAN
+    void ImGuiRenderer::BeginFrame(TextureHandle colorTarget)
+    {
+        lvk::Framebuffer fb;
+        fb.color[0].texture = m_rhiContext->GetLVKTexture(colorTarget);
+        m_lvkImGuiRenderer->beginFrame(fb);
+    }
+
+    void ImGuiRenderer::EndFrame(IRHICommandBuffer& cmd)
+    {
+        m_lvkImGuiRenderer->endFrame(VulkanRHIContext::GetLVKCommandBuffer(cmd));
+    }
+#endif
 }
 
 #endif 

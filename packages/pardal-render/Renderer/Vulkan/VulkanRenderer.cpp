@@ -5,6 +5,7 @@
 #include "ImGui/ImGuiRenderer.h"
 #include "Log/Log.h"
 #include "Renderer/Vulkan/lvk/vulkan/VulkanClasses.h"
+#include "Renderer/RenderererInfo.h"
 
 namespace pdl
 {
@@ -64,9 +65,15 @@ namespace pdl
         return Unexpected<StringView>("Incorrect swapchain recreation dimensions");
     }
 
+    const RenderDeviceInfo& VulkanRenderer::GetDeviceInfo() const
+    {
+        static const RenderDeviceInfo s_empty{};
+        return m_rhiContext ? m_rhiContext->GetDeviceInfo() : s_empty;
+    }
+
     lvk::IContext* VulkanRenderer::GetLVKContext() const
     {
-        return m_context.get();
+        return m_rhiContext ? m_rhiContext->GetLVKContext() : nullptr;
     }
 
     Expected<void, StringView> VulkanRenderer::InitializeInstanceAndDevice(
@@ -122,6 +129,8 @@ namespace pdl
             return Unexpected<StringView>("Failed to initialize context");
         }
 
+        m_rhiContext = MakeUniquePointer<VulkanRHIContext>(m_context.get());
+
         auto windowRect = initInfo.m_applicationWindow.GetWindowSize();
         auto initSwapchainResults = InitSwapchain(windowRect.x, windowRect.y);
         if (!initSwapchainResults)
@@ -131,7 +140,7 @@ namespace pdl
 
         initInfo.m_applicationWindow.AddResizeCallback([this](Math::Vector2 size)
         {
-            GetLVKContext()->wait({});
+            m_rhiContext->WaitIdle();
             auto initSwapchainResults = InitSwapchain(static_cast<int>(size.x), static_cast<int>(size.y));
             if (!initSwapchainResults)
             {

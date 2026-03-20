@@ -51,3 +51,5 @@ pardal.create_test_project("pardal-render")
     includeSlang()
     linkVulkan()
     linkSlang()
+
+    links {"Tracy"}

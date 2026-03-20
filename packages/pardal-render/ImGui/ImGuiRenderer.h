@@ -6,8 +6,12 @@
 #include "ImGui/ImGuiRenderable.h"
 #include "Math/Vector2.h"
 #include "Memory/UniquePointer.h"
-#include "Renderer/Vulkan/lvk/HelpersImGui.h"
 #include "Threading/SRWSynchronized.h"
+
+#ifdef PDL_VULKAN
+#include "Renderer/IRHICommandBuffer.h"
+#include "Renderer/Vulkan/lvk/HelpersImGui.h"
+#endif
 
 // Created on 2025-04-01 by sisco
 
@@ -16,6 +20,9 @@ namespace pdl
 class IRenderer;
 class ImGuiRenderable;
 class ApplicationWindow;
+#ifdef PDL_VULKAN
+class VulkanRHIContext;
+#endif
 
 class ImGuiRenderer 
 {
@@ -35,7 +42,8 @@ public:
 
 
 #ifdef PDL_VULKAN
-     lvk::ImGuiRenderer& GetRenderer() const { return *m_lvkImGuiRenderer; }
+    void BeginFrame(TextureHandle colorTarget);
+    void EndFrame(IRHICommandBuffer& cmd);
 #endif
 private:
     void OnMouseMove(Math::Vector2 pos, bool lButton, bool rButton, bool mButton, unsigned int mods);
@@ -55,6 +63,7 @@ private:
     ViewMode m_viewMode = ViewMode::Full;
 #ifdef PDL_VULKAN
     UniquePointer<lvk::ImGuiRenderer> m_lvkImGuiRenderer;
+    VulkanRHIContext*                 m_rhiContext = nullptr;
 #endif
     SRWSynchronized<Vector<ImGuiRenderable*>> m_renderables;
 };
