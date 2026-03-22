@@ -72,6 +72,22 @@ TEST(ProgramArgumentsTest, IgnoresLoneDashAndDoubleDash)
     EXPECT_EQ(opts.at("a"), String("1"));
     EXPECT_EQ(opts.at("b"), String("2"));
 }
+    
+TEST(ProgramArgumentsTest, ParsesParenthesisAsSingleArg)
+{
+    auto opts = Parse("app.exe --a (1, 2, 3, 4)");
 
+    ASSERT_EQ(opts.size(), 1u);
+    EXPECT_EQ(opts.at("a"), String("(1, 2, 3, 4)"));
+}
+
+TEST(ProgramArgumentsTest, ParsesNestedParenthesisAsSingleArg)
+{
+    auto opts = Parse("app.exe --a (1, (2, 3), 4)");
+
+    ASSERT_EQ(opts.size(), 1u);
+    EXPECT_EQ(opts.at("a"), String("(1, (2, 3), 4)"));
+}
+    
 } // namespace Tests
 } // namespace pdl

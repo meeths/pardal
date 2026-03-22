@@ -36,7 +36,7 @@ namespace pdl
         default: color = RESET;
         }
 
-        std::cout << color << _log.c_str() << RESET << '\n';
+        std::cout << color << _log.c_str() << RESET;
     }
 
     void LoggerStdout::Flush()

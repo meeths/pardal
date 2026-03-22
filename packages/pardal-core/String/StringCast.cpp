@@ -75,6 +75,12 @@ namespace StringCast
     }
 
     template <>
+    unsigned long long FromString(const StringView& valueStr)
+    {
+        return std::stoull(valueStr.data());
+    }
+
+    template <>
     float FromString(const StringView& valueStr)
     {
         return std::stof(valueStr.data());

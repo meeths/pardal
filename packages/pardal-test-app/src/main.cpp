@@ -22,6 +22,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Engine/CoreSystems.h"
+#include "Engine/EngineOptions.h"
 #include "Profiling/Instrumentation.h"
 
 const char* codeSlang = R"(
@@ -57,14 +59,31 @@ float4 fragmentMain(float3 color : COLOR0) : SV_Target {
 
 int main(int argc, char** argv)
 {
-    pdl::Memory::Initialize();
+    if (!pdl::CoreSystems::Initialize())
+    {
+        return -1;
+    }
+        
 #ifndef PDL_RELEASE
-    pdl::Log::Instance().RegisterLogger(pdl::MakeSharedPointer<pdl::LoggerStdout>());
+    pdl::ServiceLocator<pdl::Log>::Ref().RegisterLogger(pdl::MakeSharedPointer<pdl::LoggerStdout>());
 #endif
 
     pdl::IApplicationWindow::InitInfoBase windowInitInfo;
     windowInitInfo.m_windowTitle = "pardal-test-app";
 
+    if (auto windowHandleOption = pdl::ServiceLocator<pdl::EngineOptions>::Ref().GetOption<unsigned long long>("parent_window"))
+    {
+        windowInitInfo.m_parentWindow = reinterpret_cast<void*>(windowHandleOption.value());
+    }
+		
+    if (const auto windowRectOption =  pdl::ServiceLocator<pdl::EngineOptions>::Ref().GetOption<pdl::Math::Vector4>("window_rect"))
+    {
+        auto windowRect = windowRectOption.value();
+        windowInitInfo.m_windowPosition = {windowRect.x, windowRect.y};
+        windowInitInfo.m_windowSize = {windowRect.z, windowRect.w};
+    }
+
+    
     pdl::ApplicationWindow window(windowInitInfo);
 
     pdl::IRenderer::InitInfo rendererInitInfo

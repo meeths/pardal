@@ -83,14 +83,19 @@ namespace pdl
             else
             {
                 dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE; // Window Extended Style
-                dwStyle = WS_OVERLAPPEDWINDOW; // Windows Style
+                if (initInfo.m_parentWindow)
+                {
+                    dwStyle = WS_CHILD;
+                }
+                else
+                {
+                    dwStyle = WS_OVERLAPPEDWINDOW; // Windows Style
+                }
             }
 
-            RECT windowRect = {0, 0, initInfo.m_windowSize.x, initInfo.m_windowSize.y};
+            RECT windowRect = {initInfo.m_windowPosition.x, initInfo.m_windowPosition.y, 
+                initInfo.m_windowPosition.x + initInfo.m_windowSize.x, initInfo.m_windowPosition.y + initInfo.m_windowSize.y};
             AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle); // Adjust Window To True Requested Size
-
-            windowRect.bottom -= windowRect.top;
-            windowRect.top = 0;
 
             m_hWnd = CreateWindow( // Extended style 
                 oWinClass.lpszClassName,
@@ -100,7 +105,7 @@ namespace pdl
                 windowRect.top, // Initial Y
                 windowRect.right - windowRect.left, // Width
                 windowRect.bottom - windowRect.top, // Height
-                NULL, // Handle to parent
+                (HWND)initInfo.m_parentWindow, // Handle to parent
                 NULL, // Handle to menu
                 m_applicationHandle, // Instance of app
                 this);
@@ -144,6 +149,8 @@ namespace pdl
                 }
             case WM_SIZE:
                 {
+                    if (!applicationWindow)
+                        break;
                     if (wParam == SIZE_MINIMIZED)
                     {
                         applicationWindow->m_lostFocusCallbacks();

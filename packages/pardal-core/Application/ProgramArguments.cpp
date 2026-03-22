@@ -17,10 +17,11 @@ namespace pdl
 
     void ProgramArguments::ParseArgsLine(StringView cmdLine, UnorderedMap<String, String>& outOptions)
     {
-        // Tokenize respecting quotes
+        // Tokenize respecting quotes and parentheses
         Vector<String> tokens;
         tokens.reserve(8);
         bool inQuotes = false;
+        int parenDepth = 0;
         String current;
         const char* data = cmdLine.data();
         size_t len = cmdLine.size();
@@ -33,7 +34,25 @@ namespace pdl
                 current.push_back('"');
                 continue;
             }
-            if (!inQuotes && (c == ' ' || c == '\t'))
+
+            if (!inQuotes)
+            {
+                if (c == '(')
+                {
+                    parenDepth++;
+                    current.push_back(c);
+                    continue;
+                }
+                else if (c == ')')
+                {
+                    if (parenDepth > 0)
+                        parenDepth--;
+                    current.push_back(c);
+                    continue;
+                }
+            }
+
+            if (!inQuotes && parenDepth == 0 && (c == ' ' || c == '\t'))
             {
                 if (!current.empty())
                 {

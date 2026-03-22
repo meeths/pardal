@@ -4,4 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Pardal.Controls.EngineView">
+    <Panel>
+        <Button Name="StartEngineButton" 
+                Content="Start Engine" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center"
+                Padding="20,10"
+                Click="OnStartEngineClick"/>
+    </Panel>
 </UserControl>
