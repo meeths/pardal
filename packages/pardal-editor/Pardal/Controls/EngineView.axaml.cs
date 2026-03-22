@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Reactive;
 using Avalonia.Controls;
@@ -11,6 +12,8 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
+using Pardal.Models;
+using Pardal.Services;
 
 namespace Pardal.Controls;
 
@@ -115,6 +118,8 @@ public partial class EngineView : UserControl
         ProcessStartInfo startInfo = new ProcessStartInfo(exePath);
         startInfo.Arguments = $"--parent_window {handle} --window_rect ({(int)(bounds.X * scaling)}, {(int)(bounds.Y * scaling)}, {(int)(bounds.Width * scaling)}, {(int)(bounds.Height * scaling)})";
         startInfo.UseShellExecute = false;
+        startInfo.RedirectStandardOutput = true;
+        startInfo.RedirectStandardError = true;
         startInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
         startInfo.CreateNoWindow = true;
         try
@@ -127,8 +132,13 @@ public partial class EngineView : UserControl
                 _engineHandle = IntPtr.Zero;
                 Dispatcher.UIThread.Post(UpdateVisuals);
             };
+
+            _engineProcess.OutputDataReceived += (s, e) => ProcessLogLine(e.Data, false);
+            _engineProcess.ErrorDataReceived += (s, e) => ProcessLogLine(e.Data, true);
             
             _engineProcess.Start();
+            _engineProcess.BeginOutputReadLine();
+            _engineProcess.BeginErrorReadLine();
             UpdateVisuals();
         }
         catch (Exception ex)
@@ -137,6 +147,119 @@ public partial class EngineView : UserControl
             _engineProcess = null;
             UpdateVisuals();
         }
+    }
+
+    public void StopEngine()
+    {
+        if (_engineProcess != null && !_engineProcess.HasExited)
+        {
+            try
+            {
+                _engineProcess.Kill();
+                _engineProcess.WaitForExit(1000);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error killing engine: {ex.Message}");
+            }
+            finally
+            {
+                _engineProcess = null;
+                _engineHandle = IntPtr.Zero;
+            }
+        }
+    }
+
+    private void ProcessLogLine(string? line, bool isErrorStream)
+    {
+        if (string.IsNullOrEmpty(line)) return;
+
+        // Strip ANSI codes and determine log level
+        LogType type = isErrorStream ? LogType.Error : LogType.Info;
+        
+        // Priority 1: ANSI codes
+        if (line.Contains("\u001b[1m\u001b[31m") || line.Contains("\u001b[31m"))
+        {
+            type = LogType.Error;
+        }
+        else if (line.Contains("\u001b[1m\u001b[33m") || line.Contains("\u001b[33m"))
+        {
+            type = LogType.Warning;
+        }
+        else if (line.Contains("\u001b[1m\u001b[32m") || line.Contains("\u001b[32m"))
+        {
+            type = LogType.Info;
+        }
+
+        // Remove ANSI codes
+        string cleanLine = Regex.Replace(line, @"\u001b\[[0-9;]*m", "").Trim();
+        if (string.IsNullOrEmpty(cleanLine)) return;
+
+        // Priority 2: Keywords at start of line or in brackets
+        if (type == LogType.Info || (isErrorStream && type == LogType.Error))
+        {
+            var upperLine = cleanLine.ToUpperInvariant();
+            if (upperLine.StartsWith("ERROR:") || upperLine.StartsWith("[ERROR]") || upperLine.Contains(" FATAL ") || upperLine.Contains("EXCEPTION:"))
+            {
+                type = LogType.Error;
+            }
+            else if (upperLine.StartsWith("WARNING:") || upperLine.StartsWith("[WARNING]") || upperLine.StartsWith("WARN:") || upperLine.StartsWith("[WARN]"))
+            {
+                type = LogType.Warning;
+            }
+        }
+
+        // Determine category
+        string category = "Engine";
+        
+        // Try to find [Category]
+        var categoryMatch = Regex.Match(cleanLine, @"^\[([^\]]+)\]");
+        if (categoryMatch.Success)
+        {
+            string candidate = categoryMatch.Groups[1].Value;
+            // If it's a level name, it might not be the category, but we'll accept it for now or look further
+            category = candidate;
+            cleanLine = cleanLine.Substring(categoryMatch.Length).TrimStart();
+            
+            // Check if there's another bracketed term or a colon (e.g. "[Category] [Level] Message" or "[Category] Level: Message")
+            var secondMatch = Regex.Match(cleanLine, @"^\[([^\]]+)\]");
+            if (secondMatch.Success)
+            {
+                // We found another bracket. If the first one was a level, swap them.
+                string firstUpper = category.ToUpperInvariant();
+                if (firstUpper == "INFO" || firstUpper == "WARNING" || firstUpper == "ERROR" || firstUpper == "DEBUG")
+                {
+                    category = secondMatch.Groups[1].Value;
+                    cleanLine = cleanLine.Substring(secondMatch.Length).TrimStart();
+                }
+            }
+        }
+        else
+        {
+            // Try to find "Category: "
+            categoryMatch = Regex.Match(cleanLine, @"^([A-Z][a-zA-Z0-9_]{1,20}):\s");
+            if (categoryMatch.Success)
+            {
+                string candidate = categoryMatch.Groups[1].Value;
+                string upperCandidate = candidate.ToUpperInvariant();
+                if (upperCandidate != "ERROR" && upperCandidate != "WARNING" && upperCandidate != "INFO" && upperCandidate != "DEBUG" && upperCandidate != "WARN")
+                {
+                    category = candidate;
+                    cleanLine = cleanLine.Substring(categoryMatch.Length).TrimStart();
+                }
+            }
+        }
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            Logger.Publish(new LogEntry
+            {
+                Timestamp = DateTime.Now,
+                Category = category,
+                Body = cleanLine,
+                Type = type
+            });
+        });
     }
 
     public override void Render(DrawingContext drawingContext)

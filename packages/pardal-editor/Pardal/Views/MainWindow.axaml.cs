@@ -10,10 +10,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Closing += (s, e) =>
+        {
+            var engineView = this.FindControl<EngineView>("MainEngineView");
+            engineView?.StopEngine();
+        };
     }
 
     private void HandleExitClick(object? sender, RoutedEventArgs e)
     {
-        Environment.Exit(0);
+        Close();
     }
 }
