@@ -27,8 +27,11 @@ includedirs {
 
 links { "pardal-core", "pardal-render" }
 
+includeVulkan()
 includeImGui()
 includeTaskflow()
+includeSlang()
+includeAssimp()
 
 configureCommonFlags()
 configureCommonExternals()
