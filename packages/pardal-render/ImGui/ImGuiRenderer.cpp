@@ -276,10 +276,12 @@ namespace pdl
     }
 
 #ifdef PDL_VULKAN
-    void ImGuiRenderer::BeginFrame(TextureHandle colorTarget)
+    void ImGuiRenderer::BeginFrame(TextureHandle colorTarget, TextureHandle depthTarget)
     {
         lvk::Framebuffer fb;
         fb.color[0].texture = m_rhiContext->GetLVKTexture(colorTarget);
+        if (depthTarget.IsValid())
+            fb.depthStencil.texture = m_rhiContext->GetLVKTexture(depthTarget);
         m_lvkImGuiRenderer->beginFrame(fb);
     }
 

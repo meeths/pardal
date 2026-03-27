@@ -42,7 +42,7 @@ public:
 
 
 #ifdef PDL_VULKAN
-    void BeginFrame(TextureHandle colorTarget);
+    void BeginFrame(TextureHandle colorTarget, TextureHandle depthTarget = {});
     void EndFrame(IRHICommandBuffer& cmd);
 #endif
 private:
