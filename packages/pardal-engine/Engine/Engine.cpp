@@ -5,12 +5,21 @@
 #include "EngineOptions.h"
 #include "Application/ApplicationWindow.h"
 #include "Application/IApplicationWindow.h"
+#include "ImGui/ImGuiPerfWidget.h"
 #include "Input/InputManager.h"
 #include "Log/Log.h"
 #include "Log/LoggerStdout.h"
 #include "Memory/Memory.h"
+#include "Render/RenderGraph.h"
+#include "Render/Passes/DebugRenderGraphPass.h"
 #include "Renderer/IRenderer.h"
+#include "Renderer/IRHIContext.h"
+#include "Renderer/RenderererDevices.h"
 #include "Time/Chronometer.h"
+
+#ifdef PDL_VULKAN
+#include "Renderer/Vulkan/VulkanRenderer.h"
+#endif
 
 // Created on 2026-01-11 by Sisco
 namespace Defaults
@@ -42,7 +51,8 @@ namespace pdl
 		frameTimer.Start();
 		do
 		{
-
+			const float deltaTime = frameTimer.Lap<float, pdl::TimeTypes::Seconds>();
+			m_perfWidget->Update(deltaTime, deltaTime);
 			auto inputManagerUpdateResults = m_inputManager->Update();
 			if (!inputManagerUpdateResults)
 			{
@@ -51,7 +61,8 @@ namespace pdl
 			}
 			m_applicationWindow->Update();
 
-			
+			m_renderGraph->Execute(*m_renderer->GetRHIContext());
+
 			pdlLogFlush();
 
 		} while (!IsCloseRequested());
@@ -103,21 +114,78 @@ namespace pdl
 		}
 
 		m_inputManager = MakeSharedPointer<InputManager>();
-		
+
+		auto initializeRenderGraphResults = InitializeRenderGraph();
+		if (!initializeRenderGraphResults)
+		{
+			return Unexpected(initializeRenderGraphResults.error());
+		}
+
+		m_perfWidget = MakeUniquePointer<ImGuiPerfWidget>();
 		
 		return {};
 	}
 
 	Expected<void, StringView> Engine::InitializeRenderer()
 	{
-		pdlMaybeUnused auto rendererOption = m_engineOptions.GetOption("renderer_backend").value_or(Defaults::RendererBackend);
-		
+		const auto backendStr = m_engineOptions.GetOption("renderer_backend").value_or(Defaults::RendererBackend);
+		const auto deviceType = StringCast::FromString<RenderDeviceType>(backendStr);
+
+		if (deviceType == RenderDeviceType::None)
+		{
+			return Unexpected<StringView>("Unknown renderer backend");
+		}
+
+		IRenderer::InitInfo initInfo
+		{
+			.m_applicationName   = m_engineOptions.GetOption("application_name").value_or(Defaults::ApplicationName),
+			.m_applicationWindow = static_cast<ApplicationWindow&>(*m_applicationWindow),
+			.m_enableValidation  = m_engineOptions.GetOption<bool>("enable_validation").value_or(Defaults::EnableValidation),
+			.m_useVSync          = m_engineOptions.GetOption<bool>("vsync").value_or(Defaults::VSync),
+			.m_useHDR            = m_engineOptions.GetOption<bool>("hdr").value_or(Defaults::HDR),
+			.m_preferredDeviceIndex = m_engineOptions.GetOption<int>("device_index").value_or(-1),
+		};
+
+		m_renderer = CreateRenderer(deviceType, initInfo);
+		if (!m_renderer)
+		{
+			return Unexpected<StringView>("Failed to create renderer");
+		}
+
 		return {};
-	
+	}
+
+	Expected<void, StringView> Engine::InitializeRenderGraph()
+	{
+		m_renderGraph = MakeUniquePointer<RenderGraph>();
+
+#ifdef PDL_FEATURE_IMGUI
+		m_renderGraph->AddPass(MakeUniquePointer<DebugRenderGraphPass>());
+#endif
+
+		m_renderGraph->Build(*m_renderer->GetRHIContext());
+
+		// Resize render targets whenever the window changes resolution.
+		// The renderer's own resize callback (registered earlier) already calls
+		// WaitIdle and recreates the swapchain before ours fires.
+		m_applicationWindow->AddResizeCallback([this](Math::Vector2 newSize)
+		{
+			if (newSize.x <= 0 || newSize.y <= 0)
+				return;
+			m_renderGraph->Resize(
+				*m_renderer->GetRHIContext(),
+				static_cast<uint32>(newSize.x),
+				static_cast<uint32>(newSize.y));
+		});
+
+		return {};
 	}
 
 	Expected<void, StringView> Engine::Shutdown()
 	{
+		m_renderer->GetRHIContext()->WaitIdle();
+		m_renderGraph.reset();
+		m_renderer.reset();
 		m_applicationWindow.reset();
 		return {};
 	}
