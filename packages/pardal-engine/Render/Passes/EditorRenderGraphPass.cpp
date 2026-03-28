@@ -4,6 +4,7 @@
 #include "Render/Passes/EditorRenderGraphPass.h"
 
 #include "Geometry/GeometryGenerator.h"
+#include "Input/InputManager.h"
 #include "Log/Log.h"
 #include "Math/Matrix44.h"
 #include "Render/RenderTargetCache.h"
@@ -199,6 +200,15 @@ void EditorRenderGraphPass::InitializeResources(IRHIContext& rhi)
 }
 
 // ---------------------------------------------------------------------------
+// Update
+// ---------------------------------------------------------------------------
+
+void EditorRenderGraphPass::Update(float deltaTime, const InputManager& input)
+{
+    m_camera.Update(deltaTime, input);
+}
+
+// ---------------------------------------------------------------------------
 // Execute
 // ---------------------------------------------------------------------------
 
@@ -231,17 +241,11 @@ void EditorRenderGraphPass::Execute(RenderGraphPassContext& ctx)
 
     // ── Camera ──────────────────────────────────────────────────────────────
     const float aspect = static_cast<float>(dims.width) / static_cast<float>(dims.height);
+    m_camera.SetAspect(aspect);
 
-    // perspectiveRH_ZO maps depth to [0,1] as Vulkan requires.
-    // Flip Y because Vulkan NDC has Y pointing down.
-    Math::Matrix44 proj = glm::perspectiveRH_ZO(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-    proj[1][1] *= -1.0f;
-
-    const glm::vec3      cameraPos = {1.5f, 1.5f, 3.0f};
-    const Math::Matrix44 view      = glm::lookAt(
-        cameraPos,
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f));
+    const Math::Matrix44& view      = m_camera.GetView();
+    const Math::Matrix44& proj      = m_camera.GetProj();
+    const Math::Vector3   cameraPos = m_camera.GetPosition();
 
     // ── Spinning wireframe cube ──────────────────────────────────────────────
     ctx.cmd.CmdBindRenderPipeline(m_pipeline);

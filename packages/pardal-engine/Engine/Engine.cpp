@@ -62,6 +62,7 @@ namespace pdl
 			}
 			m_applicationWindow->Update();
 
+			m_renderGraph->Update(deltaTime, *m_inputManager);
 			m_renderGraph->Execute(*m_renderer->GetRHIContext());
 
 			pdlLogFlush();
@@ -161,7 +162,9 @@ namespace pdl
 		m_renderGraph = MakeUniquePointer<RenderGraph>();
 
 #ifdef PDL_FEATURE_IMGUI
-		m_renderGraph->AddPass(MakeUniquePointer<EditorRenderGraphPass>());
+		auto editorPass = MakeUniquePointer<EditorRenderGraphPass>();
+		editorPass->SetWindow(*m_applicationWindow);
+		m_renderGraph->AddPass(std::move(editorPass));
 		m_renderGraph->AddPass(MakeUniquePointer<DebugRenderGraphPass>());
 #endif
 

@@ -2,7 +2,9 @@
 #pragma once
 #ifdef PDL_FEATURE_IMGUI
 
+#include "Application/IApplicationWindow.h"
 #include "Geometry/Mesh.h"
+#include "Render/Passes/EditorCamera.h"
 #include "Render/Passes/EditorGrid.h"
 #include "Render/RenderGraphPass.h"
 #include "Renderer/IRHIContext.h"
@@ -17,9 +19,8 @@ namespace pdl
 // Editor overlay pass — runs before the Debug (ImGui) pass.
 //
 // Clears the swapchain and the shared SceneDepth target, then renders
-// editor-specific geometry (currently: a wireframe test cube).
-// The Debug pass loads both targets with LoadOp::Load so the graph
-// automatically schedules it after this pass.
+// editor-specific geometry (wireframe cube + floor grid) using the
+// EditorCamera for Unity3D-style interactive navigation.
 class EditorRenderGraphPass : public RenderGraphPass
 {
 public:
@@ -28,8 +29,14 @@ public:
 
     StringView GetName() const override { return PassName; }
 
+    // Bind the application window so the camera can toggle cursor visibility.
+    void SetWindow(IApplicationWindow& window) { m_camera.Initialize(window); }
+
     // Declares: clear swapchain + SceneDepth, declare the SceneDepth target.
     void Setup(RenderGraphPassBuilder& builder) override;
+
+    // Updates the camera from input before rendering.
+    void Update(float deltaTime, const InputManager& input) override;
 
     // Lazy-initialises the wireframe pipeline and cube mesh on first call,
     // then records the draw commands.
@@ -51,6 +58,9 @@ private:
     // Floor grid
     EditorGrid m_grid;
     GridConfig m_gridConfig;
+
+    // Scene camera
+    EditorCamera m_camera;
 };
 
 } // namespace pdl
