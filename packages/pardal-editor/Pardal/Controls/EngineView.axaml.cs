@@ -84,8 +84,8 @@ public partial class EngineView : UserControl
         // For now, we use a default path or let the user provide it.
         // Assuming pardal-test-app.exe is in the same directory as the editor or a known location.
         // In a real scenario, this might come from a configuration.
-        //RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-engine-app\\Debug\\pardal-engine-app.exe");
-        RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-test-app\\Debug\\pardal-test-app.exe");
+        RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-engine-app\\Debug\\pardal-engine-app.exe");
+        //RunEngine("C:\\Users\\Sisco\\Projects\\pardal\\bin\\pardal-test-app\\Debug\\pardal-test-app.exe");
     }
 
     private void UpdateVisuals()
