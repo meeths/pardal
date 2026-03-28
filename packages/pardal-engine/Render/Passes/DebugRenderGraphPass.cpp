@@ -5,6 +5,7 @@
 
 #include "Base/ServiceLocator.h"
 #include "ImGui/ImGuiRenderer.h"
+#include "Render/Passes/EditorRenderGraphPass.h"
 #include "Render/RenderTargetCache.h"
 
 // Created on 2026-03-27 by Sisco
@@ -14,14 +15,21 @@ namespace pdl
 
 void DebugRenderGraphPass::Setup(RenderGraphPassBuilder& builder)
 {
-    // Write to the swapchain as an overlay: load existing content, then store.
-    // The RenderGraph detects this LoadOp::Load and schedules this pass after any
-    // pass that writes to the swapchain with a clearing op.
+    // Load existing colour and depth from the Editor pass — no clear.
+    // The RenderGraph detects LoadOp::Load and schedules this pass after any
+    // pass that writes these targets with a non-Load op (i.e. the Editor pass).
     builder.WriteColorTarget({
         .targetName = String(RenderTargetCache::Swapchain),
-        .loadOp     = LoadOp::Clear,
+        .loadOp     = LoadOp::Load,
         .storeOp    = StoreOp::Store,
-        .clearColor = {0.08f, 0.08f, 0.10f, 1.0f},
+    });
+
+    // Load the shared depth target so ImGui can depth-test if needed.
+    // StoreOp::DontCare: nothing reads depth after this final pass.
+    builder.WriteDepthTarget({
+        .targetName = String(EditorRenderGraphPass::DepthTargetName),
+        .loadOp     = LoadOp::Load,
+        .storeOp    = StoreOp::DontCare,
     });
 }
 

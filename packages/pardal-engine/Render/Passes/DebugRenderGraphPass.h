@@ -11,9 +11,9 @@ namespace pdl
 
 // Renders the ImGui overlay as the final pass in the render graph.
 //
-// Uses LoadOp::Load on the swapchain so it composites on top of whatever the
-// previous passes wrote.  The graph automatically orders this after any pass
-// that produces the swapchain with a non-Load op.
+// Uses LoadOp::Load on both the swapchain and the shared SceneDepth target so
+// it composites on top of the Editor pass without clearing either buffer.
+// The graph automatically orders this after EditorRenderGraphPass.
 class DebugRenderGraphPass : public RenderGraphPass
 {
 public:

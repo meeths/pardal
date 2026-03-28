@@ -12,6 +12,7 @@
 #include "Memory/Memory.h"
 #include "Render/RenderGraph.h"
 #include "Render/Passes/DebugRenderGraphPass.h"
+#include "Render/Passes/EditorRenderGraphPass.h"
 #include "Renderer/IRenderer.h"
 #include "Renderer/IRHIContext.h"
 #include "Renderer/RenderererDevices.h"
@@ -160,6 +161,7 @@ namespace pdl
 		m_renderGraph = MakeUniquePointer<RenderGraph>();
 
 #ifdef PDL_FEATURE_IMGUI
+		m_renderGraph->AddPass(MakeUniquePointer<EditorRenderGraphPass>());
 		m_renderGraph->AddPass(MakeUniquePointer<DebugRenderGraphPass>());
 #endif
 
