@@ -602,8 +602,14 @@ vk::BlendFactor VulkanUtils::GetBlendFactor(BlendMode::BlendFactor factor)
             return vk::BlendFactor::eDstColor;
         case BlendMode::BlendFactor::SrcAlpha:
             return vk::BlendFactor::eSrcAlpha;
+        case BlendMode::BlendFactor::OneMinusSrcAlpha:
+            return vk::BlendFactor::eOneMinusSrcAlpha;
+        case BlendMode::BlendFactor::DstAlpha:
+            return vk::BlendFactor::eDstAlpha;
+        case BlendMode::BlendFactor::OneMinusDstAlpha:
+            return vk::BlendFactor::eOneMinusDstAlpha;
     }
-    pdlAssert(0 && "Unsupported BlendFactor");   
+    pdlAssert(0 && "Unsupported BlendFactor");
     return vk::BlendFactor::eOne;
 }
 

@@ -620,6 +620,9 @@ namespace pdl
             DstColor,
             OneMinusDstColor,
             SrcAlpha,
+            OneMinusSrcAlpha,
+            DstAlpha,
+            OneMinusDstAlpha,
         };
         enum class BlendOp : uint8
         {
