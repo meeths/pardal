@@ -299,6 +299,15 @@ namespace pdl
         pdlNotImplemented();
     }
 
+    void ApplicationWindow::SetCursorVisible(bool visible)
+    {
+        pdlAssert(m_windowImpl);
+        if (m_cursorVisible == visible)
+            return;
+        m_cursorVisible = visible;
+        ShowCursor(visible ? TRUE : FALSE);
+    }
+
     Math::Vector2i ApplicationWindow::GetWindowSize() const
     {
         pdlAssert(m_windowImpl);

@@ -40,6 +40,7 @@ public:
     virtual void SetWindowSize(const Math::Vector2i& size) = 0;
     virtual void SetWindowTitle(StringView title) = 0;
     virtual void SetFullScreen(bool fullScreen) = 0;
+    virtual void SetCursorVisible(bool visible) = 0;
     
     virtual bool IsCloseRequested() const = 0;
     virtual Math::Vector2i GetWindowSize() const = 0;

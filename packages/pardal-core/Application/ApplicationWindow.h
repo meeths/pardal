@@ -20,6 +20,7 @@ public:
     void SetWindowSize(const Math::Vector2i& size) override;
     void SetWindowTitle(StringView title) override;
     void SetFullScreen(bool fullScreen) override;
+    void SetCursorVisible(bool visible) override;
     
     bool IsCloseRequested() const override { return m_closeRequested; }
     
