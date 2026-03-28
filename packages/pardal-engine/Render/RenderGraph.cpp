@@ -2,6 +2,7 @@
 #include "Render/RenderGraph.h"
 
 #include "Containers/UnorderedMap.h"
+#include "Input/InputManager.h"
 #include "Log/Log.h"
 #include "Renderer/IRHIContext.h"
 #include "Renderer/RenderererConstants.h"
@@ -174,6 +175,16 @@ void RenderGraph::Build(IRHIContext& rhi)
         pdlLogError("RenderGraph: Dependency cycle detected — %zu of %u passes will execute",
                     m_sortedIndices.size(), passCount);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Update — per-frame logic (input, camera, etc.)
+// ---------------------------------------------------------------------------
+
+void RenderGraph::Update(float deltaTime, const InputManager& input)
+{
+    for (const uint32 idx : m_sortedIndices)
+        m_passes[idx].pass->Update(deltaTime, input);
 }
 
 // ---------------------------------------------------------------------------

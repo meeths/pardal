@@ -10,6 +10,7 @@
 namespace pdl
 {
 class IRHIContext;
+class InputManager;
 
 class RenderGraph
 {
@@ -23,6 +24,10 @@ public:
     //   2. Explicit ReadTarget() declarations.
     //   3. Explicit DependsOn() constraints.
     void Build(IRHIContext& rhi);
+
+    // Calls Update() on every pass in dependency-resolved order.
+    // Must be called before Execute() each frame.
+    void Update(float deltaTime, const InputManager& input);
 
     // Acquires a command buffer, executes passes in dependency-resolved order,
     // and submits the frame for presentation.

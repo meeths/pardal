@@ -9,6 +9,7 @@
 namespace pdl
 {
 class IRHIContext;
+class InputManager;
 
 // Context provided to every pass during Execute().
 // The RenderGraph resolves the framebuffer and render pass configuration before
@@ -32,6 +33,10 @@ public:
     // Called once by RenderGraph::Build().
     // Declare render targets, attachments, and ordering constraints via builder.
     virtual void Setup(RenderGraphPassBuilder& builder) = 0;
+
+    // Called every frame before Execute(), in dependency-resolved order.
+    // Override to handle input (camera, picking, etc.) before the render commands.
+    virtual void Update(float /*deltaTime*/, const InputManager& /*input*/) {}
 
     // Called every frame in dependency-resolved order.
     // The pass is responsible for CmdBeginRendering / CmdEndRendering.
