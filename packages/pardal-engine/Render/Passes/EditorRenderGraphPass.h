@@ -3,8 +3,11 @@
 #ifdef PDL_FEATURE_IMGUI
 
 #include "Geometry/Mesh.h"
+#include "Render/Passes/EditorGrid.h"
 #include "Render/RenderGraphPass.h"
 #include "Renderer/IRHIContext.h"
+
+#include <chrono>
 
 // Created on 2026-03-28 by Sisco
 
@@ -37,10 +40,17 @@ private:
 
     bool m_initialized = false;
 
+    std::chrono::steady_clock::time_point m_startTime;
+
+    // Spinning wireframe cube
     Holder<ShaderModuleHandle>   m_vertexShader;
     Holder<ShaderModuleHandle>   m_fragmentShader;
     Holder<RenderPipelineHandle> m_pipeline;
     Mesh                         m_cubeMesh;
+
+    // Floor grid
+    EditorGrid m_grid;
+    GridConfig m_gridConfig;
 };
 
 } // namespace pdl

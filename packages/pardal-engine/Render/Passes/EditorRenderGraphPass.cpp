@@ -10,6 +10,7 @@
 #include "Renderer/RHIDescriptors.h"
 #include "Renderer/Shaders/SlangShaderCompiler.h"
 #include "Renderer/RendererTypes.h"
+#include "Renderer/IRHICommandBuffer.h"
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -35,7 +36,9 @@ struct PushConstants
 [shader("vertex")]
 float4 vertMain(float3 pos : POSITION) : SV_Position
 {
-    return mul(pc.transform, float4(pos, 1.0));
+    // GLM matrices are column-major; HLSL float4x4 is row-major.
+    // mul(v, M) correctly computes M_glm * v without a CPU-side transpose.
+    return mul(float4(pos, 1.0), pc.transform);
 }
 )";
 
@@ -189,6 +192,9 @@ void EditorRenderGraphPass::InitializeResources(IRHIContext& rhi)
     }
     m_pipeline = {&rhi, *pipelineResult};
 
+    m_grid.Initialize(rhi, rhi.GetSwapchainFormat());
+
+    m_startTime   = std::chrono::steady_clock::now();
     m_initialized = true;
 }
 
@@ -223,16 +229,26 @@ void EditorRenderGraphPass::Execute(RenderGraphPassContext& ctx)
         .height = dims.height,
     });
 
-    ctx.cmd.CmdBindRenderPipeline(m_pipeline);
-
-    // Simple MVP: perspective camera looking at the cube from slightly above.
+    // ── Camera ──────────────────────────────────────────────────────────────
     const float aspect = static_cast<float>(dims.width) / static_cast<float>(dims.height);
-    const Math::Matrix44 proj = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 100.0f);
-    const Math::Matrix44 view = glm::lookAt(
-        glm::vec3(1.5f, 1.5f, 3.0f),
+
+    // perspectiveRH_ZO maps depth to [0,1] as Vulkan requires.
+    // Flip Y because Vulkan NDC has Y pointing down.
+    Math::Matrix44 proj = glm::perspectiveRH_ZO(glm::radians(60.0f), aspect, 0.1f, 100.0f);
+    proj[1][1] *= -1.0f;
+
+    const glm::vec3      cameraPos = {1.5f, 1.5f, 3.0f};
+    const Math::Matrix44 view      = glm::lookAt(
+        cameraPos,
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f));
-    const Math::Matrix44 model = glm::mat4(1.0f);
+
+    // ── Spinning wireframe cube ──────────────────────────────────────────────
+    ctx.cmd.CmdBindRenderPipeline(m_pipeline);
+
+    const float elapsed = std::chrono::duration<float>(
+        std::chrono::steady_clock::now() - m_startTime).count();
+    const Math::Matrix44 model = glm::rotate(glm::mat4(1.0f), elapsed, glm::vec3(0.3f, 1.0f, 0.0f));
 
     WireframePushConstants pc;
     pc.transform = proj * view * model;
@@ -242,6 +258,9 @@ void EditorRenderGraphPass::Execute(RenderGraphPassContext& ctx)
 
     m_cubeMesh.Bind(ctx.cmd);
     m_cubeMesh.DrawIndexed(ctx.cmd);
+
+    // ── Floor grid ────────────────────────────────────────────────────────────
+    m_grid.Render(ctx.cmd, view, proj, cameraPos, m_gridConfig);
 
     ctx.cmd.CmdEndRendering();
 #endif
