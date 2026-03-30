@@ -80,32 +80,44 @@ namespace pdl
                 dwExStyle = WS_EX_APPWINDOW; // Window Extended Style
                 dwStyle = WS_POPUP; // Windows Style
             }
+            else if (initInfo.m_parentWindow)
+            {
+                // Child window embedded inside the host application.  No extended styles:
+                // WS_EX_APPWINDOW would force a taskbar button, WS_EX_WINDOWEDGE would add
+                // an unwanted 3-D border.  Vulkan present mode is forced to FIFO (blit model)
+                // for WS_CHILD surfaces — see VulkanClasses.cpp isChildWindowSurface_.
+                dwExStyle = 0;
+                dwStyle   = WS_CHILD;
+            }
             else
             {
                 dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE; // Window Extended Style
-                if (initInfo.m_parentWindow)
-                {
-                    dwStyle = WS_CHILD;
-                }
-                else
-                {
-                    dwStyle = WS_OVERLAPPEDWINDOW; // Windows Style
-                }
+                dwStyle   = WS_OVERLAPPEDWINDOW; // Windows Style
             }
 
-            RECT windowRect = {initInfo.m_windowPosition.x, initInfo.m_windowPosition.y, 
-                initInfo.m_windowPosition.x + initInfo.m_windowSize.x, initInfo.m_windowPosition.y + initInfo.m_windowSize.y};
-            AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle); // Adjust Window To True Requested Size
+            // Compute the outer (window) size from the desired client size.
+            // AdjustWindowRectEx works on a zero-origin rect so that it only inflates the
+            // *size*, never the position — applying it to a rect that already contains
+            // m_windowPosition would shift left/top by the frame insets and push the title
+            // bar off-screen.  Child and fullscreen windows have no non-client area so the
+            // adjustment is skipped for them.
+            RECT sizeRect = { 0, 0, initInfo.m_windowSize.x, initInfo.m_windowSize.y };
+            if (!initInfo.m_parentWindow && !initInfo.m_fullScreen)
+                AdjustWindowRectEx(&sizeRect, dwStyle, FALSE, dwExStyle);
 
-            m_hWnd = CreateWindow( // Extended style 
+            const int windowW = sizeRect.right  - sizeRect.left;
+            const int windowH = sizeRect.bottom - sizeRect.top;
+
+            m_hWnd = CreateWindowEx(
+                dwExStyle, // Extended style (was silently ignored when using CreateWindow)
                 oWinClass.lpszClassName,
                 StringUtils::ToWstring(initInfo.m_windowTitle).c_str(), // Title
-                dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, // Window Style
-                windowRect.left, // Initial X
-                windowRect.top, // Initial Y
-                windowRect.right - windowRect.left, // Width
-                windowRect.bottom - windowRect.top, // Height
-                (HWND)initInfo.m_parentWindow, // Handle to parent
+                dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE, // Window Style
+                initInfo.m_windowPosition.x, // Initial X (screen coords, unmodified)
+                initInfo.m_windowPosition.y, // Initial Y (screen coords, unmodified)
+                windowW, // Outer width  (includes non-client area for top-level windows)
+                windowH, // Outer height (includes non-client area for top-level windows)
+                (HWND)initInfo.m_parentWindow, // Parent (child mode) or owner (null otherwise)
                 NULL, // Handle to menu
                 m_applicationHandle, // Instance of app
                 this);
@@ -128,6 +140,13 @@ namespace pdl
 
             switch (msg)
             {
+            case WM_ERASEBKGND:
+                // Suppress GDI background erase.  Vulkan owns every pixel of this window;
+                // letting DefWindowProc fill the background with the GDI brush would either
+                // flicker (black flash before the next frame) or permanently paint over the
+                // Vulkan-presented content on drivers that serialise GDI and flip-model
+                // presentation (common on Windows 11).
+                return 1;
             case WM_DESTROY:
                 {
                     applicationWindow->m_closeCallbacks();
@@ -137,13 +156,16 @@ namespace pdl
             case WM_ACTIVATE:
             case WM_ACTIVATEAPP:
                 {
-                    if (wParam)
+                    if (applicationWindow)
                     {
-                        applicationWindow->m_focusCallbacks();
-                    }
-                    else
-                    {
-                        applicationWindow->m_lostFocusCallbacks();
+                        if (wParam)
+                        {
+                            applicationWindow->m_focusCallbacks();
+                        }
+                        else
+                        {
+                            applicationWindow->m_lostFocusCallbacks();
+                        }
                     }
                     break;
                 }
@@ -284,7 +306,7 @@ namespace pdl
     void ApplicationWindow::SetWindowSize(const Math::Vector2i& size)
     {
         pdlAssert(m_windowImpl);
-        SetWindowPos(m_windowImpl->m_hWnd, HWND_TOP, 0, 0, size.x, size.y, SWP_SHOWWINDOW);
+        SetWindowPos(m_windowImpl->m_hWnd, HWND_TOP, 0, 0, size.x, size.y, SWP_NOMOVE | SWP_SHOWWINDOW);
     }
 
     void ApplicationWindow::SetWindowTitle(StringView title)
