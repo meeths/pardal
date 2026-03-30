@@ -1100,7 +1100,19 @@ lvk::VulkanSwapchain::VulkanSwapchain(VulkanContext& ctx, uint32_t width, uint32
     return exceeded ? caps.maxImageCount : desired;
   };
 
-  auto chooseSwapPresentMode = [](const std::vector<VkPresentModeKHR>& modes) -> VkPresentModeKHR {
+  auto chooseSwapPresentMode = [isChild = ctx_.isChildWindowSurface_](const std::vector<VkPresentModeKHR>& modes) -> VkPresentModeKHR {
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    if (isChild) {
+      // WS_CHILD surfaces on Windows must use the FIFO (blit) present model.
+      // Flip-model modes (MAILBOX / IMMEDIATE via DXGI) require a top-level HWND; using
+      // them with a child-window surface causes DWM to silently discard the presented
+      // frames, resulting in an invisible (see-through) render area.
+      if (std::find(modes.cbegin(), modes.cend(), VK_PRESENT_MODE_FIFO_RELAXED_KHR) != modes.cend()) {
+        return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+      }
+      return VK_PRESENT_MODE_FIFO_KHR;
+    }
+#endif // VK_USE_PLATFORM_WIN32_KHR
 #if defined(__linux__) || defined(_M_ARM64)
     if (std::find(modes.cbegin(), modes.cend(), VK_PRESENT_MODE_IMMEDIATE_KHR) != modes.cend()) {
       return VK_PRESENT_MODE_IMMEDIATE_KHR;
@@ -6449,6 +6461,14 @@ void lvk::VulkanContext::createHeadlessSurface() {
 
 void lvk::VulkanContext::createSurface(void* window, void* display) {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
+  {
+    // Detect child windows up-front so the swapchain can choose an appropriate present
+    // mode.  WS_CHILD surfaces must use FIFO (blit model); flip-model modes (MAILBOX /
+    // IMMEDIATE) require a top-level HWND and silently produce invisible frames when used
+    // with child windows because DWM cannot composite them into the parent's surface.
+    const HWND hwnd = (HWND)window;
+    isChildWindowSurface_ = (GetWindowLongPtr(hwnd, GWL_STYLE) & WS_CHILD) != 0;
+  }
   const VkWin32SurfaceCreateInfoKHR ci = {
       .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
       .hinstance = GetModuleHandle(nullptr),

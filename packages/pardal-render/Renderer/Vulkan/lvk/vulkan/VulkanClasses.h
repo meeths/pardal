@@ -759,6 +759,11 @@ class VulkanContext final : public IContext {
   bool has_EXT_hdr_metadata_ = false;
   bool has_EXT_device_fault_ = false;
   bool has_EXT_shader_tile_image = false;
+  // True when the Vulkan surface was created for a WS_CHILD HWND.  Flip-model present
+  // modes (MAILBOX / IMMEDIATE via DXGI) require a top-level HWND on Windows and will
+  // silently fail to composite through DWM when used with child windows.  The swapchain
+  // present-mode selector reads this flag and falls back to FIFO (blit model) instead.
+  bool isChildWindowSurface_ = false;
   std::vector<const char*> enabledInstanceExtensionNames_;
   std::vector<const char*> enabledDeviceExtensionNames_;
 
